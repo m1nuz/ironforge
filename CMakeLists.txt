@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.0)
+
+project("ironforge projects")
+
+include(SubdirList.cmake)
+
+set(LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/)
+set(TOOLS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools/)
+
+SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+list(REMOVE_ITEM SUBDIRS ".git")
+list(REMOVE_ITEM SUBDIRS "build")
+
+FOREACH(subdir ${SUBDIRS})
+    ADD_SUBDIRECTORY(${subdir})
+ENDFOREACH()
