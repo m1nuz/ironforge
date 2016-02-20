@@ -10,7 +10,10 @@ namespace application {
 
     enum class result : int32_t {
         success = 0,
-        failure
+        failure,
+        error_init_sdl,
+        error_init_ttf,
+        error_init_video
     };
 
     enum class log_category : uint32_t { // categories
@@ -36,6 +39,7 @@ namespace application {
     auto init(const std::string& title) -> result;
     auto exec() -> result;
     auto cleanup() -> void;
+    auto get_string(result r) -> const char *;
 
     extern log_priority categories[static_cast<int>(log_category::max_category)];
     extern const char *category_names[static_cast<int>(log_category::max_category)];
@@ -66,14 +70,16 @@ namespace application {
         }
     };
 
+    // CSI colors
+    // https://en.wikipedia.org/wiki/ANSI_escape_code
     template<typename Arg, typename... Args>
     inline auto error(log_category category, const std::string& format, Arg&& arg, Args&&... args) -> void {
         if (categories[static_cast<int>(category)] < log_priority::info)
             return;
 
-        std::cerr << "\033[91m" << "ERROR: (" << category_names[static_cast<int>(category)] << ") ";
+        std::cerr << "\x1b[31;1m" << "ERROR: (" << category_names[static_cast<int>(category)] << ") ";
         output(std::cerr, format, std::forward<Arg>(arg), std::forward<Args>(args)...);
-        std::cerr << "\033[0m";
+        std::cerr << "\x1b[0m";
     }
 
     template<typename Arg, typename... Args>
@@ -81,9 +87,9 @@ namespace application {
         if (categories[static_cast<int>(category)] < log_priority::info)
             return;
 
-        std::cerr << "\033[94m"  << "WARNING: (" << category_names[static_cast<int>(category)] << ") ";
+        std::cerr << "\x1b[33m"  << "WARNING: (" << category_names[static_cast<int>(category)] << ") ";
         output(std::cerr, format, std::forward<Arg>(arg), std::forward<Args>(args)...);
-        std::cerr << "\033[0m";
+        std::cerr << "\x1b[0m";
     }
 
     template<typename Arg, typename... Args>
@@ -91,8 +97,18 @@ namespace application {
         if (categories[static_cast<int>(category)] < log_priority::info)
             return;
 
-        std::cout << "\033[0m"  << "INFO: (" << category_names[static_cast<int>(category)] << ") ";
+        std::cout << "\x1b[0m"  << "INFO: (" << category_names[static_cast<int>(category)] << ") ";
         output(std::cout, format, std::forward<Arg>(arg), std::forward<Args>(args)...);
-        std::cout << "\033[0m";
+        std::cout << "\x1b[0m";
+    }
+
+    template<typename Arg, typename... Args>
+    inline auto debug(log_category category, const std::string& format, Arg&& arg, Args&&... args) -> void {
+        if (categories[static_cast<int>(category)] < log_priority::info)
+            return;
+
+        std::cout << "\x1b[32m"  << "DEBUG: (" << category_names[static_cast<int>(category)] << ") ";
+        output(std::cout, format, std::forward<Arg>(arg), std::forward<Args>(args)...);
+        std::cout << "\x1b[0m";
     }
 } // namespace application
