@@ -4,6 +4,7 @@
 #include <string>
 
 #include <glcore_330.h>
+#include <ironforge_common.hpp>
 
 namespace video {
     namespace gles2 {
@@ -56,7 +57,7 @@ namespace video {
         error_create_context
     };
 
-    auto init(const std::string &title, int32_t w, int32_t h, bool vsync) -> result;
+    __must_ckeck auto init(const std::string &title, int32_t w, int32_t h, bool vsync) -> result;
     auto cleanup() -> void;
     auto present() -> void;
     auto get_string(result r) -> const char *;

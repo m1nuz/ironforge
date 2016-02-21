@@ -6,6 +6,8 @@
 #include <iostream>
 #include <utility>
 
+#include <ironforge_common.hpp>
+
 namespace application {
 
     enum class result : int32_t {
@@ -36,8 +38,8 @@ namespace application {
         max_priority
     };
 
-    auto init(const std::string& title) -> result;
-    auto exec() -> result;
+    __must_ckeck auto init(const std::string& title) -> result;
+    __must_ckeck auto exec() -> result;
     auto cleanup() -> void;
     auto get_string(result r) -> const char *;
 

@@ -36,6 +36,28 @@ namespace video {
         application::error(application::log_category::video, "%\n", message);
     }
 
+    static auto enable_debug() -> void {
+        auto glDebugMessageCallback = static_cast<PFNGLDEBUGMESSAGECALLBACKPROC>(nullptr);
+
+        auto ARB_debug_output = is_extension_supported("GL_ARB_debug_output");
+        auto KHR_debug = is_extension_supported("GL_KHR_debug");
+        auto debug_output_synchronous = static_cast<GLenum>(0);
+
+        if (ARB_debug_output) {
+            glDebugMessageCallback = reinterpret_cast<PFNGLDEBUGMESSAGECALLBACKPROC>(nativeGetProcAddress("glDebugMessageCallbackARB"));
+            debug_output_synchronous = GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB;
+        } else if (KHR_debug) {
+            glDebugMessageCallback = reinterpret_cast<PFNGLDEBUGMESSAGECALLBACKPROC>(nativeGetProcAddress("glDebugMessageCallback"));
+            debug_output_synchronous = GL_DEBUG_OUTPUT_SYNCHRONOUS;
+        }
+
+        if (glDebugMessageCallback) {
+            glDebugMessageCallback(debug_output, nullptr);
+            glEnable(GL_DEBUG_OUTPUT);
+            glEnable(debug_output_synchronous);
+        }
+    }
+
     auto init(const std::string &title, int32_t w, int32_t h, bool vsync) -> result {
         auto flags = static_cast<uint32_t>(SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
@@ -86,27 +108,8 @@ namespace video {
         if (srgb_capable)
             glEnable(GL_FRAMEBUFFER_SRGB);*/
 
-        if (debug) {
-            PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback = NULL;
-
-            bool ARB_debug_output = is_extension_supported("GL_ARB_debug_output");
-            bool KHR_debug = is_extension_supported("GL_KHR_debug");
-            GLenum debug_output_synchronous = 0;
-
-            if (ARB_debug_output) {
-                glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)(nativeGetProcAddress("glDebugMessageCallbackARB"));
-                debug_output_synchronous = GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB;
-            } else if (KHR_debug) {
-                glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)(nativeGetProcAddress("glDebugMessageCallback"));
-                debug_output_synchronous = GL_DEBUG_OUTPUT_SYNCHRONOUS;
-            }
-
-            if (glDebugMessageCallback) {
-                glDebugMessageCallback(debug_output, NULL);
-                glEnable(GL_DEBUG_OUTPUT);
-                glEnable(debug_output_synchronous);
-            }
-        }
+        if (debug)
+            enable_debug();
 
         return result::success;
     }
