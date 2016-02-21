@@ -1,7 +1,10 @@
 #include <core/application.hpp>
+#include <core/game.hpp>
 #include <video/video.hpp>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+
+#include <ironforge_common.hpp>
 
 namespace application {
 
@@ -9,6 +12,7 @@ namespace application {
     const char *category_names[] = {
         "Application",
         "System",
+        "Game",
         "Audio",
         "Video",
         "Render",
@@ -29,14 +33,20 @@ namespace application {
 
         atexit(TTF_Quit);
 
-        video::result r;
-        if ((r = video::init(title, 1280, 768, false)) != video::result::success) {
-            error(log_category::video, "%\n", video::get_string(r));
+        auto video_result = video::result::failure;
+        if ((video_result = video::init(title, 1280, 768, false)) != video::result::success) {
+            error(log_category::video, "%\n", video::get_string(video_result));
 
             return result::error_init_video;
         }
 
         info(log_category::video, "%\n", video::get_info());
+
+        auto game_result = game::result::failure;
+        if ((game_result = game::init()) != game::result::success) {
+            error(log_category::game, "%\n", game::get_string(game_result));
+            return result::error_init_game;
+        }
 
         return result::success;
     }
@@ -44,25 +54,47 @@ namespace application {
     auto exec() -> result {
         SDL_Event e;
 
-        while (running) {
-            while (SDL_PollEvent(&e)) {
+        auto current = 0ull;
+        auto last = 0ull;
+        auto timesteps = 0ull;
+        auto accumulator = 0.0f;
 
+        while (running) {
+            while (SDL_PollEvent(&e))
+                game::process_event(e);
+
+            last = current;
+            current = SDL_GetPerformanceCounter();
+            auto freq = SDL_GetPerformanceFrequency();
+
+            auto dt = static_cast<float>(static_cast<double>(current - last) / static_cast<double>(freq));
+
+            accumulator += glm::clamp(dt, 0.f, 0.2f);
+
+            while (accumulator >= timestep) {
+                accumulator -= timestep;
+
+                game::update(timestep);
+
+                timesteps++;
             }
 
-            if (e.type == SDL_KEYDOWN)
-                if (e.key.keysym.sym == SDLK_ESCAPE) {
-                    running = false;
-                }
-
+            game::present(accumulator / timestep);
             video::present();
         }
 
         return result::success;
     }
 
-    auto cleanup() -> void {
-        info(log_category::application, "%\n", "Cleanup");
+    auto quit() -> void {
+        running = false;
+    }
+
+    auto cleanup() -> void {        
+        game::cleanup();
         video::cleanup();
+
+        info(log_category::application, "%\n", "Cleanup");
     }
 
     auto get_string(result r) -> const char * {
@@ -79,8 +111,11 @@ namespace application {
         case result::error_init_video:
             return "Can't init video";
             break;
+        case result::error_init_game:
+            return "Can't init game";
+            break;
         default:
-            return "unknown error";
+            return "Unknown error";
             break;
         }
 

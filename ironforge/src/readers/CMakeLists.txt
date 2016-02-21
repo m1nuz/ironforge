@@ -1,4 +1,5 @@
 include_directories(../../include)
+include_directories(../../../lib/glm)
 
 file(GLOB_RECURSE headers "../../include/readers/*.hpp")
 file(GLOB_RECURSE detail_headers "./*.hpp")

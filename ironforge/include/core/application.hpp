@@ -15,12 +15,14 @@ namespace application {
         failure,
         error_init_sdl,
         error_init_ttf,
-        error_init_video
+        error_init_video,
+        error_init_game,
     };
 
     enum class log_category : uint32_t { // categories
         application,
         system,
+        game,
         audio,
         video,
         render,
@@ -38,8 +40,11 @@ namespace application {
         max_priority
     };
 
+    constexpr auto timestep = 0.001f;
+
     __must_ckeck auto init(const std::string& title) -> result;
     __must_ckeck auto exec() -> result;
+    auto quit() -> void;
     auto cleanup() -> void;
     auto get_string(result r) -> const char *;
 
