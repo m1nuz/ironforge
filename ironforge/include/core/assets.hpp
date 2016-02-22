@@ -51,4 +51,5 @@ namespace assets {
     __must_ckeck auto append(const std::string& ext, std::function<int32_t (SDL_RWops *rw, text_data &)> reader) -> result;
     __must_ckeck auto append(const std::string& ext, std::function<int32_t (SDL_RWops *rw, image_data &)> reader) -> result;
     __must_ckeck auto open(const std::string& path) -> result;
+    auto get_text(const std::string& name) -> text_data;
 } // namespace assets

@@ -17,6 +17,7 @@ namespace application {
         "Video",
         "Render",
         "Input",
+        "Scene"
     };
 
     _log_init_categories log_init_categories;

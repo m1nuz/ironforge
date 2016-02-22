@@ -11,6 +11,8 @@ namespace assets {
         text_readers.push_back(std::make_tuple(".vert", read_shader_text));
         text_readers.push_back(std::make_tuple(".frag", read_shader_text));
         text_readers.push_back(std::make_tuple(".glsl", read_shader_text));
+        text_readers.push_back(std::make_tuple(".lua", read_text));
+        text_readers.push_back(std::make_tuple(".scene", read_text));
         image_readers.push_back(std::make_tuple(".tga", read_targa));
     }
 
@@ -20,9 +22,17 @@ namespace assets {
         std::string filepath;
     };
 
+    // ext, reader
     std::unordered_map<std::string, std::function<int32_t (SDL_RWops *rw, binary_data &)>> binary_readers;
     std::unordered_map<std::string, std::function<int32_t (SDL_RWops *rw, text_data &)>>   text_readers;
     std::unordered_map<std::string, std::function<int32_t (SDL_RWops *rw, image_data &)>>  image_readers;
+
+    // name, data
+    std::unordered_map<std::string, binary_data>    binaries;
+    std::unordered_map<std::string, text_data>      texts;
+    std::unordered_map<std::string, image_data>     images;
+
+    // name, path
     std::unordered_map<std::string, data_source> files;
 
     static auto is_readable(const std::string &ext) -> bool {
@@ -103,5 +113,38 @@ namespace assets {
         }
 
         return result::success;
+    }
+
+    auto get_text(const std::string& name) -> text_data {
+        auto t = texts.find(name);
+
+        if (t != texts.end())
+            return t->second;
+
+        auto f = files.find(name);
+
+        if (f != files.end()) {
+            fs::path p(f->second.filepath);
+
+            auto r = text_readers.find(p.extension().string());
+
+            if (r != text_readers.end()) {
+                auto td = text_data{nullptr, 0};
+
+                auto ret = r->second(SDL_RWFromFile(f->second.filepath.c_str(), "r"), td);
+                if (ret != 0) {
+                    application::error(application::log_category::system, "Can't read file %\n", f->second.filepath);
+                    return {nullptr, 0};
+                }
+
+                application::debug(application::log_category::application, "Read file %\n", f->second.filepath);
+                texts.insert({p.filename().string(), td}); // TODO: free memory
+                return td;
+            }
+
+            return {nullptr, 0};
+        }
+
+        return {nullptr, 0};
     }
 } // namespace assets

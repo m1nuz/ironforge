@@ -27,6 +27,7 @@ namespace application {
         video,
         render,
         input,
+        scene,
         max_category
     };
 

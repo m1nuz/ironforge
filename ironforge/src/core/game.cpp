@@ -28,11 +28,11 @@ namespace game {
     }
 
     __must_ckeck auto init() -> result {
+        render = renderer::create_null_renderer();
+
         // TODO: call startup script here
 
-        scenes.push_back(scene::load("first.scene", static_cast<uint32_t>(scene::flags::start)));
-
-        render = renderer::create_null_renderer();
+        scenes.push_back(scene::load("scene01.scene", static_cast<uint32_t>(scene::flags::start)));
 
         if (!render)
             return result::error_empty_render;
