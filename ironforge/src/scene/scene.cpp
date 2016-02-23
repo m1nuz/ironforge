@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <core/application.hpp>
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
@@ -22,6 +24,14 @@ namespace scene {
 namespace scene {
     auto create_model(const model_info &info) -> model_instance* {
         application::debug(application::log_category::scene, "Create model %\n", info.name);
+
+        return nullptr;
+    }
+} // namespace scene
+
+namespace scene {
+    auto create_input(const std::string &name, const std::vector<input_action> actions) -> input_instance* {
+        application::debug(application::log_category::scene, "Create input %\n", name);
 
         return nullptr;
     }
@@ -262,6 +272,48 @@ namespace scene {
             }
 
             create_model(mi);
+        }
+
+        // read inputs
+        auto inputs = json_object_get(root, "inputs");
+        json_error_if(inputs, !json_is_array, -1, root, "%s\n", "inputs is not an array");
+
+        for (size_t j = 0; j < json_array_size(inputs); j++) {
+            auto input = json_array_get(inputs, j);
+            json_error_if(input, !json_is_object, -1, root, "%s\n", "input is not an object");
+
+            auto name = json_object_get(input, "name");
+            json_error_if(name, !json_is_string, -1, root, "%s\n", "name is not a string");
+
+            auto actions = json_object_get(input, "actions");
+            json_error_if(actions, !json_is_array, -1, root, "%s\n", "actions is not an array");
+
+            /*INPUT_ACTION *input_actions = malloc(json_array_size(actions) * sizeof (INPUT_ACTION));
+            memset(input_actions, 0, json_array_size(actions) * sizeof (INPUT_ACTION));*/
+
+            std::vector<input_action> input_actions;
+            input_actions.resize(json_array_size(actions));
+
+            for (auto i = static_cast<size_t>(0); i < json_array_size(actions); i++) {
+                auto action = json_array_get(actions, i);
+                json_error_if(action, !json_is_object, -1, root, "%s\n", "action is not an object");
+
+                auto key = json_object_get(action, "key");
+                if (json_is_string(key))
+                    input_actions[i].key = SDL_GetKeyFromName(json_string_value(key));
+
+                auto on_keydown = json_object_get(action, "on_keydown");
+                if (json_is_string(on_keydown))
+                    input_actions[i].key_down = json_string_value(on_keydown);
+
+                auto on_keyup = json_object_get(action, "on_keyup");
+                if (json_is_string(on_keyup))
+                    input_actions[i].key_up = json_string_value(on_keyup);
+
+                application::debug(application::log_category::scene, "Input '%' % %\n", json_string_value(name), json_string_value(on_keydown), json_string_value(on_keyup));
+            }
+
+            create_input(json_string_value(name), input_actions);
         }
 
         return make_unique<simple_instance>(_name);

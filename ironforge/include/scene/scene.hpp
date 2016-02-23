@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <SDL2/SDL_events.h>
 #include <ironforge_common.hpp>
 #include <renderer/renderer.hpp>
 
@@ -59,6 +60,15 @@ namespace scene {
     struct camera_instance;
     struct script_info;
     struct script_instance;
+
+    struct input_action {
+        const char *key_down;
+        const char *key_up;
+
+        SDL_Keycode key;
+    };
+
+    struct input_instance;
 
     struct gen_cube_info {
         float size;
