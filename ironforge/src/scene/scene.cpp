@@ -38,6 +38,18 @@ namespace scene {
 } // namespace scene
 
 namespace scene {
+    auto create_entity(/*instance &inst*/const entity_info &info) -> entity* {
+        application::debug(application::log_category::scene, "Create entity %\n", info.name);
+
+        return nullptr;
+    }
+
+    auto get_entity(instance *inst/*ref?*/, const std::string &name) -> int32_t {
+        return 0;
+    }
+} // namespace scene
+
+namespace scene {
     instance::instance() : instance{"empty"} {
     }
 
@@ -288,9 +300,6 @@ namespace scene {
             auto actions = json_object_get(input, "actions");
             json_error_if(actions, !json_is_array, -1, root, "%s\n", "actions is not an array");
 
-            /*INPUT_ACTION *input_actions = malloc(json_array_size(actions) * sizeof (INPUT_ACTION));
-            memset(input_actions, 0, json_array_size(actions) * sizeof (INPUT_ACTION));*/
-
             std::vector<input_action> input_actions;
             input_actions.resize(json_array_size(actions));
 
@@ -314,6 +323,108 @@ namespace scene {
             }
 
             create_input(json_string_value(name), input_actions);
+        }
+
+        // read nodes
+        auto nodes = json_object_get(root, "nodes");
+        json_error_if(nodes, !json_is_array, -1, root, "%s\n", "nodes is not an array");
+
+        for (size_t i = 0; i < json_array_size(nodes); i++) {
+            auto node = json_array_get(nodes, i);
+            json_error_if(node, !json_is_object, -1, root, "%s\n", "node is not an object");
+
+            auto name = json_object_get(node, "name");
+            json_error_if(name, !json_is_string, -1, root, "%s\n", "name is not a string");
+
+            entity_info ei;
+            memset(&ei, 0, sizeof ei);
+
+            ei.name = json_string_value(name);
+
+            auto parent = json_object_get(node, "parent");
+            if (json_is_string(parent))
+                ei.parent = get_entity(nullptr/*scene*/, json_string_value(parent));
+
+            // read node flags
+            auto camera = json_object_get(node, "camera");
+            if (json_is_true(camera))
+                ei.flags |= static_cast<uint32_t>(entity::flag::camera);
+
+            auto current_camera = json_object_get(node, "current_camera");
+            if (json_is_true(current_camera))
+                ei.flags |= static_cast<uint32_t>(entity::flag::current_camera);
+
+            auto renderable = json_object_get(node, "renderable");
+            if (json_is_true(renderable))
+                ei.flags |= static_cast<uint32_t>(entity::flag::renderable);
+
+            auto visible = json_object_get(node, "visible");
+            if (json_is_true(visible))
+                ei.flags |= static_cast<uint32_t>(entity::flag::visible);
+
+            auto model = json_object_get(node, "model");
+            if (json_is_string(model))
+                ei.model = json_string_value(model);
+
+            auto material_names = json_object_get(node, "materials");
+            if (json_is_array(material_names)) {
+                auto material_name = json_array_get(material_names, 0);
+                ei.material = json_string_value(material_name);
+            }
+
+            std::unique_ptr<body_info> bi{new body_info};
+            auto body = json_object_get(node, "body");
+            if (json_is_object(body)) {
+                memset(bi.get(), 0, sizeof (body_info));
+
+                auto position = json_object_get(body, "position");
+                if (json_is_array(position))
+                    bi->position = json_vec3_value(position);
+
+                auto size = json_object_get(body, "size");
+                if (json_is_array(size))
+                    bi->size = json_vec3_value(size);
+
+                auto orientation = json_object_get(body, "orientation");
+                if (json_is_array(orientation))
+                    bi->orientation = glm::radians(json_vec3_value(orientation));
+
+                auto velocity = json_object_get(body, "velocity");
+                if (json_is_array(velocity))
+                    bi->velocity = json_vec3_value(velocity);
+
+                auto rotation = json_object_get(body, "rotation");
+                if (json_is_array(rotation))
+                    bi->rotation = json_vec3_value(rotation);
+
+                ei.body = bi.get(); // create_body(bi)
+            }
+
+            std::unique_ptr<script_info> si{new script_info};
+            auto script = json_object_get(node, "script");
+            if (json_is_object(script)) {
+                auto script_name = json_object_get(script, "name");
+                json_error_if(script_name, !json_is_string, -1, root, "%s\n", "name is not string");
+
+                auto source = json_object_get(script, "source");
+                json_error_if(source, !json_is_string, -1, root, "%s\n", "source is not string");
+
+                auto class_name = json_object_get(script, "class");
+                json_error_if(class_name, !json_is_string, -1, root, "%s\n", "class is not string");
+
+                si->name = json_string_value(script_name);
+                si->source = json_string_value(source);
+                si->class_name = json_string_value(class_name);
+
+                ei.script = si.get(); // create_script(si)
+            }
+
+            auto input = json_object_get(node, "input");
+            if (json_is_string(input)) {
+                ei.input = json_string_value(input);
+            }
+
+            create_entity(ei);
         }
 
         return make_unique<simple_instance>(_name);

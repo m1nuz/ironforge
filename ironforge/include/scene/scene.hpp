@@ -60,6 +60,10 @@ namespace scene {
     struct camera_instance;
     struct script_info;
     struct script_instance;
+    struct body_instance;
+    struct body_info;
+    struct entity_info;
+    struct entity_instance;
 
     struct input_action {
         const char *key_down;
@@ -99,6 +103,53 @@ namespace scene {
     struct model_info {
         const char *name;
         std::vector<mesh_info> meshes;
+    };
+
+    struct body_info {
+        glm::vec3 position;
+        glm::vec3 orientation;
+        glm::vec3 size;
+
+        glm::vec3 velocity;
+        glm::vec3 rotation;
+
+        uint32_t  flags;
+    };
+
+    struct script_info {
+        const char  *name;
+        const char  *source;
+        const char  *class_name;
+    };
+
+    struct script {
+        char        *name;
+        char        *source;
+        char        *table;
+        int32_t     entity;
+        uint32_t    flags;
+    };
+
+    struct entity {
+        enum class flag {
+            camera          = 0x00000001,
+            current_camera  = 0x00000002,
+            renderable      = 0x00000004,
+            visible         = 0x00000008
+        };
+    };
+
+    struct entity_info {
+        const char          *name;
+        body_info           *body;
+        //point_light_info    *point_light;
+        const char          *material;
+        const char          *model;
+        const char          *input;
+        script_info         *script;
+        //camera_info         *camera;
+        int                 parent;
+        uint32_t            flags;
     };
 
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance>;
