@@ -14,6 +14,20 @@
     }
 
 namespace scene {
+    auto create_body() -> body_instance* {
+
+        return nullptr;
+    }
+} // namespace scene
+
+namespace scene {
+    auto create_camera() -> camera_instance* {
+
+        return nullptr;
+    }
+} // namespace scene
+
+namespace scene {
     auto create_material(const material_info &info) -> material_instance* {
         application::debug(application::log_category::scene, "Create material %\n", info.name);
 
@@ -62,13 +76,32 @@ namespace scene {
     }
 
     struct simple_instance : public instance {
-        simple_instance() : instance() {
+        simple_instance() : simple_instance("") {
 
         }
 
-        simple_instance(const std::string& _name) : instance{_name} {
+        simple_instance(const std::string& _name) : instance{_name}, entities_count{0}, max_entities{100} {
+            bodies.reserve(max_entities);
+            transforms.reserve(max_entities);
+        }
+
+        virtual auto append(const entity_info &info) -> void {
 
         }
+
+        std::vector<body_instance*>         bodies;
+        std::vector<transform_instance*>    transforms;
+        std::vector<camera_instance*>       cameras;
+        std::vector<material_instance*>     materials;
+        std::vector<input_instance*>        inputs;
+        std::vector<model_instance*>        models;
+        std::vector<script_instance*>       scripts;
+        std::vector<std::string>            names;
+        std::vector<uint32_t>               name_hashes;
+        std::vector<uint32_t>               flags;
+
+        size_t                              entities_count;
+        size_t                              max_entities;
     };
 
     inline glm::vec3 json_vec3_value(json_t *arr) {
@@ -434,6 +467,8 @@ namespace scene {
     }
 
     auto present(std::unique_ptr<instance>& s, std::unique_ptr<renderer::instance> &render, float interpolation) -> void {
+        using namespace glm;
 
+        render->present(mat4(1.f), mat4(1.f));
     }
 } // namespace scene

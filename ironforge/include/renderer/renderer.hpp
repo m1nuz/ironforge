@@ -37,9 +37,13 @@ namespace renderer {
 
     struct instance {
         // interface
-        //virtual auto set(const phong::ambient_light &light) -> void = 0;
-        //virtual auto set(const phong::directional_light &light) -> void = 0;
-        //virtual auto append(const phong::point_light &light) -> void = 0;
+        virtual auto set(const phong::ambient_light &light) -> void = 0;
+        virtual auto set(const phong::directional_light &light) -> void = 0;
+        virtual auto append(const phong::point_light &light) -> void = 0;
+
+        virtual auto reset() -> void = 0;
+        virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void = 0;
+
         virtual ~instance() = default;
     };
 

@@ -13,15 +13,6 @@ namespace scene {
         current = 0x00000002
     };
 
-    struct instance {
-        instance();
-        instance(const std::string& _name);
-        ~instance();
-
-        std::string     name;
-        uint32_t        flags;
-    };
-
     struct material_info {
         glm::vec3   emission;
         glm::vec3   ambient;
@@ -62,8 +53,48 @@ namespace scene {
     struct script_instance;
     struct body_instance;
     struct body_info;
+    struct transform_instance;
     struct entity_info;
     struct entity_instance;
+
+    struct instance {
+        instance();
+        instance(const std::string& _name);
+        ~instance();
+
+        virtual auto append(const entity_info &info) -> void = 0;
+
+        std::string     name;
+        uint32_t        flags;
+    };
+
+    struct model_instance {
+
+    };
+
+    struct script_instance {
+
+    };
+
+    struct camera_info {
+        float fov;
+        float aspect;
+        float znear;
+        float zfar;
+    };
+
+    struct camera_instance {
+        int         entity;
+        int         parent;
+        float       fov;
+        float       aspect;
+        float       znear;
+        float       zfar;
+        glm::mat4   projection;
+        glm::mat4   view;
+    };
+
+    struct input_instance;
 
     struct input_action {
         const char *key_down;
@@ -72,7 +103,9 @@ namespace scene {
         SDL_Keycode key;
     };
 
-    struct input_instance;
+    struct input_instance {
+
+    };
 
     struct gen_cube_info {
         float size;
@@ -116,6 +149,14 @@ namespace scene {
         uint32_t  flags;
     };
 
+    struct body_instance {
+
+    };
+
+    struct transform_instance {
+
+    };
+
     struct script_info {
         const char  *name;
         const char  *source;
@@ -148,7 +189,7 @@ namespace scene {
         const char          *input;
         script_info         *script;
         //camera_info         *camera;
-        int                 parent;
+        int32_t             parent;
         uint32_t            flags;
     };
 
