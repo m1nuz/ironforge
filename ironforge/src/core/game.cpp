@@ -20,7 +20,7 @@ namespace game {
         });
 
         if (s == scenes.end() && scenes.empty()) {
-            scenes.push_back(make_unique<scene::instance>());
+            scenes.push_back(scene::empty());
             return scenes.back();
         }
 

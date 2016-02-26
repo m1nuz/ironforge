@@ -60,11 +60,12 @@ namespace scene {
     struct instance {
         instance();
         instance(const std::string& _name);
-        ~instance();
+        virtual ~instance();
 
         virtual auto append(const entity_info &info) -> void = 0;
 
         std::string     name;
+        uint64_t        hash;
         uint32_t        flags;
     };
 
@@ -193,6 +194,7 @@ namespace scene {
         uint32_t            flags;
     };
 
+    auto empty() -> std::unique_ptr<instance>;
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance>;
     auto update(std::unique_ptr<instance>& s, float dt) -> void;
     auto present(std::unique_ptr<instance>& s, std::unique_ptr<renderer::instance> &render, float interpolation) -> void;

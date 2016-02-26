@@ -63,12 +63,14 @@ namespace scene {
     }
 } // namespace scene
 
+#include <xxhash.h>
+
 namespace scene {
     instance::instance() : instance{"empty"} {
     }
 
-    instance::instance(const std::string& _name) : name{_name} {
-        application::debug(application::log_category::game, "Create '%' scene\n", name);
+    instance::instance(const std::string& _name) : name{_name}, hash{XXH64(_name.c_str(), _name.size(), 0)}, flags{0} {
+        application::debug(application::log_category::game, "Create '%' scene %\n", name, hash);
     }
 
     instance::~instance() {
@@ -83,6 +85,10 @@ namespace scene {
         simple_instance(const std::string& _name) : instance{_name}, entities_count{0}, max_entities{100} {
             bodies.reserve(max_entities);
             transforms.reserve(max_entities);
+        }
+
+        ~simple_instance() {
+
         }
 
         virtual auto append(const entity_info &info) -> void {
@@ -121,6 +127,10 @@ namespace scene {
         }
 
         return value;
+    }
+
+    auto empty() -> std::unique_ptr<instance> {
+        return make_unique<simple_instance>("empty");
     }
 
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance> {
