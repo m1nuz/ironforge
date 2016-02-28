@@ -2,6 +2,7 @@
 #include <memory>
 #include <algorithm>
 
+#include <video/video.hpp>
 #include <core/application.hpp>
 #include <core/game.hpp>
 #include <renderer/renderer.hpp>
@@ -13,8 +14,9 @@ namespace game {
     std::unique_ptr<renderer::instance>             render;
 
     static auto get_current() -> std::unique_ptr<scene::instance>& {
+        // TODO: optimize this shit
         auto s = std::find_if(scenes.begin(), scenes.end(), [](std::unique_ptr<scene::instance>& sc) {
-            if (sc->flags & static_cast<uint32_t>(scene::flags::current))
+            if (sc->state & static_cast<uint32_t>(scene::state_flags::current))
                 return true;
             return false;
         });
@@ -24,15 +26,30 @@ namespace game {
             return scenes.back();
         }
 
+        /*for (size_t i = 0; i < scenes.size(); ++i)
+            if (scenes[i]->state & static_cast<uint32_t>(scene::state_flags::current))
+                return scenes[i];*/
+
         return *s;
     }
 
-    __must_ckeck auto init() -> result {
+    __must_ckeck auto init(const std::string &title) -> result {
+        auto video_result = video::result::failure;
+        if ((video_result = video::init(title, 1280, 768, false)) != video::result::success) {
+            application::error(application::log_category::video, "%\n", video::get_string(video_result));
+
+            return game::result::error_init_video;
+        }
+
+        application::info(application::log_category::video, "%\n", video::get_info());
+
         render = renderer::create_null_renderer();
+
+        scene::init_all(); // TODO: get result
 
         // TODO: call startup script here
 
-        scenes.push_back(scene::load("scene01.scene", static_cast<uint32_t>(scene::flags::start)));
+        scenes.push_back(scene::load("scene01.scene", static_cast<uint32_t>(scene::state_flags::start) | static_cast<uint32_t>(scene::state_flags::current)));
 
         if (!render)
             return result::error_empty_render;
@@ -48,6 +65,8 @@ namespace game {
             s.reset(nullptr);
 
         render.reset(nullptr);
+
+        video::cleanup();
     }
 
     auto process_event(const SDL_Event &e) -> void {
@@ -74,6 +93,9 @@ namespace game {
             break;
         case result::failure:
             return "Failure";
+            break;
+        case result::error_init_video:
+            return "Can't init video";
             break;
         case result::error_empty_render:
             return "Empty render";

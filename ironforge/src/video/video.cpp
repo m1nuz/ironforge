@@ -120,9 +120,6 @@ namespace video {
     }
 
     auto present() -> void {
-        glClearColor(1, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         SDL_GL_SwapWindow(window);
     }
 
@@ -191,5 +188,21 @@ namespace video {
         }
 
         return info.c_str();
+    }
+
+    auto get_texture(const char *name) -> texture* {
+        return nullptr;
+    }
+
+    auto default_white_texture() -> texture* {
+        return nullptr;
+    }
+
+    auto default_black_texture() -> texture* {
+        return nullptr;
+    }
+
+    auto default_check_texture() -> texture* {
+        return nullptr;
     }
 } // namespace video

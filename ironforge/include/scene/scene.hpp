@@ -8,40 +8,19 @@
 #include <renderer/renderer.hpp>
 
 namespace scene {
-    enum class flags : uint32_t {
-        start   = 0x00000001,
-        current = 0x00000002
-    };
+    // limits
+    constexpr size_t max_entities       = 100;
+    constexpr size_t max_transforms     = 100;
+    constexpr size_t max_bodies         = 100;
+    constexpr size_t max_materials      = 100;
 
-    struct material_info {
-        glm::vec3   emission;
-        glm::vec3   ambient;
-        glm::vec3   diffuse;
-        glm::vec3   specular;
-        float       shininess;
-        float       transparency;
+    enum class state_flags : uint32_t {
+        start       = 0x00000001,
+        current     = 0x00000002,
+    };    
 
-        const char  *emission_map;
-        const char  *diffuse_map;
-        const char  *specular_map;
-        const char  *gloss_map;
-
-        //texture     *emission_tex;
-        //texture     *diffuse_tex;
-        //texture     *specular_tex;
-        //texture     *gloss_tex;
-
-        const char  *name;
-    };
-
-    enum class mesh_source {
-        file,
-        gen_sphere,
-        gen_cube,
-        gen_grid
-    };
-
-    using material_instance = renderer::phong::material;
+    struct material_info;
+    struct material_instance;
 
     struct mesh_info;
     // struct mesh_instance;
@@ -51,26 +30,38 @@ namespace scene {
     struct camera_instance;
     struct script_info;
     struct script_instance;
-    struct body_instance;
     struct body_info;
+    struct body_instance;
+    struct input_instance;
     struct transform_instance;
+    struct emitter_info;
+    struct emitter_instance;
     struct entity_info;
-    struct entity_instance;
+
+    struct bound_box; // AABB
+    struct bound_sphere;
+    struct oriented_bound_box;
+
+    /*template <typename T>
+    struct handle {
+        int32_t id;
+        T       *ptr;
+    };*/
 
     struct instance {
         instance();
-        instance(const std::string& _name);
+        instance(const std::string& _name, uint32_t _state);
         virtual ~instance();
 
-        virtual auto append(const entity_info &info) -> void = 0;
+        virtual auto create_entity(const entity_info &info) -> int32_t = 0;
+        virtual auto get_entity(const std::string &_name) -> int32_t = 0;
+
+        virtual auto get_transform(int32_t id) -> transform_instance* = 0;
+        virtual auto get_body(int32_t id) -> body_instance* = 0;
 
         std::string     name;
-        uint64_t        hash;
-        uint32_t        flags;
-    };
-
-    struct model_instance {
-
+        uint64_t        name_hash;
+        uint32_t        state;
     };
 
     struct script_instance {
@@ -93,70 +84,7 @@ namespace scene {
         float       zfar;
         glm::mat4   projection;
         glm::mat4   view;
-    };
-
-    struct input_instance;
-
-    struct input_action {
-        const char *key_down;
-        const char *key_up;
-
-        SDL_Keycode key;
-    };
-
-    struct input_instance {
-
-    };
-
-    struct gen_cube_info {
-        float size;
-    };
-
-    struct gen_sphere_info {
-        int         rings;
-        int         sectors;
-        float       radius;
-    };
-
-    struct gen_grid_plane_info {
-        float       horizontal_extend;
-        float       vertical_extend;
-        uint32_t    rows;
-        uint32_t    columns;
-        bool        triangle_strip;
-    };
-
-    struct mesh_info {
-        mesh_source         source;
-        const char          *filename;
-        gen_cube_info       cube;
-        gen_sphere_info     sphere;
-        gen_grid_plane_info grid;
-    };
-
-    struct model_info {
-        const char *name;
-        std::vector<mesh_info> meshes;
-    };
-
-    struct body_info {
-        glm::vec3 position;
-        glm::vec3 orientation;
-        glm::vec3 size;
-
-        glm::vec3 velocity;
-        glm::vec3 rotation;
-
-        uint32_t  flags;
-    };
-
-    struct body_instance {
-
-    };
-
-    struct transform_instance {
-
-    };
+    };          
 
     struct script_info {
         const char  *name;
@@ -174,28 +102,31 @@ namespace scene {
 
     struct entity {
         enum class flag {
-            camera          = 0x00000001,
-            current_camera  = 0x00000002,
-            renderable      = 0x00000004,
-            visible         = 0x00000008
+            root            = 0x00000001,
+            camera          = 0x00000002,
+            current_camera  = 0x00000004,
+            renderable      = 0x00000008,
+            visible         = 0x00000010
         };
     };
 
     struct entity_info {
-        const char          *name;
-        body_info           *body;
+        const char          *name = nullptr;
+        body_info           *body = nullptr;
         //point_light_info    *point_light;
-        const char          *material;
-        const char          *model;
-        const char          *input;
-        script_info         *script;
+        const char          *material = nullptr;
+        const char          *model = nullptr;
+        const char          *input = nullptr;
+        script_info         *script = nullptr;
+        //emitter_info      *emitter;
         //camera_info         *camera;
-        int32_t             parent;
-        uint32_t            flags;
+        int32_t             parent = 0;
+        uint32_t            flags = 0;
     };
 
-    auto empty() -> std::unique_ptr<instance>;
+    auto init_all() -> void;
+    auto empty(uint32_t state = 0) -> std::unique_ptr<instance>;
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance>;
-    auto update(std::unique_ptr<instance>& s, float dt) -> void;
-    auto present(std::unique_ptr<instance>& s, std::unique_ptr<renderer::instance> &render, float interpolation) -> void;
+    auto update(std::unique_ptr<instance> &s, float dt) -> void;
+    auto present(std::unique_ptr<instance> &s, std::unique_ptr<renderer::instance> &render, float interpolation) -> void;
 } // namespace scene

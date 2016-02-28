@@ -50,11 +50,26 @@ namespace video {
     namespace gl = gl330;
     namespace vk = vulkan1;
 
+    using texture = gl::texture;
+
     enum class result : int32_t {
         success,
         failure,
         error_create_window,
         error_create_context
+    };
+
+    enum class pixel_format {
+        r8,
+        rg8,
+        rgb8,
+        rgba8,
+        bgr8,
+        bgra8,
+        r16f,
+        r32f,
+        rgb32f,
+        rgba32f
     };
 
     __must_ckeck auto init(const std::string &title, int32_t w, int32_t h, bool vsync) -> result;
@@ -63,6 +78,11 @@ namespace video {
     auto get_string(result r) -> const char *;
     auto is_extension_supported(const char *extension) -> bool;
     auto get_info() -> const char *;
+
+    auto get_texture(const char *name) -> texture*;
+    auto default_white_texture() -> texture*;
+    auto default_black_texture() -> texture*;
+    auto default_check_texture() -> texture*;
 } // namespace video
 
 

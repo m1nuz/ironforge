@@ -1,9 +1,18 @@
 #include <vector>
-
+#include <algorithm>
+#include <iterator>
+#include <ironforge_common.hpp>
+#include <ironforge_utility.hpp>
 #include <core/application.hpp>
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
 #include <renderer/renderer.hpp>
+
+#include "physics.hpp"
+#include "transform.hpp"
+#include "input.hpp"
+#include "material.hpp"
+#include "model.hpp"
 
 #include <jansson.h>
 
@@ -14,30 +23,7 @@
     }
 
 namespace scene {
-    auto create_body() -> body_instance* {
-
-        return nullptr;
-    }
-} // namespace scene
-
-namespace scene {
     auto create_camera() -> camera_instance* {
-
-        return nullptr;
-    }
-} // namespace scene
-
-namespace scene {
-    auto create_material(const material_info &info) -> material_instance* {
-        application::debug(application::log_category::scene, "Create material %\n", info.name);
-
-        return nullptr;
-    }
-} // namespace scene
-
-namespace scene {
-    auto create_model(const model_info &info) -> model_instance* {
-        application::debug(application::log_category::scene, "Create model %\n", info.name);
 
         return nullptr;
     }
@@ -51,26 +37,14 @@ namespace scene {
     }
 } // namespace scene
 
-namespace scene {
-    auto create_entity(/*instance &inst*/const entity_info &info) -> entity* {
-        application::debug(application::log_category::scene, "Create entity %\n", info.name);
-
-        return nullptr;
-    }
-
-    auto get_entity(instance *inst/*ref?*/, const std::string &name) -> int32_t {
-        return 0;
-    }
-} // namespace scene
-
 #include <xxhash.h>
 
 namespace scene {
-    instance::instance() : instance{"empty"} {
+    instance::instance() : instance{"empty", 0} {
     }
 
-    instance::instance(const std::string& _name) : name{_name}, hash{XXH64(_name.c_str(), _name.size(), 0)}, flags{0} {
-        application::debug(application::log_category::game, "Create '%' scene %\n", name, hash);
+    instance::instance(const std::string& _name, uint32_t _state) : name{_name}, name_hash{XXH64(_name.c_str(), _name.size(), 0)}, state{_state} {
+        application::debug(application::log_category::game, "Create '%' scene %\n", name, to_hex(name_hash));
     }
 
     instance::~instance() {
@@ -78,23 +52,100 @@ namespace scene {
     }
 
     struct simple_instance : public instance {
-        simple_instance() : simple_instance("") {
+        simple_instance() : simple_instance("", 0) {
 
         }
 
-        simple_instance(const std::string& _name) : instance{_name}, entities_count{0}, max_entities{100} {
-            bodies.reserve(max_entities);
-            transforms.reserve(max_entities);
+        simple_instance(const std::string& _name, uint32_t _state) : instance{_name, _state}, size{0}, capacity{max_entities} {
+            bodies.reserve(capacity);
+            transforms.reserve(capacity);
+            cameras.reserve(capacity);
+            materials.reserve(capacity);
+            inputs.reserve(capacity);
+            models.reserve(capacity);
+            scripts.reserve(capacity);
+            names.reserve(capacity);
+            name_hashes.reserve(capacity);
+            flags.reserve(capacity);
         }
 
         ~simple_instance() {
 
         }
 
-        virtual auto append(const entity_info &info) -> void {
+        virtual auto create_entity(const entity_info &info) -> int32_t {
+            int32_t eid = size++;
 
+            if ((size > capacity) || (size > INT_MAX)) {
+                application::error(application::log_category::scene, "Can't create more then % entities\n", capacity);
+                return -1;
+            }
+
+            auto parent_name = std::string{"root"};
+            if (info.parent > 0)
+                parent_name = names[info.parent];
+
+            if (info.parent == eid)
+                parent_name = "self";
+
+            auto hash = XXH64(info.name, strlen(info.name), 0);
+
+            application::debug(application::log_category::scene, "Create entity '%' % parent '%' ID %\n", info.name, hash, parent_name, eid);
+
+            if (info.flags & static_cast<uint32_t>(entity::flag::root)) {
+                bodies.push_back(create_body(body_info{}));
+                transforms.push_back(create_transform(0, 0));
+                cameras.push_back(nullptr);
+                materials.push_back(nullptr);
+                inputs.push_back(nullptr);
+                models.push_back(nullptr);
+                scripts.push_back(nullptr);
+                names.push_back(info.name);
+                name_hashes.push_back(hash);
+                flags.push_back(info.flags);
+            } else {
+                bodies.push_back(info.body ? create_body(*info.body) : nullptr);
+                transforms.push_back(info.flags & static_cast<uint32_t>(entity::flag::renderable) ? create_transform(eid, info.parent) : nullptr);
+                cameras.push_back(nullptr);
+                materials.push_back(nullptr);
+                inputs.push_back(nullptr);
+                models.push_back(nullptr);
+                scripts.push_back(nullptr);
+                names.push_back(info.name);
+                name_hashes.push_back(hash);
+                flags.push_back(info.flags);
+            }
+
+            // TODO: check if all vectors is same size
+
+            return 0;
         }
 
+        virtual auto get_entity(const std::string &_name) -> int32_t {
+            auto hash = XXH64(_name.c_str(), _name.size(), 0);
+
+            // NOTE: find out what's better
+            /*auto i = std::find(name_hashes.begin(), name_hashes.end(), hash);
+
+            if (i != name_hashes.end())
+                return std::distance(name_hashes.begin(), i);*/
+
+            for (size_t i = 0; i < name_hashes.size(); ++i)
+                if (name_hashes[i] == hash)
+                    return i;
+
+            return -1;
+        }
+
+        virtual auto get_transform(int32_t id) -> transform_instance* {
+            return transforms[id];
+        }
+
+        virtual auto get_body(int32_t id) -> body_instance* {
+            return bodies[id];
+        }
+
+        // TODO: use handle for this
         std::vector<body_instance*>         bodies;
         std::vector<transform_instance*>    transforms;
         std::vector<camera_instance*>       cameras;
@@ -102,12 +153,14 @@ namespace scene {
         std::vector<input_instance*>        inputs;
         std::vector<model_instance*>        models;
         std::vector<script_instance*>       scripts;
+        //std::vector<> point_lights;
+        //std::vector<> emitters;
         std::vector<std::string>            names;
-        std::vector<uint32_t>               name_hashes;
+        std::vector<uint64_t>               name_hashes;
         std::vector<uint32_t>               flags;
 
-        size_t                              entities_count;
-        size_t                              max_entities;
+        size_t                              size;
+        size_t                              capacity;
     };
 
     inline glm::vec3 json_vec3_value(json_t *arr) {
@@ -129,12 +182,25 @@ namespace scene {
         return value;
     }
 
-    auto empty() -> std::unique_ptr<instance> {
-        return make_unique<simple_instance>("empty");
+    auto init_all() -> void {
+        physics::init_all();
+        init_all_transforms();
+        init_all_materials();
+    }
+
+    auto empty(uint32_t state) -> std::unique_ptr<instance> {
+        return make_unique<simple_instance>("empty", state);
     }
 
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance> {
         auto t = assets::get_text(_name);
+
+        std::unique_ptr<instance> this_scene{new simple_instance(_name, flags)};
+        entity_info root_info;
+        root_info.flags = static_cast<uint32_t>(entity::flag::root);
+        root_info.name = "root";
+        root_info.parent = 0;
+        this_scene->create_entity(root_info);
 
         // TODO: make error when t.text == null
 
@@ -162,7 +228,7 @@ namespace scene {
             auto type = json_object_get(effect, "type");
             json_error_if(type, !json_is_string, -1, root, "%\n", "type is not a string");
 
-            application::debug(application::log_category::scene, "Effect % '%'\n", json_string_value(type), json_string_value(name));
+            application::debug(application::log_category::game, "Effect % '%'\n", json_string_value(type), json_string_value(name));
 
             if (strcmp(json_string_value(type), "ambient_light") == 0) {
                 auto ambient = json_object_get(effect, "ambient");
@@ -171,7 +237,7 @@ namespace scene {
                 auto La = json_vec3_value(ambient);
 
                 //render_set_ambientlight(&(AMBIENT_LIGHT){.La = {La[0], La[1], La[2]}});
-                application::debug(application::log_category::scene, "Ambient light % % %\n", La.x, La.y, La.z);
+                application::debug(application::log_category::game, "Ambient light % % %\n", La.x, La.y, La.z);
             }
 
             if (strcmp(json_string_value(type), "directional_light") == 0) {
@@ -190,7 +256,7 @@ namespace scene {
                                                                  .Ls = {Ls[0], Ls[1], Ls[2]},
                                                                  .direction = {d[0], d[1], d[2]}});*/
 
-                application::debug(application::log_category::scene, "Diffuse light d% d% d% s% s% s% % % %\n",
+                application::debug(application::log_category::game, "Diffuse light d% d% d% s% s% s% % % %\n",
                                    Ld.x, Ld.y, Ld.z, Ls.x, Ls.y, Ls.z, d.x, d.y, d.z);
             }
         }
@@ -209,7 +275,7 @@ namespace scene {
             auto type = json_object_get(material, "type");
             json_error_if(type, !json_is_string, -1, root, "%\n", "type is not a string");
 
-            application::debug(application::log_category::scene, "Material % %\n", json_string_value(type), json_string_value(name));
+            application::debug(application::log_category::game, "Material % %\n", json_string_value(type), json_string_value(name));
 
             if (strcmp(json_string_value(type), "phong") == 0) {
                 auto ambient = json_object_get(material, "ambient");
@@ -265,7 +331,7 @@ namespace scene {
             auto name = json_object_get(model, "name");
             json_error_if(name, !json_is_string, -1, root, "%\n", "name is not a string");
 
-            application::debug(application::log_category::scene, "Model %\n", json_string_value(name));
+            application::debug(application::log_category::game, "Model %\n", json_string_value(name));
 
             auto meshes = json_object_get(model, "meshes");
             json_error_if(meshes, !json_is_array, -1, root, "%\n", "meshes is not an array");
@@ -282,7 +348,7 @@ namespace scene {
                 auto type = json_object_get(mesh, "type");
                 json_error_if(type, !json_is_string, -1, root, "%\n", "type is not a string");
 
-                application::debug(application::log_category::scene, "Mesh %\n", json_string_value(type));
+                application::debug(application::log_category::game, "Mesh %\n", json_string_value(type));
 
                 if (strcmp(json_string_value(type), "gen_sphere") == 0) {
                     auto radius = json_object_get(mesh, "radius");
@@ -362,7 +428,7 @@ namespace scene {
                 if (json_is_string(on_keyup))
                     input_actions[i].key_up = json_string_value(on_keyup);
 
-                application::debug(application::log_category::scene, "Input '%' % %\n", json_string_value(name), json_string_value(on_keydown), json_string_value(on_keyup));
+                application::debug(application::log_category::game, "Input '%' % %\n", json_string_value(name), json_string_value(on_keydown), json_string_value(on_keyup));
             }
 
             create_input(json_string_value(name), input_actions);
@@ -386,7 +452,7 @@ namespace scene {
 
             auto parent = json_object_get(node, "parent");
             if (json_is_string(parent))
-                ei.parent = get_entity(nullptr/*scene*/, json_string_value(parent));
+                ei.parent = this_scene->get_entity(json_string_value(parent));
 
             // read node flags
             auto camera = json_object_get(node, "camera");
@@ -467,18 +533,30 @@ namespace scene {
                 ei.input = json_string_value(input);
             }
 
-            create_entity(ei);
+            this_scene->create_entity(ei);
         }
 
-        return make_unique<simple_instance>(_name);
+        return this_scene;
     }
 
     auto update(std::unique_ptr<instance>& s, float dt) -> void {
+        physics::integrate_all(dt);
     }
+
+    auto present_all_transforms(std::unique_ptr<instance> &s, std::function<void(int32_t, const glm::mat4 &)> cb) -> void;
 
     auto present(std::unique_ptr<instance>& s, std::unique_ptr<renderer::instance> &render, float interpolation) -> void {
         using namespace glm;
 
+        //application::debug(application::log_category::scene, "Present %\n", s->name);
+
+        physics::interpolate_all(interpolation);
+        // TODO: fix c cast
+        scene::present_all_transforms(s, [](int32_t e, const glm::mat4 &m) {
+            //std::cout << glm::to_string(m) << std::endl;
+        });
         render->present(mat4(1.f), mat4(1.f));
     }
 } // namespace scene
+
+

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <ironforge_common.hpp>
+#include <video/video.hpp>
 
 namespace renderer {
     namespace phong {
@@ -12,10 +13,11 @@ namespace renderer {
             glm::vec3   ks;
             float       ns;
             float       tr;
-            //texture *emission_map;
-            //texture *diffuse_map;
-            //texture *specular_map;
-            //texture *gloss_map;
+
+            video::texture  *emission_tex;
+            video::texture  *diffuse_tex;
+            video::texture  *specular_tex;
+            video::texture  *gloss_tex;
         };
 
         struct ambient_light {
@@ -37,12 +39,14 @@ namespace renderer {
 
     struct instance {
         // interface
+        // virtual auto is_phong_spported() -> bool = 0;
         virtual auto set(const phong::ambient_light &light) -> void = 0;
         virtual auto set(const phong::directional_light &light) -> void = 0;
         virtual auto append(const phong::point_light &light) -> void = 0;
+        // virtual auto append(const phong::material &mt, const mesh &msh, const glm::mat4 &m);
 
         virtual auto reset() -> void = 0;
-        virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void = 0;
+        virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void = 0;        
 
         virtual ~instance() = default;
     };

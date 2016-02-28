@@ -6,6 +6,8 @@
 
 #endif // __GNUC__
 
+#define UNUSED(x) (void)(x)
+
 #include <memory>
 
 template<typename T, typename ...Args>
@@ -17,4 +19,6 @@ inline std::unique_ptr<T> make_unique(Args&& ...args) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop

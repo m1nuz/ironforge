@@ -1,6 +1,5 @@
 #include <core/application.hpp>
 #include <core/game.hpp>
-#include <video/video.hpp>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
@@ -32,19 +31,10 @@ namespace application {
         if (TTF_Init() < 0)
             return result::error_init_ttf;
 
-        atexit(TTF_Quit);
-
-        auto video_result = video::result::failure;
-        if ((video_result = video::init(title, 1280, 768, false)) != video::result::success) {
-            error(log_category::video, "%\n", video::get_string(video_result));
-
-            return result::error_init_video;
-        }
-
-        info(log_category::video, "%\n", video::get_info());
+        atexit(TTF_Quit);        
 
         auto game_result = game::result::failure;
-        if ((game_result = game::init()) != game::result::success) {
+        if ((game_result = game::init(title)) != game::result::success) {
             error(log_category::game, "%\n", game::get_string(game_result));
             return result::error_init_game;
         }
@@ -80,8 +70,7 @@ namespace application {
                 timesteps++;
             }
 
-            game::present(accumulator / timestep);
-            video::present();
+            game::present(accumulator / timestep);            
         }
 
         return result::success;
@@ -92,8 +81,7 @@ namespace application {
     }
 
     auto cleanup() -> void {        
-        game::cleanup();
-        video::cleanup();
+        game::cleanup();        
 
         info(log_category::application, "%\n", "Cleanup");
     }
@@ -108,9 +96,6 @@ namespace application {
             break;
         case result::error_init_sdl:
             return SDL_GetError();
-            break;
-        case result::error_init_video:
-            return "Can't init video";
             break;
         case result::error_init_game:
             return "Can't init game";

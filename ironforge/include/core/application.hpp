@@ -14,8 +14,7 @@ namespace application {
         success = 0,
         failure,
         error_init_sdl,
-        error_init_ttf,
-        error_init_video,
+        error_init_ttf,        
         error_init_game,
     };
 
