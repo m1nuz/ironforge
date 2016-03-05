@@ -13,6 +13,7 @@ namespace scene {
     constexpr size_t max_transforms     = 100;
     constexpr size_t max_bodies         = 100;
     constexpr size_t max_materials      = 100;
+    constexpr size_t max_cameras        = 100;
 
     enum class state_flags : uint32_t {
         start       = 0x00000001,
@@ -66,25 +67,7 @@ namespace scene {
 
     struct script_instance {
 
-    };
-
-    struct camera_info {
-        float fov;
-        float aspect;
-        float znear;
-        float zfar;
-    };
-
-    struct camera_instance {
-        int         entity;
-        int         parent;
-        float       fov;
-        float       aspect;
-        float       znear;
-        float       zfar;
-        glm::mat4   projection;
-        glm::mat4   view;
-    };          
+    };             
 
     struct script_info {
         const char  *name;
@@ -119,7 +102,7 @@ namespace scene {
         const char          *input = nullptr;
         script_info         *script = nullptr;
         //emitter_info      *emitter;
-        //camera_info         *camera;
+        camera_info         *camera = nullptr;
         int32_t             parent = 0;
         uint32_t            flags = 0;
     };

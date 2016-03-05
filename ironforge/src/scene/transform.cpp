@@ -25,7 +25,7 @@ namespace scene {
     auto present_all_transforms(std::unique_ptr<instance>& s, std::function<void(int32_t, const glm::mat4 &)> cb) -> void {
         using namespace glm;
 
-        for (size_t i = 1; i < transform_instances.size(); i++) {
+        for (auto i = static_cast<size_t>(1); i < transform_instances.size(); i++) {
             auto& t = transform_instances[i];
 
             auto b = s->get_body(t.entity);

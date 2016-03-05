@@ -5,6 +5,7 @@
 
 #include <glcore_330.h>
 #include <ironforge_common.hpp>
+#include <video/vertices.hpp>
 
 namespace video {
     namespace gles2 {
@@ -35,6 +36,14 @@ namespace video {
         struct texture;             // Texture Object
         struct renderbuffer;        // Renderbuffer Object
         struct framebuffer;         // Framebuffer Object
+
+        struct vertex_array {
+
+        };
+
+        struct buffer {
+
+        };
     } // namespace gl330
 
     namespace gl450 {
@@ -59,7 +68,19 @@ namespace video {
         error_create_context
     };
 
-    enum class pixel_format {
+    struct vertices_desc {
+        uint32_t        primitive;
+        vertex_format   vf;
+        index_format    ef;
+    };
+
+    struct vertices_source {
+        gl::vertex_array    array;
+        gl::buffer          vertices;
+        gl::buffer          elements;
+    };
+
+    enum class pixel_format : uint32_t {
         r8,
         rg8,
         rgb8,

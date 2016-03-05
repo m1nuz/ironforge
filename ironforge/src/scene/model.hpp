@@ -1,6 +1,9 @@
 #pragma once
 
+#include <vector>
+#include <video/video.hpp>
 #include <scene/scene.hpp>
+#include <scene/volume.hpp>
 
 namespace scene {
     enum class mesh_source {
@@ -37,7 +40,19 @@ namespace scene {
     };
 
     struct mesh_instance {
+        video::vertices_desc    desc;
+        video::vertices_source  source;
 
+        struct submesh {
+            uint32_t    vb_offset;
+            uint32_t    ib_offset;
+            uint32_t    count;
+            uint32_t    base_vertex;
+            uint32_t    base_index;
+            bound_box   aabb;
+        };
+
+        std::vector<submesh> sub_meshes;
     };
 
     struct model_info {
@@ -46,8 +61,15 @@ namespace scene {
     };
 
     struct model_instance {
+        uint64_t                    name_hash;
+        std::string                 name;
+        bound_box                   aabb;
+        bound_sphere                sphere;
 
+        std::vector<mesh_instance>  meshes;
     };
 
     auto create_model(const model_info &info) -> model_instance*;
+    auto default_model() -> model_instance*;
+    auto get_model(const char *name) -> model_instance*;
 } // namespace scene

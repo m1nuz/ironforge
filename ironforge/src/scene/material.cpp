@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <core/application.hpp>
 #include <scene/scene.hpp>
 #include <video/video.hpp>
@@ -39,5 +41,22 @@ namespace scene {
 
     auto default_material() -> material_instance* {
         return nullptr;
+    }
+
+    auto get_material(const char *name) -> material_instance* {
+        uint64_t hash = XXH64(name, strlen(name), 0);
+
+        auto it = std::find_if(materials.begin(), materials.end(), [hash](const material_instance &i) {
+            if (i.name_hash == hash)
+                return true;
+            return false;
+        });
+
+        if (it != materials.end())
+            return &(*it);
+
+        application::warning(application::log_category::scene, "Material '%' not found\n", name);
+
+        return default_material();
     }
 } // namespace scene

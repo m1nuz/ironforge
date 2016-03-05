@@ -13,6 +13,7 @@
 #include "input.hpp"
 #include "material.hpp"
 #include "model.hpp"
+#include "camera.hpp"
 
 #include <jansson.h>
 
@@ -21,13 +22,6 @@
     application::error(application::log_category::game, __VA_ARGS__); \
     json_decref(root); \
     }
-
-namespace scene {
-    auto create_camera() -> camera_instance* {
-
-        return nullptr;
-    }
-} // namespace scene
 
 namespace scene {
     auto create_input(const std::string &name, const std::vector<input_action> actions) -> input_instance* {
@@ -90,12 +84,15 @@ namespace scene {
 
             auto hash = XXH64(info.name, strlen(info.name), 0);
 
+            // TODO: camera and no body? error
+            // TODO: renderable and no body? error
+
             application::debug(application::log_category::scene, "Create entity '%' % parent '%' ID %\n", info.name, hash, parent_name, eid);
 
             if (info.flags & static_cast<uint32_t>(entity::flag::root)) {
                 bodies.push_back(create_body(body_info{}));
                 transforms.push_back(create_transform(0, 0));
-                cameras.push_back(nullptr);
+                cameras.push_back(create_camera(eid, camera_info{}));
                 materials.push_back(nullptr);
                 inputs.push_back(nullptr);
                 models.push_back(nullptr);
@@ -106,10 +103,10 @@ namespace scene {
             } else {
                 bodies.push_back(info.body ? create_body(*info.body) : nullptr);
                 transforms.push_back(info.flags & static_cast<uint32_t>(entity::flag::renderable) ? create_transform(eid, info.parent) : nullptr);
-                cameras.push_back(nullptr);
-                materials.push_back(nullptr);
+                cameras.push_back(info.camera ? create_camera(eid, *info.camera) : nullptr);
+                materials.push_back(info.material ? get_material(info.name) : nullptr);
                 inputs.push_back(nullptr);
-                models.push_back(nullptr);
+                models.push_back(info.model ? get_model(info.model) : nullptr);
                 scripts.push_back(nullptr);
                 names.push_back(info.name);
                 name_hashes.push_back(hash);
@@ -186,6 +183,7 @@ namespace scene {
         physics::init_all();
         init_all_transforms();
         init_all_materials();
+        init_all_cameras();
     }
 
     auto empty(uint32_t state) -> std::unique_ptr<instance> {
@@ -230,6 +228,8 @@ namespace scene {
 
             application::debug(application::log_category::game, "Effect % '%'\n", json_string_value(type), json_string_value(name));
 
+            // TODO: move ambient and direction light to the nodes
+            // and add skybox effect
             if (strcmp(json_string_value(type), "ambient_light") == 0) {
                 auto ambient = json_object_get(effect, "ambient");
                 json_error_if(ambient, !json_is_array, -1, root, "%\n", "ambient is not an array");
@@ -446,7 +446,7 @@ namespace scene {
             json_error_if(name, !json_is_string, -1, root, "%s\n", "name is not a string");
 
             entity_info ei;
-            memset(&ei, 0, sizeof ei);
+            //memset(&ei, 0, sizeof ei); NOTE: dont need it now
 
             ei.name = json_string_value(name);
 
@@ -455,10 +455,6 @@ namespace scene {
                 ei.parent = this_scene->get_entity(json_string_value(parent));
 
             // read node flags
-            auto camera = json_object_get(node, "camera");
-            if (json_is_true(camera))
-                ei.flags |= static_cast<uint32_t>(entity::flag::camera);
-
             auto current_camera = json_object_get(node, "current_camera");
             if (json_is_true(current_camera))
                 ei.flags |= static_cast<uint32_t>(entity::flag::current_camera);
@@ -479,6 +475,23 @@ namespace scene {
             if (json_is_array(material_names)) {
                 auto material_name = json_array_get(material_names, 0);
                 ei.material = json_string_value(material_name);
+            }
+
+            std::unique_ptr<camera_info> ci{new camera_info};
+            auto camera = json_object_get(node, "camera");
+            if (json_is_object(camera)) {
+                auto fov = json_object_get(camera, "fov");
+                ci->fov = glm::radians(json_real_value(fov));
+
+                auto znear =  json_object_get(camera, "znear");
+                ci->znear = json_real_value(znear);
+
+                auto zfar =  json_object_get(camera, "zfar");
+                ci->zfar = json_real_value(zfar);
+
+                ci->parent = ei.parent;
+                ei.flags |= static_cast<uint32_t>(entity::flag::camera);
+                ei.camera = ci.get();
             }
 
             std::unique_ptr<body_info> bi{new body_info};
@@ -536,6 +549,10 @@ namespace scene {
             this_scene->create_entity(ei);
         }
 
+        // TODO: make optimization, sort all objets in arrays(material.cpp, ...)
+        // to use binary search, make a flag that show then array is sorted, and we can
+        // in other case use std::find
+
         return this_scene;
     }
 
@@ -551,7 +568,7 @@ namespace scene {
         //application::debug(application::log_category::scene, "Present %\n", s->name);
 
         physics::interpolate_all(interpolation);
-        // TODO: fix c cast
+        scene::present_all_cameras(s);
         scene::present_all_transforms(s, [](int32_t e, const glm::mat4 &m) {
             //std::cout << glm::to_string(m) << std::endl;
         });
