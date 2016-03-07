@@ -10,6 +10,10 @@ namespace scene {
         cameras.reserve(max_cameras);
     }
 
+    auto cleanup_all_cameras() -> void {
+
+    }
+
     auto create_camera(int32_t entity, const camera_info &info) -> camera_instance* {
         using namespace glm;
 

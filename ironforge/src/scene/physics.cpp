@@ -24,6 +24,13 @@ namespace physics {
         bodies.reserve(scene::max_bodies);
     }
 
+    auto cleanup() -> void {
+        for (auto i = 0ul; i < bodies.size(); ++i)
+            application::debug(application::log_category::scene, "Destoy body (%)\n", i);
+
+        bodies.clear();
+    }
+
     auto integrate_all(float dt) -> void {
         for (auto &b : bodies) {
             b.previous = b.current;

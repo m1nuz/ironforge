@@ -42,17 +42,9 @@ namespace scene {
     struct mesh_instance {
         video::vertices_desc    desc;
         video::vertices_source  source;
-
-        struct submesh {
-            uint32_t    vb_offset;
-            uint32_t    ib_offset;
-            uint32_t    count;
-            uint32_t    base_vertex;
-            uint32_t    base_index;
-            bound_box   aabb;
-        };
-
-        std::vector<submesh> sub_meshes;
+        std::vector<video::vertices_draw> draws;
+        std::vector<bound_box> bounds;
+        bound_sphere visible_bound;
     };
 
     struct model_info {
@@ -69,6 +61,8 @@ namespace scene {
         std::vector<mesh_instance>  meshes;
     };
 
+    auto init_all_models() -> void;
+    auto cleanup_all_models() -> void;
     auto create_model(const model_info &info) -> model_instance*;
     auto default_model() -> model_instance*;
     auto get_model(const char *name) -> model_instance*;

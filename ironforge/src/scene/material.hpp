@@ -35,6 +35,7 @@ namespace scene {
     };
 
     auto init_all_materials() -> void;
+    auto cleanup_all_materials() -> void;
     auto create_material(const material_info &info) -> material_instance*;
     auto default_material() -> material_instance*;
     auto get_material(const char *name) -> material_instance*;

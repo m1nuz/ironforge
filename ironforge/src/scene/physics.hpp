@@ -13,6 +13,7 @@ namespace physics {
     };
 
     auto init_all() -> void;
+    auto cleanup() -> void;
     auto integrate_all(float dt) -> void;
     auto interpolate_all(float interpolation) -> void;
 } // namespace physics
@@ -45,6 +46,7 @@ namespace scene {
         inline glm::vec3 size() {
             return current.size;
         }
+        // uint32_t id; // TODO: make body id
     };
 
     auto create_body(const scene::body_info &info) -> body_instance*;

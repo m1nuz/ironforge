@@ -16,12 +16,12 @@ namespace renderer {
             application::debug(application::log_category::render, "%\n", "Destroy null render");
         }
 
-        virtual auto set(const phong::ambient_light &light) -> void {
+        virtual auto append(const phong::ambient_light &light) -> void {
             UNUSED(light);
             // do nothing
         }
 
-        virtual auto set(const phong::directional_light &light) -> void {
+        virtual auto append(const phong::directional_light &light) -> void {
             UNUSED(light);
             // do nothing
         }
@@ -31,18 +31,24 @@ namespace renderer {
             // do nothing
         }
 
-        virtual auto reset() -> void {
+        virtual auto append(const phong::material &material) -> void {
+            UNUSED(material);
             // do nothing
         }
 
+        virtual auto reset() -> void {
+            commands.clear_color = glm::vec4(1.f, 1.f, 1.f, 1.f);
+        }
+
         virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void {
-            UNUSED(proj), UNUSED(view);
+            UNUSED(proj), UNUSED(view);            
 
-            glClearColor(1, 1, 1, 1);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            commands << video::gl::clear{};
 
-            video::present();
+            video::present({&commands});
             reset();
         }
+
+        video::gl::command_buffer commands;
     };
 } // namespace renderer

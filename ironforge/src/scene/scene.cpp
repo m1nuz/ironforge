@@ -14,6 +14,8 @@
 #include "material.hpp"
 #include "model.hpp"
 #include "camera.hpp"
+#include "input.hpp"
+#include "script.hpp"
 
 #include <jansson.h>
 
@@ -50,7 +52,8 @@ namespace scene {
 
         }
 
-        simple_instance(const std::string& _name, uint32_t _state) : instance{_name, _state}, size{0}, capacity{max_entities} {
+        simple_instance(const std::string& _name, uint32_t _state)
+            : instance{_name, _state}, size{0}, capacity{max_entities}, current_camera(0) {
             bodies.reserve(capacity);
             transforms.reserve(capacity);
             cameras.reserve(capacity);
@@ -142,6 +145,10 @@ namespace scene {
             return bodies[id];
         }
 
+        virtual auto get_current_camera() -> camera_instance* {
+            return cameras[current_camera];
+        }
+
         // TODO: use handle for this
         std::vector<body_instance*>         bodies;
         std::vector<transform_instance*>    transforms;
@@ -155,6 +162,8 @@ namespace scene {
         std::vector<std::string>            names;
         std::vector<uint64_t>               name_hashes;
         std::vector<uint32_t>               flags;
+
+        size_t                              current_camera;
 
         size_t                              size;
         size_t                              capacity;
@@ -184,6 +193,15 @@ namespace scene {
         init_all_transforms();
         init_all_materials();
         init_all_cameras();
+        init_all_models();
+    }
+
+    auto cleanup_all() -> void {
+        cleanup_all_models();
+        cleanup_all_cameras();
+        cleanup_all_materials();
+        cleanup_all_transforms();
+        physics::cleanup();
     }
 
     auto empty(uint32_t state) -> std::unique_ptr<instance> {
@@ -572,7 +590,7 @@ namespace scene {
         scene::present_all_transforms(s, [](int32_t e, const glm::mat4 &m) {
             //std::cout << glm::to_string(m) << std::endl;
         });
-        render->present(mat4(1.f), mat4(1.f));
+        render->present(s->get_current_camera()->projection, s->get_current_camera()->view);
     }
 } // namespace scene
 

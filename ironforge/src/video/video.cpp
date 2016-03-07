@@ -1,5 +1,5 @@
 #include <SDL2/SDL_video.h>
-
+#include <glcore_330.h>
 #include <sstream>
 #include <core/application.hpp>
 #include <video/video.hpp>
@@ -119,7 +119,12 @@ namespace video {
         SDL_DestroyWindow(window);
     }
 
-    auto present() -> void {
+    auto present(std::vector<gl::command_buffer *>&& buffers) -> void {
+        for (auto &buf : buffers) {
+            for (auto &c : buf->commands)
+                video::gl::dispath_command(c, *buf);
+        }
+
         SDL_GL_SwapWindow(window);
     }
 
@@ -188,6 +193,10 @@ namespace video {
         }
 
         return info.c_str();
+    }
+
+    auto create_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc) -> vertices_source* {
+
     }
 
     auto get_texture(const char *name) -> texture* {

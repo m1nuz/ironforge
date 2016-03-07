@@ -22,9 +22,8 @@ namespace scene {
 
     struct material_info;
     struct material_instance;
-
     struct mesh_info;
-    // struct mesh_instance;
+    struct mesh_instance;
     struct model_info;
     struct model_instance;
     struct camera_info;
@@ -60,27 +59,11 @@ namespace scene {
         virtual auto get_transform(int32_t id) -> transform_instance* = 0;
         virtual auto get_body(int32_t id) -> body_instance* = 0;
 
+        virtual auto get_current_camera() -> camera_instance* = 0;
+
         std::string     name;
         uint64_t        name_hash;
         uint32_t        state;
-    };
-
-    struct script_instance {
-
-    };             
-
-    struct script_info {
-        const char  *name;
-        const char  *source;
-        const char  *class_name;
-    };
-
-    struct script {
-        char        *name;
-        char        *source;
-        char        *table;
-        int32_t     entity;
-        uint32_t    flags;
     };
 
     struct entity {
@@ -101,13 +84,14 @@ namespace scene {
         const char          *model = nullptr;
         const char          *input = nullptr;
         script_info         *script = nullptr;
-        //emitter_info      *emitter;
+        emitter_info        *emitter = nullptr;
         camera_info         *camera = nullptr;
         int32_t             parent = 0;
         uint32_t            flags = 0;
     };
 
     auto init_all() -> void;
+    auto cleanup_all() -> void;
     auto empty(uint32_t state = 0) -> std::unique_ptr<instance>;
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance>;
     auto update(std::unique_ptr<instance> &s, float dt) -> void;

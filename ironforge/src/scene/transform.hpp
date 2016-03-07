@@ -12,5 +12,6 @@ namespace scene {
     };
 
     auto init_all_transforms() -> void;
+    auto cleanup_all_transforms() -> void;
     auto create_transform(int32_t _entity, int32_t _parent) -> transform_instance*;
 } // namespace scene

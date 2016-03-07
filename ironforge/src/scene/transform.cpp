@@ -12,6 +12,10 @@ namespace scene {
         transform_instances.reserve(max_transforms);
     }
 
+    auto cleanup_all_transforms() -> void {
+
+    }
+
     auto create_transform(int32_t _entity, int32_t _parent) -> transform_instance* {
         application::debug(application::log_category::scene, "Create transform ID % PARENT % (%)\n", _entity, _parent, transform_instances.size());
 

@@ -24,6 +24,7 @@ namespace scene {
     };
 
     auto init_all_cameras() -> void;
+    auto cleanup_all_cameras() -> void;
     auto create_camera(int32_t entity, const camera_info &info) -> camera_instance*;
     auto present_all_cameras(std::unique_ptr<instance>& s) -> void;
 } // namespace scene

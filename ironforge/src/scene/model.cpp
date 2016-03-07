@@ -8,6 +8,13 @@
 namespace scene {
     std::vector<model_instance> models;
 
+    auto init_all_models() -> void {
+
+    }
+
+    auto cleanup_all_models() -> void {
+
+    }
 
     auto create_model(const model_info &info) -> model_instance* {
         model_instance mi;

@@ -14,6 +14,10 @@ namespace scene {
         materials.reserve(max_materials);
     }
 
+    auto cleanup_all_materials() -> void {
+
+    }
+
     auto create_material(const material_info &info) -> material_instance* {
         // TODO: check copy in materials
 

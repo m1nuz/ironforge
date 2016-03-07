@@ -61,6 +61,8 @@ namespace game {
     }
 
     auto cleanup() -> void {
+        scene::cleanup_all();
+
         for (auto& s : scenes)
             s.reset(nullptr);
 
