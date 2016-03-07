@@ -48,7 +48,7 @@ namespace renderer {
         virtual auto append(const phong::directional_light &light) -> void = 0;
         virtual auto append(const phong::point_light &light) -> void = 0;
         virtual auto append(const phong::material &material) -> void = 0;
-        virtual auto append(const drawable &d) -> uint32_t = 0;
+        //virtual auto append(const drawable &d) -> uint32_t = 0;
         // virtual auto draw(const phong::material &mt, const mesh &msh, const glm::mat4 &m);
         // TODO: think about add/remove from ubo mechanism
 
