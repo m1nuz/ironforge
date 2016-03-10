@@ -43,7 +43,8 @@ namespace game {
 
         application::info(application::log_category::video, "%\n", video::get_info());
 
-        render = renderer::create_null_renderer();
+        //render = renderer::create_null_renderer();
+        render = renderer::create_forward_renderer();
 
         scene::init_all(); // TODO: get result
 

@@ -31,10 +31,10 @@ namespace scene {
         mi.m0.ns = info.shininess;
         mi.m0.tr = info.transparency;
 
-        mi.m0.diffuse_tex = info.diffuse_map ? video::get_texture(info.diffuse_map) : info.diffuse_tex ? info.diffuse_tex : video::default_check_texture();
-        mi.m0.specular_tex = info.specular_map ? video::get_texture(info.specular_map) : info.specular_tex ? info.specular_tex : video::default_white_texture();
-        mi.m0.gloss_tex = info.gloss_map ? video::get_texture(info.gloss_map) : info.gloss_tex ? info.gloss_tex : video::default_white_texture();
-        mi.m0.emission_tex = info.emission_map ? video::get_texture(info.emission_map) : info.emission_tex ? info.emission_tex : video::default_black_texture();
+        mi.m0.diffuse_tex = info.diffuse_map ? video::get_texture(info.diffuse_map) : info.diffuse_tex.id != 0 ? info.diffuse_tex : video::default_check_texture();
+        mi.m0.specular_tex = info.specular_map ? video::get_texture(info.specular_map) : info.specular_tex.id != 0 ? info.specular_tex : video::default_white_texture();
+        mi.m0.gloss_tex = info.gloss_map ? video::get_texture(info.gloss_map) : info.gloss_tex.id != 0 ? info.gloss_tex : video::default_white_texture();
+        mi.m0.emission_tex = info.emission_map ? video::get_texture(info.emission_map) : info.emission_tex.id != 0 ? info.emission_tex : video::default_black_texture();
 
         materials.push_back(mi);
 

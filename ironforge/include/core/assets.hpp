@@ -8,7 +8,8 @@
 #include <tuple>
 
 #include <SDL2/SDL_rwops.h>
-#include<ironforge_common.hpp>
+#include <ironforge_common.hpp>
+#include <video/video.hpp>
 
 namespace assets {
     enum class result : int32_t {
@@ -26,13 +27,7 @@ namespace assets {
         size_t      size;
     };
 
-    struct image_data {
-        uint32_t    width;
-        uint32_t    height;
-        uint32_t    depth;
-        int32_t     pixelformat;
-        void        *pixels;
-    };
+    using image_data = video::image_data;
 
     struct readers {
         std::vector<std::tuple<std::string, std::function<int32_t (SDL_RWops *rw, binary_data &)>>> binary_readers;
@@ -52,4 +47,5 @@ namespace assets {
     __must_ckeck auto append(const std::string& ext, std::function<int32_t (SDL_RWops *rw, image_data &)> reader) -> result;
     __must_ckeck auto open(const std::string& path) -> result;
     auto get_text(const std::string& name) -> text_data;
+    auto get_image(const std::string& name) -> image_data;
 } // namespace assets

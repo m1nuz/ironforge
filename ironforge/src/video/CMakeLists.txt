@@ -2,6 +2,7 @@ include_directories(../../include)
 include_directories(../../../lib/GLcore/include)
 include_directories(../../../lib/GL/include)
 include_directories(../../../lib/glm)
+include_directories(../../../lib/xxhash/include)
 
 file(GLOB_RECURSE headers "../../include/video/*.hpp")
 file(GLOB_RECURSE detail_headers "./*.hpp")

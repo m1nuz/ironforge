@@ -14,10 +14,10 @@ namespace renderer {
             float       ns;
             float       tr;
 
-            video::texture  *emission_tex;
-            video::texture  *diffuse_tex;
-            video::texture  *specular_tex;
-            video::texture  *gloss_tex;
+            video::texture emission_tex;
+            video::texture diffuse_tex;
+            video::texture specular_tex;
+            video::texture gloss_tex;
         };
 
         struct ambient_light {
@@ -41,6 +41,7 @@ namespace renderer {
 
     };
 
+    // TODO: think about static dispatching
     struct instance {
         // interface
         // virtual auto is_phong_spported() -> bool = 0;
@@ -59,6 +60,6 @@ namespace renderer {
     };
 
     auto create_null_renderer() -> std::unique_ptr<instance>;
-    //auto create_forward_renderer() -> std::unique_ptr<instance>;
+    auto create_forward_renderer() -> std::unique_ptr<instance>;
     //auto create_deffered_renderer() -> std::unique_ptr<instance>;
 } // namespace renderer

@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include <core/application.hpp>
+#include <video/video.hpp>
 #include <xxhash.h>
 
 #include "model.hpp"
@@ -24,11 +25,13 @@ namespace scene {
 
         for (auto &msh : info.meshes) {
             mesh_instance m;
+            video::vertices_info vi;
 
             switch (msh.source) {
             case mesh_source::file:
                 break;
             case mesh_source::gen_cube:
+                vi = video::vertgen::make_cube(glm::mat4(1.f));
                 break;
             case mesh_source::gen_sphere:
                 break;
@@ -37,6 +40,9 @@ namespace scene {
             default:
                 break;
             }
+
+            m.source = video::make_vertices_source({vi.data}, vi.desc);
+
             mi.meshes.push_back(m);
         }
 

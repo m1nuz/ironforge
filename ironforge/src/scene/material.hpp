@@ -20,10 +20,10 @@ namespace scene {
         const char      *specular_map = nullptr;
         const char      *gloss_map = nullptr;
 
-        video::texture  *emission_tex = nullptr;
-        video::texture  *diffuse_tex = nullptr;
-        video::texture  *specular_tex = nullptr;
-        video::texture  *gloss_tex = nullptr;
+        video::texture  emission_tex;
+        video::texture  diffuse_tex;
+        video::texture  specular_tex;
+        video::texture  gloss_tex;
 
         const char      *name = nullptr;
     };

@@ -6,10 +6,13 @@
 
 #include <ironforge_common.hpp>
 #include <video/vertices.hpp>
+#include <video/vertices_gen.hpp>
 #include <video/command.hpp>
 #include <video/command_buffer.hpp>
 #include <video/buffer.hpp>
 #include <video/vertex_array.hpp>
+#include <video/texture.hpp>
+#include <video/image_gen.hpp>
 
 namespace video {
     namespace gles2 {
@@ -57,6 +60,12 @@ namespace video {
 
     using texture = gl::texture;
 
+    struct vertices_source {
+        gl::vertex_array    array;
+        gl::buffer          vertices;
+        gl::buffer          elements;
+    };
+
     enum class result : int32_t {
         success,
         failure,
@@ -64,62 +73,19 @@ namespace video {
         error_create_context
     };
 
-    struct vertices_desc {
-        uint32_t        primitive;
-        vertex_format   vf;
-        index_format    ef;
-    };
-
-    struct vertices_data {
-        void        *vertices;
-        void        *indices;
-        uint32_t    vertices_num;
-        uint32_t    indices_num;
-    };
-
-    struct vertices_info {
-        vertices_data data;
-        vertices_desc desc;
-    };
-
-    struct vertices_source {
-        gl::vertex_array    array;
-        gl::buffer          vertices;
-        gl::buffer          elements;
-    };
-
-    struct vertices_draw {
-        uint32_t    vb_offset;
-        uint32_t    ib_offset;
-        uint32_t    count;
-        uint32_t    base_vertex;
-        uint32_t    base_index;
-    };
-
-    enum class pixel_format : uint32_t {
-        r8,
-        rg8,
-        rgb8,
-        rgba8,
-        bgr8,
-        bgra8,
-        r16f,
-        r32f,
-        rgb32f,
-        rgba32f
-    };
-
     __must_ckeck auto init(const std::string &title, int32_t w, int32_t h, bool vsync) -> result;
     auto cleanup() -> void;
-    auto present(std::vector<gl330::command_buffer *> &&buffers) -> void;
+    auto present(std::vector<gl::command_buffer *> &&buffers) -> void;
     auto get_string(result r) -> const char *;
     auto is_extension_supported(const char *extension) -> bool;
     auto get_info() -> const char *;
 
-    auto create_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc) -> vertices_source*;
+    auto make_texture_2d(const video::texture_info &info) -> texture;
+    auto make_texture_2d(const image_data &data) -> texture;
+    auto make_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc) -> vertices_source;
 
-    auto get_texture(const char *name) -> texture*;
-    auto default_white_texture() -> texture*;
-    auto default_black_texture() -> texture*;
-    auto default_check_texture() -> texture*;
+    auto get_texture(const char *name) -> texture;
+    auto default_white_texture() -> texture;
+    auto default_black_texture() -> texture;
+    auto default_check_texture() -> texture;
 } // namespace video

@@ -5,6 +5,9 @@
 #include <video/video.hpp>
 
 namespace video {
+    auto init_resources() -> void;
+    auto cleanup_resources() -> void;
+
     static SDL_Window *window;
     static SDL_GLContext context;
     static bool debug = true;
@@ -111,10 +114,14 @@ namespace video {
         if (debug)
             enable_debug();
 
+        init_resources();
+
         return result::success;
     }
 
     auto cleanup() -> void {
+        cleanup_resources();
+
         SDL_GL_DeleteContext(context);
         SDL_DestroyWindow(window);
     }
@@ -193,25 +200,5 @@ namespace video {
         }
 
         return info.c_str();
-    }
-
-    auto create_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc) -> vertices_source* {
-
-    }
-
-    auto get_texture(const char *name) -> texture* {
-        return nullptr;
-    }
-
-    auto default_white_texture() -> texture* {
-        return nullptr;
-    }
-
-    auto default_black_texture() -> texture* {
-        return nullptr;
-    }
-
-    auto default_check_texture() -> texture* {
-        return nullptr;
-    }
+    }    
 } // namespace video

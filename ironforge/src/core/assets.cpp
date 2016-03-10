@@ -141,10 +141,39 @@ namespace assets {
                 texts.insert({p.filename().string(), td}); // TODO: free memory
                 return td;
             }
-
-            return {nullptr, 0};
         }
 
         return {nullptr, 0};
+    }
+
+    auto get_image(const std::string& name) -> image_data {
+        auto im = images.find(name);
+
+        if (im != images.end())
+            return im->second;
+
+        auto f = files.find(name);
+
+        if (f != files.end()) {
+            fs::path p(f->second.filepath);
+
+            auto r = image_readers.find(p.extension().string());
+
+            if (r != image_readers.end()) {
+                auto imd = image_data{0, 0, 0, video::pixel_format::unknown, nullptr};
+
+                auto ret = r->second(SDL_RWFromFile(f->second.filepath.c_str(), "r"), imd);
+                if (ret != 0) {
+                    application::error(application::log_category::system, "Can't read file %\n", f->second.filepath);
+                    return {0, 0, 0, video::pixel_format::unknown, nullptr};
+                }
+
+                application::debug(application::log_category::application, "Read file %\n", f->second.filepath);
+                images.insert({p.filename().string(), imd}); // TODO: free memory
+                return imd;
+            }
+        }
+
+        return {0, 0, 0, video::pixel_format::unknown, nullptr};
     }
 } // namespace assets
