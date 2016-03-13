@@ -33,14 +33,12 @@ namespace scene {
     }
 } // namespace scene
 
-#include <xxhash.h>
-
 namespace scene {
     instance::instance() : instance{"empty", 0} {
     }
 
-    instance::instance(const std::string& _name, uint32_t _state) : name{_name}, name_hash{XXH64(_name.c_str(), _name.size(), 0)}, state{_state} {
-        application::debug(application::log_category::game, "Create '%' scene %\n", name, to_hex(name_hash));
+    instance::instance(const std::string& _name, uint32_t _state) : name{_name}, name_hash{utils::xxhash64(_name)}, state{_state} {
+        application::debug(application::log_category::game, "Create '%' scene %\n", name, utils::to_hex(name_hash));
     }
 
     instance::~instance() {
@@ -85,7 +83,7 @@ namespace scene {
             if (info.parent == eid)
                 parent_name = "self";
 
-            auto hash = XXH64(info.name, strlen(info.name), 0);
+            auto hash = utils::xxhash64(info.name, strlen(info.name), 0);
 
             // TODO: camera and no body? error
             // TODO: renderable and no body? error
@@ -122,7 +120,7 @@ namespace scene {
         }
 
         virtual auto get_entity(const std::string &_name) -> int32_t {
-            auto hash = XXH64(_name.c_str(), _name.size(), 0);
+            auto hash = utils::xxhash64(_name);
 
             // NOTE: find out what's better
             /*auto i = std::find(name_hashes.begin(), name_hashes.end(), hash);

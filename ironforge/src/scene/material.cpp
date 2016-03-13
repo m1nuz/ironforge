@@ -1,10 +1,10 @@
 #include <algorithm>
 
+#include <ironforge_utility.hpp>
 #include <core/application.hpp>
 #include <scene/scene.hpp>
 #include <video/video.hpp>
 
-#include <xxhash.h>
 #include "material.hpp"
 
 namespace scene {
@@ -23,7 +23,7 @@ namespace scene {
 
         material_instance mi;
         mi.name = info.name;
-        mi.name_hash = XXH64(info.name, strlen(info.name), 0);
+        mi.name_hash = utils::xxhash64(info.name, strlen(info.name), 0);
         mi.m0.ka = info.ambient;
         mi.m0.kd = info.diffuse;
         mi.m0.ks = info.specular;
@@ -48,7 +48,7 @@ namespace scene {
     }
 
     auto get_material(const char *name) -> material_instance* {
-        uint64_t hash = XXH64(name, strlen(name), 0);
+        uint64_t hash =  utils::xxhash64(name, strlen(name), 0);
 
         auto it = std::find_if(materials.begin(), materials.end(), [hash](const material_instance &i) {
             if (i.name_hash == hash)

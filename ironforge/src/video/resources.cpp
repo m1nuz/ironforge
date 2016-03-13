@@ -1,9 +1,9 @@
 #include <cstddef>
+#include <ironforge_utility.hpp>
 #include <core/application.hpp>
 #include <core/assets.hpp>
 #include <video/video.hpp>
 #include <video/buffer.hpp>
-#include <xxhash.h>
 
 // this api depend from used general video api
 namespace video {
@@ -36,17 +36,17 @@ namespace video {
 
         auto white_name = "white-map";
         auto im = video::imgen::make_color(128, 128, {1, 1, 1, 1}); // white
-        textures.push_back({white_name, gl::create_texture_2d(im), 1, XXH64(im.pixels, im.width * im.height * 3, 0), XXH64(white_name, strlen(white_name), 0)});
+        textures.push_back({white_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name))});
         delete[] im.pixels;
 
         auto black_name = "black-map";
         im = video::imgen::make_color(128, 128, {0, 0, 0, 0}); // black
-        textures.push_back({black_name, gl::create_texture_2d(im), 1, XXH64(im.pixels, im.width * im.height * 3, 0), XXH64(black_name, strlen(black_name), 0)});
+        textures.push_back({black_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(black_name, strlen(black_name))});
         delete[] im.pixels;
 
         auto check_name = "check-map";
         im = video::imgen::make_check(128, 128, 0x08, {0, 0, 0, 0}); // check
-        textures.push_back({check_name, gl::create_texture_2d(im), 1, XXH64(im.pixels, im.width * im.height * 3, 0), XXH64(check_name, strlen(check_name), 0)});
+        textures.push_back({check_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name))});
         delete[] im.pixels;
     }
 
@@ -164,7 +164,7 @@ namespace video {
 
         // TODO : seaarch other buffer with same hash
         auto vb = gl::create_buffer(gl::buffer_target::array, vertices_data_size, vertex_data, gl::buffer_usage::static_draw);
-        buffers.push_back({vb, 0, XXH64(vertex_data, vertices_data_size, 0)});
+        buffers.push_back({vb, 0, utils::xxhash64(vertex_data, vertices_data_size)});
 
         // transfer to video memory
         switch (desc.vf) {
@@ -180,7 +180,7 @@ namespace video {
         }
 
         auto eb = gl::create_buffer(gl::buffer_target::element_array, indices_data_size, index_data, gl::buffer_usage::static_draw);
-        buffers.push_back({eb, 0, XXH64(index_data, indices_data_size, 0)});
+        buffers.push_back({eb, 0, utils::xxhash64(index_data, indices_data_size)});
 
         gl::unbind_vertex_array(va);
 

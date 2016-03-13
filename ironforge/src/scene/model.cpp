@@ -1,8 +1,8 @@
 #include <algorithm>
 
+#include <ironforge_utility.hpp>
 #include <core/application.hpp>
 #include <video/video.hpp>
-#include <xxhash.h>
 
 #include "model.hpp"
 
@@ -20,7 +20,7 @@ namespace scene {
     auto create_model(const model_info &info) -> model_instance* {
         model_instance mi;
         mi.name = info.name;
-        mi.name_hash = XXH64(info.name, strlen(info.name), 0);
+        mi.name_hash = utils::xxhash64(info.name, strlen(info.name), 0);
         mi.meshes.clear();
 
         for (auto &msh : info.meshes) {
@@ -63,7 +63,7 @@ namespace scene {
     }
 
     auto get_model(const char *name) -> model_instance* {
-        uint64_t hash = XXH64(name, strlen(name), 0);
+        uint64_t hash = utils::xxhash64(name, strlen(name), 0);
 
         auto it = std::find_if(models.begin(), models.end(), [hash](const model_instance &i) {
             if (i.name_hash == hash)
