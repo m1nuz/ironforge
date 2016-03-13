@@ -87,7 +87,7 @@ namespace video {
         }
 
         auto destroy_texture(texture &tex) -> void {
-            /*if (glIsTexture(tex.id))*/ {
+            if (glIsTexture(tex.id)) {
                 application::debug(application::log_category::video, "Delete texture %\n", tex.id);
                 glDeleteTextures(1, &tex.id);
             }

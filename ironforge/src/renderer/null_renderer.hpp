@@ -43,7 +43,7 @@ namespace renderer {
         virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void {
             UNUSED(proj), UNUSED(view);            
 
-            commands << video::gl::clear{};
+            commands << video::gl::clear_op{};
 
             video::present({&commands});
             reset();

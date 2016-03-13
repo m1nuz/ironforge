@@ -2,7 +2,7 @@
 
 namespace renderer {
     forward_renderer::forward_renderer() {
-        application::debug(application::log_category::render, "% %\n", "Create forward render", "version 1.00");
+        application::debug(application::log_category::render, "% % with % %\n", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
         reset();
     }
@@ -38,7 +38,7 @@ namespace renderer {
     auto forward_renderer::present(const glm::mat4 &proj, const glm::mat4 &view) -> void {
         UNUSED(proj), UNUSED(view);
 
-        prepare_commands << video::gl::clear{};
+        prepare_commands << video::gl::clear_op{};
 
         video::present({&prepare_commands});
         reset();

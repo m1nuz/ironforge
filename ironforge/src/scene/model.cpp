@@ -34,14 +34,19 @@ namespace scene {
                 vi = video::vertgen::make_cube(glm::mat4(1.f));
                 break;
             case mesh_source::gen_sphere:
+                vi = video::vertgen::make_sphere(&msh.sphere, glm::mat4(1.f));
                 break;
             case mesh_source::gen_grid:
+                vi = video::vertgen::make_grid_plane(&msh.grid, glm::mat4(1.f));
                 break;
             default:
                 break;
             }
 
-            m.source = video::make_vertices_source({vi.data}, vi.desc);
+            //m.bounds = calc_bound_box({vi.data}, vi.desc);
+            //m.visible_bound = calc_bound_sphere({vi.data}, vi.desc);
+            m.desc = vi.desc;
+            m.source = video::make_vertices_source({vi.data}, vi.desc, m.draws); // TODO: return valid value
 
             mi.meshes.push_back(m);
         }

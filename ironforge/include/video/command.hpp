@@ -32,7 +32,7 @@ namespace video {
             };
         };
 
-        struct clear : public command {
+        struct clear_op : public command {
 
         };
     } // namespace gl330

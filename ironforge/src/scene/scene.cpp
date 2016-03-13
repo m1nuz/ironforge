@@ -356,7 +356,7 @@ namespace scene {
 
             model_info mi;
             mi.name = json_string_value(name);
-            mi.meshes.reserve(json_array_size(meshes));
+            mi.meshes.resize(json_array_size(meshes));
             memset(&mi.meshes[0], 0, mi.meshes.capacity() * sizeof (mesh_info));
 
             for (size_t j = 0; j < json_array_size(meshes); j++) {

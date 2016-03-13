@@ -9,7 +9,10 @@ namespace video {
             array,
             element_array,
             texture,
-            uniform
+            uniform,
+            //transform_feedback,
+            //copy_read,
+            //copy_write
         };
 
         enum class buffer_usage : uint32_t {
@@ -22,6 +25,12 @@ namespace video {
             dynamic_draw,
             dynamic_read,
             dynamic_copy
+        };
+
+        enum class buffer_access : uint32_t {
+            read_only,
+            write_only,
+            read_write
         };
 
         struct buffer {
@@ -37,12 +46,20 @@ namespace video {
 
         struct binding_buffer {
             uint32_t    binding_index = 0;
-            buffer      *buf          = nullptr;
+            uint32_t    buf           = 0;
             ptrdiff_t   offset        = 0;
             int         stride        = 0;
         };
 
         auto create_buffer(buffer_target target, size_t size, const void *ptr, buffer_usage usage) -> buffer;
         auto destroy_buffer(buffer &buf) -> void;
+        auto bind_buffer(buffer &buf) -> void;
+        auto unbind_buffer(buffer &buf) -> void;
+        // auto bind_buffer_range() -> void;
+        // auto bind_buffer_base() -> void;
+        auto update_buffer(buffer &buf, size_t offset, const void *data, size_t size) -> void;
+        auto map_buffer(buffer &buf, buffer_access access) -> void*;
+        auto unmap_buffer(buffer &buf) -> bool;
+        // copy_buffer
     } // namespace gl330
 } // namespace video

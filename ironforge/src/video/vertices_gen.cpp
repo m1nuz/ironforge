@@ -64,7 +64,7 @@ namespace video {
                 }
             }
 
-            // TODO: mul to transorm matrix
+            // TODO: mul to transform matrix
 
             return {{vertices, indices, info->rings * info->sectors, info->rings * (info->sectors - 1) * 6}, {GL_TRIANGLES, vertex_format::v3t2n3, index_format::ui16}};
         }
@@ -72,6 +72,7 @@ namespace video {
         auto make_quad_plane(glm::mat4 transform) -> vertices_info {
             UNUSED(transform);
 
+            // TODO: mul with transform matri
             return {{quad_vertices, quad_indices, quad_vertices_num, quad_indices_num}, {GL_TRIANGLES, vertex_format::v3t2n3, index_format::ui16}};
         }
 
@@ -157,7 +158,7 @@ namespace video {
                 vs[i].texcoord[1] = texCoords[i * 2 + 1];
             }
 
-            // TODO: mul with transorm matrix
+            // TODO: mul with transform matrix
 
             free(vertices);
             free(normals);

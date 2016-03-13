@@ -13,8 +13,10 @@
 #include <video/vertex_array.hpp>
 #include <video/texture.hpp>
 #include <video/image_gen.hpp>
+#include <video/vertex_array.hpp>
 
 namespace video {
+    /* specific gl APIs */
     namespace gles2 {
         constexpr int major_version = 2;
         constexpr int minor_version = 0;
@@ -28,6 +30,9 @@ namespace video {
     namespace gl330 {
         constexpr int major_version = 3;
         constexpr int minor_version = 3;
+
+        constexpr auto api_name = "opengl";
+        constexpr auto api_version = (major_version * 100) + (minor_version * 10);
 
         enum class command_type : uint32_t;
         struct command;
@@ -55,8 +60,10 @@ namespace video {
         constexpr int minor_version = 0;
     }
 
+    /* general api */
     namespace gl = gl330;
     namespace vk = vulkan1;
+    // namespace d3d
 
     using texture = gl::texture;
 
@@ -82,10 +89,10 @@ namespace video {
 
     auto make_texture_2d(const video::texture_info &info) -> texture;
     auto make_texture_2d(const image_data &data) -> texture;
-    auto make_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc) -> vertices_source;
+    auto make_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc, std::vector<vertices_draw> &draws) -> vertices_source;
 
-    auto get_texture(const char *name) -> texture;
     auto default_white_texture() -> texture;
     auto default_black_texture() -> texture;
     auto default_check_texture() -> texture;
+    auto get_texture(const char *name, const texture &default_tex = default_check_texture()) -> texture;
 } // namespace video

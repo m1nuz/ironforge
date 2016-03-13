@@ -14,6 +14,7 @@ namespace renderer {
     constexpr size_t max_materials          = 10;
     constexpr size_t max_drawables          = 10;
 
+    // TODO : make video api specific template
     struct forward_renderer : public instance {
         forward_renderer();
         ~forward_renderer();

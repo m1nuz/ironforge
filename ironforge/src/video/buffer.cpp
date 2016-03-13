@@ -1,10 +1,20 @@
+#include <algorithm>
+#include <map>
+
 #include <glcore_330.h>
 #include <core/application.hpp>
 #include <video/buffer.hpp>
 
 namespace video {
     namespace gl330 {
-        inline uint32_t get_buffer_target(buffer_target target) {
+        static std::map<buffer_target, const char *> buffer_target_names = {
+            {buffer_target::array, "array"},
+            {buffer_target::element_array, "element_array"},
+            {buffer_target::texture, "texture"},
+            {buffer_target::uniform, "uniform"},
+        };
+
+        inline auto get_buffer_target(buffer_target target) -> uint32_t {
             switch (target) {
             case buffer_target::array:
                 return GL_ARRAY_BUFFER;
@@ -17,6 +27,21 @@ namespace video {
             }
 
             return GL_NONE;
+        }
+
+        inline auto get_buffer_target_name(uint32_t target) -> const char * {
+            switch (target) {
+            case GL_ARRAY_BUFFER:
+                return buffer_target_names.at(buffer_target::array);
+            case GL_ELEMENT_ARRAY_BUFFER:
+                return buffer_target_names.at(buffer_target::element_array);
+            case GL_TEXTURE_BUFFER:
+                return buffer_target_names.at(buffer_target::texture);
+            case GL_UNIFORM_BUFFER:
+                return buffer_target_names.at(buffer_target::uniform);
+            }
+
+            return "unknown";
         }
 
         inline uint32_t get_buffer_usage(buffer_usage usage) {
@@ -54,15 +79,54 @@ namespace video {
             glBindBuffer(bt, buf);
             glBufferData(bt, size, ptr, bu);
 
+            application::debug(application::log_category::video, "Create % buffer %\n", buffer_target_names[target], buf);
+
             return buffer{buf, bt, bu};
         }
 
         auto destroy_buffer(buffer &buf) -> void {
-            if (glIsBuffer(buf.id))
+            if (!glIsBuffer(buf.id))
                 application::warning(application::log_category::video, "Trying delete not buffer %\n", buf.id);
+
+            application::debug(application::log_category::video, "Destroy % buffer %\n", get_buffer_target_name(buf.target), buf.id);
 
             glDeleteBuffers(1, &buf.id);
             buf.id = 0;
+        }
+
+        auto bind_buffer(buffer &buf) -> void {
+            glBindBuffer(buf.target, buf.id);
+        }
+
+        auto unbind_buffer(buffer &buf) -> void {
+            glBindBuffer(buf.target, 0);
+        }
+
+        auto update_buffer(buffer &buf, size_t offset, const void *data, size_t size) -> void {
+            glBindBuffer(buf.target, buf.id);
+            glBufferSubData(buf.target, offset, size, data);
+        }
+
+        inline auto get_buffer_access(buffer_access access) -> uint32_t {
+            switch (access) {
+            case buffer_access::read_only:
+                return GL_READ_ONLY;
+            case buffer_access::write_only:
+                return GL_WRITE_ONLY;
+            case buffer_access::read_write:
+                return GL_READ_WRITE;
+            }
+
+            return GL_NONE;
+        }
+
+        auto map_buffer(buffer &buf, buffer_access access) -> void* {
+            glBindBuffer(buf.target, buf.id);
+            return glMapBuffer(buf.target, get_buffer_access(access));
+        }
+
+        auto unmap_buffer(buffer &buf) -> bool {
+            return glUnmapBuffer(buf.target) == GL_TRUE;
         }
     } // namespace gl330
 } // namespace video

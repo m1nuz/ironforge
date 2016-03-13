@@ -12,7 +12,7 @@ namespace video {
             std::vector<command> commands;
         };
 
-        inline auto& operator <<(command_buffer &cb, const clear &c) {
+        inline auto& operator <<(command_buffer &cb, const clear_op &c) {
             cb.commands.push_back(c);
             return cb;
         }
