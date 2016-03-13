@@ -6,6 +6,7 @@ include_directories(../ironforge/include)
 include_directories(../lib/GLcore/include)
 include_directories(../lib/GL/include)
 include_directories(../lib/glm)
+include_directories(../lib/xxhash/include)
 
 set(cpp_flags "-pedantic -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wunused-result")
 
