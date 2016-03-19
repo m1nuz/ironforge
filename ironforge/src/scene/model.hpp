@@ -47,5 +47,5 @@ namespace scene {
     auto cleanup_all_models() -> void;
     auto create_model(const model_info &info) -> model_instance*;
     auto default_model() -> model_instance*;
-    auto get_model(const char *name) -> model_instance*;
+    auto find_model(const char *name) -> model_instance*;
 } // namespace scene

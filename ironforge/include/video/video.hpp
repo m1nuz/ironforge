@@ -14,6 +14,9 @@
 #include <video/texture.hpp>
 #include <video/image_gen.hpp>
 #include <video/vertex_array.hpp>
+#include <video/shader.hpp>
+#include <video/program.hpp>
+#include <video/pipeline.hpp>
 
 namespace video {
     /* specific gl APIs */
@@ -66,6 +69,7 @@ namespace video {
     // namespace d3d
 
     using texture = gl::texture;
+    using program = gl::program;
 
     struct vertices_source {
         gl::vertex_array    array;
@@ -86,6 +90,7 @@ namespace video {
     auto get_string(result r) -> const char *;
     auto is_extension_supported(const char *extension) -> bool;
     auto get_info() -> const char *;
+    auto is_debugging() -> bool;
 
     auto make_texture_2d(const video::texture_info &info) -> texture;
     auto make_texture_2d(const image_data &data) -> texture;
@@ -95,4 +100,7 @@ namespace video {
     auto default_black_texture() -> texture;
     auto default_check_texture() -> texture;
     auto get_texture(const char *name, const texture &default_tex = default_check_texture()) -> texture;
+
+    auto make_program(const gl::program_info &info) -> program;
+    auto get_shader(const char *name) -> program;
 } // namespace video

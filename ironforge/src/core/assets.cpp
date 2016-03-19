@@ -115,7 +115,7 @@ namespace assets {
         return result::success;
     }
 
-    auto get_text(const std::string& name) -> text_data {
+    auto get_text(const std::string& name) -> text_data { // TODO: return optional
         auto t = texts.find(name);
 
         if (t != texts.end())
@@ -142,6 +142,8 @@ namespace assets {
                 return td;
             }
         }
+
+        application::warning(application::log_category::application, "File '%' not found\n", name);
 
         return {nullptr, 0};
     }

@@ -36,6 +36,14 @@ namespace renderer {
             // do nothing
         }
 
+        virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw) -> void {
+            UNUSED(source), UNUSED(draw);
+        }
+
+        virtual auto append(const glm::mat4 &model) -> void {
+            UNUSED(model);
+        }
+
         virtual auto reset() -> void {
             commands.clear_color = glm::vec4(1.f, 1.f, 1.f, 1.f);
         }

@@ -200,5 +200,9 @@ namespace video {
         }
 
         return info.c_str();
-    }    
+    }
+
+    auto is_debugging() -> bool {
+        return debug;
+    }
 } // namespace video

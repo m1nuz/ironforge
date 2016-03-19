@@ -89,6 +89,8 @@ namespace video {
 
             glVertexAttribPointer(static_cast<uint32_t>(attribindex), size, get_attrib_type(type), normalized, va.vb.stride, (const GLvoid*)(va.vb.offset + relative_offset));
             glEnableVertexAttribArray(static_cast<uint32_t>(attribindex));
+
+            // TODO : add to attribs of va
         }
     } // namespace gl330
 } // namespace video

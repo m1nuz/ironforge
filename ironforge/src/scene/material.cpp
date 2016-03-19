@@ -47,7 +47,7 @@ namespace scene {
         return nullptr;
     }
 
-    auto get_material(const char *name) -> material_instance* {
+    auto find_material(const char *name) -> material_instance* {
         uint64_t hash =  utils::xxhash64(name, strlen(name), 0);
 
         auto it = std::find_if(materials.begin(), materials.end(), [hash](const material_instance &i) {

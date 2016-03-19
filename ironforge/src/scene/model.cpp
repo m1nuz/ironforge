@@ -40,13 +40,14 @@ namespace scene {
                 vi = video::vertgen::make_grid_plane(&msh.grid, glm::mat4(1.f));
                 break;
             default:
+                application::warning(application::log_category::video, "%\n", "Unknown mesh source");
                 break;
             }
 
             //m.bounds = calc_bound_box({vi.data}, vi.desc);
             //m.visible_bound = calc_bound_sphere({vi.data}, vi.desc);
             m.desc = vi.desc;
-            m.source = video::make_vertices_source({vi.data}, vi.desc, m.draws); // TODO: return valid value
+            m.source = video::make_vertices_source({vi.data}, vi.desc, m.draws);
 
             mi.meshes.push_back(m);
         }
@@ -62,7 +63,7 @@ namespace scene {
         return nullptr;
     }
 
-    auto get_model(const char *name) -> model_instance* {
+    auto find_model(const char *name) -> model_instance* {
         uint64_t hash = utils::xxhash64(name, strlen(name), 0);
 
         auto it = std::find_if(models.begin(), models.end(), [hash](const model_instance &i) {

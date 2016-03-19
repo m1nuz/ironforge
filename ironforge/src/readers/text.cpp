@@ -25,5 +25,5 @@ auto read_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
 
 
 auto read_shader_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
-    return 0;
+    return read_text(rw, text);
 }

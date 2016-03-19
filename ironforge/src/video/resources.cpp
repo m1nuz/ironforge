@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <algorithm>
 #include <ironforge_utility.hpp>
 #include <core/application.hpp>
 #include <core/assets.hpp>
@@ -25,9 +26,17 @@ namespace video {
         gl::vertex_array va;
     };
 
+    struct program_desc {
+        gl::program pro;
+        uint32_t    usage;
+        uint64_t    hash;
+        uint64_t    name_hash;
+    };
+
     std::vector<texture_desc> textures;
     std::vector<buffer_desc> buffers;
     std::vector<vertex_array_desc> vertex_arrays;
+    std::vector<program_desc> programs;
 
     auto init_resources() -> void {
         textures.reserve(100);
@@ -48,6 +57,9 @@ namespace video {
         im = video::imgen::make_check(128, 128, 0x08, {0, 0, 0, 0}); // check
         textures.push_back({check_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name))});
         delete[] im.pixels;
+
+        make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
+        //make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
     }
 
     auto cleanup_resources() -> void {
@@ -62,7 +74,13 @@ namespace video {
             gl::destroy_vertex_array(arr.va);
         }
 
+        for (auto &p : programs)
+            gl::destroy_program(p.pro);
+
         textures.clear();
+        buffers.clear();
+        vertex_arrays.clear();
+        programs.clear();
     }
 
     auto make_texture_2d(const texture_info &info) -> texture {
@@ -211,5 +229,56 @@ namespace video {
 
     auto default_check_texture() -> texture {
         return textures[2].tex;
+    }
+
+    auto make_program(const gl330::program_info &info) -> program {
+        auto inf = info;
+
+        std::vector<uint64_t> hashes;
+        hashes.reserve(3); // types of shader
+
+        for (auto &i : inf.sources) {
+            // just read from file to text
+            if (!i.name.empty() && i.text.empty()) {
+                auto t = assets::get_text(i.name);
+                i.text = {t.text, t.size};
+
+                hashes.push_back(utils::xxhash64(i.text));
+            }
+        }
+
+        auto bytes = hashes.size() * (hashes.size() > 0 ? sizeof (hashes[0]) : 0);
+        auto hash = utils::xxhash64(&hashes[0], bytes);
+
+        auto pi = std::find_if(programs.begin(), programs.end(), [hash](const program_desc &desc) {
+            if (desc.hash == hash)
+                return true;
+            return false;
+        });
+
+        if (pi != programs.end()) {
+            application::warning(application::log_category::video, "Program % already created\n", pi->pro.pid);
+            return pi->pro;
+        }
+
+        auto p = gl::create_program(inf);
+        programs.push_back({p, 1, hash, utils::xxhash64(info.name)});
+
+        return p;
+    }
+
+    auto get_shader(const char *name) -> program {
+        auto hash = utils::xxhash64(name, strlen(name));
+
+        auto it = std::find_if(programs.begin(), programs.end(), [hash](const program_desc &desc) {
+            if (desc.name_hash == hash)
+                return true;
+            return false;
+        });
+
+        if (it != programs.end())
+            return (*it).pro;
+
+        return {0, {}, {}, {}};
     }
 } // namespace video

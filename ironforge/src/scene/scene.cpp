@@ -105,9 +105,9 @@ namespace scene {
                 bodies.push_back(info.body ? create_body(*info.body) : nullptr);
                 transforms.push_back(info.flags & static_cast<uint32_t>(entity::flag::renderable) ? create_transform(eid, info.parent) : nullptr);
                 cameras.push_back(info.camera ? create_camera(eid, *info.camera) : nullptr);
-                materials.push_back(info.material ? get_material(info.name) : nullptr);
+                materials.push_back(info.material ? find_material(info.name) : nullptr);
                 inputs.push_back(nullptr);
-                models.push_back(info.model ? get_model(info.model) : nullptr);
+                models.push_back(info.model ? find_model(info.model) : nullptr);
                 scripts.push_back(nullptr);
                 names.push_back(info.name);
                 name_hashes.push_back(hash);
@@ -141,6 +141,14 @@ namespace scene {
 
         virtual auto get_body(int32_t id) -> body_instance* {
             return bodies[id];
+        }
+
+        virtual auto get_material(int32_t id) -> material_instance* {
+            return materials[id];
+        }
+
+        virtual auto get_model(int32_t id) -> model_instance* {
+            return models[id];
         }
 
         virtual auto get_current_camera() -> camera_instance* {
@@ -578,17 +586,23 @@ namespace scene {
 
     auto present_all_transforms(std::unique_ptr<instance> &s, std::function<void(int32_t, const glm::mat4 &)> cb) -> void;
 
-    auto present(std::unique_ptr<instance>& s, std::unique_ptr<renderer::instance> &render, float interpolation) -> void {
+    auto present(std::unique_ptr<instance>& scn, std::unique_ptr<renderer::instance> &render, float interpolation) -> void {
         using namespace glm;
 
         //application::debug(application::log_category::scene, "Present %\n", s->name);
 
         physics::interpolate_all(interpolation);
-        scene::present_all_cameras(s);
-        scene::present_all_transforms(s, [](int32_t e, const glm::mat4 &m) {
-            //std::cout << glm::to_string(m) << std::endl;
+        scene::present_all_cameras(scn);
+        scene::present_all_transforms(scn, [&scn, &render](int32_t e, const glm::mat4 &m) {
+            for (const auto &msh : scn->get_model(e)->meshes)
+                for (const auto &dr : msh.draws) {
+                    render->append(scn->get_material(e)->m0);
+                    render->append(scn->get_transform(e)->model);
+                    render->append(m);
+                    render->append(msh.source, dr);
+                }
         });
-        render->present(s->get_current_camera()->projection, s->get_current_camera()->view);
+        render->present(scn->get_current_camera()->projection, scn->get_current_camera()->view);
     }
 } // namespace scene
 

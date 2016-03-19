@@ -3,6 +3,7 @@
 #include <memory>
 #include <ironforge_common.hpp>
 #include <video/video.hpp>
+#include <video/vertices.hpp>
 
 namespace renderer {
     namespace phong {
@@ -37,10 +38,6 @@ namespace renderer {
         };
     } // namespace phong
 
-    struct drawable {
-
-    };
-
     // TODO: think about static dispatching
     struct instance {
         // interface
@@ -49,8 +46,8 @@ namespace renderer {
         virtual auto append(const phong::directional_light &light) -> void = 0;
         virtual auto append(const phong::point_light &light) -> void = 0;
         virtual auto append(const phong::material &material) -> void = 0;
-        //virtual auto append(const drawable &d) -> uint32_t = 0;
-        // virtual auto draw(const phong::material &mt, const mesh &msh, const glm::mat4 &m);
+        virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw) -> void = 0;
+        virtual auto append(const glm::mat4 &model) -> void = 0;
         // TODO: think about add/remove from ubo mechanism
 
         virtual auto reset() -> void = 0;
