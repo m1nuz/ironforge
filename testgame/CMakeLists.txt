@@ -8,7 +8,7 @@ include_directories(../lib/GL/include)
 include_directories(../lib/glm)
 include_directories(../lib/xxhash/include)
 
-set(cpp_flags "-pedantic -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wunused-result")
+set(cpp_flags "-pedantic -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -Wunused-result")
 
 add_executable(simple-game-test src/config.hpp src/main.cpp)
 set_property(TARGET simple-game-test PROPERTY CXX_STANDARD 14)

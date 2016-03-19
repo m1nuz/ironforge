@@ -44,6 +44,8 @@ namespace renderer {
         std::vector<phong::directional_light>   directional_lights;
         std::vector<phong::point_light>         point_lights;
 
+        video::gl::sampler                      texture_sampler;
+
         video::gl::command_buffer               prepare_commands;
         video::gl::command_buffer               post_commands;
         video::gl::command_buffer               ambient_commands;

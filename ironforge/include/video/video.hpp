@@ -17,6 +17,7 @@
 #include <video/shader.hpp>
 #include <video/program.hpp>
 #include <video/pipeline.hpp>
+#include <video/sampler.hpp>
 
 namespace video {
     /* specific gl APIs */

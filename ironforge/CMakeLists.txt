@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project("ironforge")
 
-set(cpp_flags "-pedantic -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wunused-result")
+set(cpp_flags "-pedantic -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -Wunused-result")
 
 subdirlist(subdirs ${CMAKE_CURRENT_SOURCE_DIR}/src)
 

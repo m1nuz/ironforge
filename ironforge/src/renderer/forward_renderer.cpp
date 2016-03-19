@@ -6,6 +6,9 @@ namespace renderer {
 
         emission_shader = video::get_shader("emission-shader");
 
+        video::gl::sampler_info sam_info;
+        texture_sampler = video::gl::create_sampler(sam_info);
+
         sources.reserve(max_sources);
         draws.reserve(max_draws);
         matrices.reserve(max_matrices);
@@ -15,6 +18,7 @@ namespace renderer {
     }
 
     forward_renderer::~forward_renderer() {
+        video::gl::destroy_sampler(texture_sampler);
         application::debug(application::log_category::render, "%\n", "Destroy forward render");
     }
 
