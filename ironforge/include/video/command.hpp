@@ -32,12 +32,16 @@ namespace video {
 
             union {
                 struct {
-                    uint32_t vb_offset;
-                    uint32_t ib_offset;
+                    uint32_t mode;
+                    uint32_t type;
                     uint32_t count;
                     uint32_t base_vertex;
-                    uint32_t base_index;
+                    uint32_t indices_offset;
                 } _draw_elements;
+
+                struct {
+                    uint32_t id;
+                } _bind_framebuffer;
 
                 struct {
                     uint32_t pid;
@@ -73,6 +77,12 @@ namespace video {
         struct draw_elements_op : public command {
             draw_elements_op(uint32_t count) : command{command_type::draw_elements} {
                 _draw_elements.count = count;
+            }
+        };
+
+        struct bind_framebuffer_op : public command {
+            bind_framebuffer_op(uint32_t id) : command{command_type::bind_framebuffer} {
+                _bind_framebuffer.id = id;
             }
         };
 

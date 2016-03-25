@@ -120,7 +120,7 @@ namespace video {
 
         auto destroy_program(program &pro) -> void {
             if (!glIsProgram(pro.pid))
-                application::debug(application::log_category::video, "Trying delete not program % %\n", pro.pid);
+                application::debug(application::log_category::video, "Trying delete not program %\n", pro.pid);
 
             application::debug(application::log_category::video, "Destroy program %\n", pro.pid);
 

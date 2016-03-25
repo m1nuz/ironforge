@@ -16,7 +16,7 @@ namespace renderer {
     constexpr size_t max_matrices           = 10;
     constexpr size_t max_sources            = 10;
 
-    struct row_material {
+    struct raw_material {
         glm::vec4 values[4];
     };
 
@@ -36,13 +36,14 @@ namespace renderer {
         virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void;
 
         std::vector<video::vertices_source>     sources;
-        std::vector<video::vertices_draw>       draws;
+        std::vector<video::vertices_draw>       draws; // TODO: use raw_draw
         std::vector<glm::mat4>                  matrices;
         std::vector<phong::material>            materials;
 
         std::vector<phong::ambient_light>       ambient_lights;
         std::vector<phong::directional_light>   directional_lights;
         std::vector<phong::point_light>         point_lights;
+        //std::vector<phong::spot_light>        spot_lights;
 
         video::gl::sampler                      texture_sampler;
 

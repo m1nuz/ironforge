@@ -24,18 +24,15 @@ namespace renderer {
     }
 
     auto forward_renderer::append(const phong::ambient_light &light) -> void {
-        UNUSED(light);
-        // do nothing
+        ambient_lights.push_back(light);
     }
 
     auto forward_renderer::append(const phong::directional_light &light) -> void {
-        UNUSED(light);
-        // do nothing
+        directional_lights.push_back(light);
     }
 
     auto forward_renderer::append(const phong::point_light &light) -> void {
-        UNUSED(light);
-        // do nothing
+        point_lights.push_back(light);
     }
 
     auto forward_renderer::append(const phong::material &material) -> void {
@@ -58,6 +55,10 @@ namespace renderer {
         matrices.clear();
         draws.clear();
 
+        ambient_lights.clear();
+        directional_lights.clear();
+        point_lights.clear();
+
         prepare_commands.clear_color = glm::vec4(0.7f, 0.7f, 0.7f, 0.f);
         prepare_commands.memory_offset = 0;
         prepare_commands.commands.clear();
@@ -66,6 +67,7 @@ namespace renderer {
     auto forward_renderer::present(const glm::mat4 &proj, const glm::mat4 &view) -> void {
         UNUSED(proj), UNUSED(view);
 
+        prepare_commands << video::gl::bind_framebuffer_op{video::gl::default_framebuffer().id};
         prepare_commands << video::gl::clear_op{};
 
         prepare_commands << video::gl::bind_program_op{ambient_light_shader.pid};

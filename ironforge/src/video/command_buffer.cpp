@@ -100,7 +100,11 @@ namespace video {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 break;
             case command_type::draw_elements:
+                // TODO: use glDrawElementsBaseVertex
                 glDrawElements(GL_TRIANGLES, c._draw_elements.count, GL_UNSIGNED_SHORT, nullptr);
+                break;
+            case command_type::bind_framebuffer:
+                glBindFramebuffer(GL_FRAMEBUFFER, c._bind_framebuffer.id);
                 break;
             case command_type::bind_program:
                 glUseProgram(c._bind_program.pid);
