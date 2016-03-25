@@ -1,4 +1,5 @@
 #include <core/application.hpp>
+#include <video/video.hpp>
 #include <scene/scene.hpp>
 #include "camera.hpp"
 #include "physics.hpp"
@@ -23,14 +24,24 @@ namespace scene {
         ci.entity = entity;
         ci.parent = info.parent;
         ci.fov = info.fov;
-        ci.aspect = 1.f;
+        ci.aspect = video::screen.aspect;
         ci.znear = info.znear;
         ci.zfar = info.zfar;
 
-        ci.projection = perspective(ci.fov, ci.aspect, ci.znear, ci.zfar);
-        ci.view = mat4(1.f);
+        switch (info.type) {
+        case camera_type::root:
+            ci.projection = glm::mat4{1.f};
+            break;
+        case camera_type::perspective:
+            ci.projection = perspective(ci.fov, ci.aspect, ci.znear, ci.zfar);
+            break;
+        }
 
-        return nullptr;
+        ci.view = mat4{1.f};
+
+        cameras.push_back(ci);
+
+        return &cameras.back();
     }
 
     auto present_all_cameras(std::unique_ptr<instance>& s) -> void {

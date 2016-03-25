@@ -18,6 +18,7 @@
 #include <video/program.hpp>
 #include <video/pipeline.hpp>
 #include <video/sampler.hpp>
+#include <video/state.hpp>
 
 namespace video {
     /* specific gl APIs */
@@ -85,6 +86,16 @@ namespace video {
         error_create_context
     };
 
+    struct _screen {
+        int32_t     width;
+        int32_t     height;
+        float       aspect;
+        int         msaa;
+        bool        fullscreen;
+        bool        vsync;
+        bool        srgb_capable;
+    };
+
     __must_ckeck auto init(const std::string &title, int32_t w, int32_t h, bool vsync) -> result;
     auto cleanup() -> void;
     auto present(std::vector<gl::command_buffer *> &&buffers) -> void;
@@ -104,4 +115,8 @@ namespace video {
 
     auto make_program(const gl::program_info &info) -> program;
     auto get_shader(const char *name) -> program;
+
+    extern int32_t max_uniform_components;
+
+    extern _screen screen;
 } // namespace video

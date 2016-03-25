@@ -3,8 +3,13 @@
 #include  <ironforge_common.hpp>
 
 namespace scene {
+    enum class camera_type : uint32_t {
+        root,
+        perspective
+    };
+
     struct camera_info {
-        // camera_type type;
+        camera_type type = camera_type::root;
         float   fov    = 0.f;
         //float   aspect = 1.f;
         float   znear  = 1.f;

@@ -3,6 +3,7 @@
 #ifdef __GNUC__
 
 #define __must_ckeck __attribute__ ((warn_unused_result))
+#define restrict __restrict
 
 #endif // __GNUC__
 

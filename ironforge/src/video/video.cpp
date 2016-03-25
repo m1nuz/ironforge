@@ -8,6 +8,9 @@ namespace video {
     auto init_resources() -> void;
     auto cleanup_resources() -> void;
 
+    int32_t max_uniform_components = 0;
+    _screen screen;
+
     static SDL_Window *window;
     static SDL_GLContext context;
     static bool debug = true;
@@ -114,7 +117,15 @@ namespace video {
         if (debug)
             enable_debug();
 
+        // get constants
+        glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &max_uniform_components);
+
         init_resources();
+
+        screen.width = w;
+        screen.height = h;
+        screen.vsync = vsync;
+        screen.aspect = (float)screen.width / (float)screen.height;
 
         return result::success;
     }
@@ -128,8 +139,17 @@ namespace video {
 
     auto present(std::vector<gl::command_buffer *>&& buffers) -> void {
         for (auto &buf : buffers) {
-            for (auto &c : buf->commands)
+            for (auto &c : buf->commands) {
+                video::gl::set_color_blend_state(&buf->blend);
+                video::gl::set_rasterizer_state(&buf->rasterizer);
+                video::gl::set_depth_stencil_state(&buf->depth);
+
                 video::gl::dispath_command(c, *buf);
+
+                video::gl::clear_depth_stencil_state();
+                video::gl::clear_rasterizer_state();
+                video::gl::clear_color_blend_state();
+            }
         }
 
         SDL_GL_SwapWindow(window);

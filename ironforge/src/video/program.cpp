@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <glcore_330.h>
 #include <ironforge_utility.hpp>
 #include <core/application.hpp>
@@ -124,6 +126,21 @@ namespace video {
 
             glDeleteProgram(pro.pid);
             pro.pid = 0;
+        }
+
+        auto get_uniform_location(program &pro, const std::string &name) -> int32_t {
+            auto hash = utils::xxhash64(name);
+
+            auto it = std::find_if(pro.uniforms.begin(), pro.uniforms.end(), [&](const uniform &u) {
+                return u.name_hash == hash;
+            });
+
+            if (it != pro.uniforms.end())
+                return it->location;
+
+            application::warning(application::log_category::video, "Uniform not found %\n", name);
+
+            return -1;
         }
     } // namespace gl330
 } // namespace video

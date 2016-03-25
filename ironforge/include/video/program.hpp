@@ -8,6 +8,10 @@
 
 namespace video {
     namespace gl330 {
+        /*enum class uniform_type : uint32_t {
+
+        };*/
+
         struct uniform {
             std::string     name;
             uint64_t        name_hash;
@@ -38,5 +42,6 @@ namespace video {
 
         auto create_program(const program_info &info) -> program;
         auto destroy_program(program &pro) -> void;
+        auto get_uniform_location(program &pro, const std::string &name) -> int32_t;
     } // namespace gl330
 } // namespace video

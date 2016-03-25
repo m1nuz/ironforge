@@ -60,6 +60,7 @@ namespace video {
 
         make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
         //make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
+        make_program({"ambient-light-shader", {{"forward-ambient.vert", {}}, {"forward-ambient.frag", {}}}});
     }
 
     auto cleanup_resources() -> void {

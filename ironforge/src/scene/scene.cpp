@@ -83,6 +83,9 @@ namespace scene {
             if (info.parent == eid)
                 parent_name = "self";
 
+            if (info.flags & static_cast<uint32_t>(entity::flag::current_camera))
+                current_camera = eid;
+
             auto hash = utils::xxhash64(info.name, strlen(info.name), 0);
 
             // TODO: camera and no body? error
@@ -136,22 +139,36 @@ namespace scene {
         }
 
         virtual auto get_transform(int32_t id) -> transform_instance* {
+            assert(id >= 0);
+            assert(id < (int32_t)transforms.capacity());
+
             return transforms[id];
         }
 
         virtual auto get_body(int32_t id) -> body_instance* {
+            assert(id >= 0);
+            assert(id < (int32_t)bodies.capacity());
+
             return bodies[id];
         }
 
         virtual auto get_material(int32_t id) -> material_instance* {
+            assert(id >= 0);
+            assert(id < (int32_t)transforms.capacity());
+
             return materials[id];
         }
 
         virtual auto get_model(int32_t id) -> model_instance* {
+            assert(id >= 0);
+            assert(id < (int32_t)models.capacity());
+
             return models[id];
         }
 
         virtual auto get_current_camera() -> camera_instance* {
+            assert(current_camera < cameras.capacity());
+
             return cameras[current_camera];
         }
 
@@ -513,6 +530,7 @@ namespace scene {
                 auto zfar =  json_object_get(camera, "zfar");
                 ci->zfar = json_real_value(zfar);
 
+                ci->type = camera_type::perspective;
                 ci->parent = ei.parent;
                 ei.flags |= static_cast<uint32_t>(entity::flag::camera);
                 ei.camera = ci.get();
@@ -597,7 +615,7 @@ namespace scene {
             for (const auto &msh : scn->get_model(e)->meshes)
                 for (const auto &dr : msh.draws) {
                     render->append(scn->get_material(e)->m0);
-                    render->append(scn->get_transform(e)->model);
+                    //render->append(scn->get_transform(e)->model);
                     render->append(m);
                     render->append(msh.source, dr);
                 }
