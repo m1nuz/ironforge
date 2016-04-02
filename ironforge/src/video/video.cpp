@@ -142,7 +142,7 @@ namespace video {
         SDL_DestroyWindow(window);
     }
 
-    auto present(const std::vector<gl::command_buffer *>&& buffers) -> void {
+    auto present(const std::vector<gl::command_buffer *> &buffers) -> void {
         assert(buffers.size() != 0);
 
         for (auto &buf : buffers) {

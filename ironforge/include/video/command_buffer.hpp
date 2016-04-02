@@ -8,6 +8,10 @@
 
 namespace video {
     namespace gl330 {
+        /*enum class command_buffer_flags {
+            no_states = 0x00000001
+        };*/
+
         struct command_buffer {
             command_buffer();
             command_buffer(size_t mem_size);

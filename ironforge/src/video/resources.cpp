@@ -40,6 +40,7 @@ namespace video {
 
     auto init_resources() -> void {
         textures.reserve(100);
+        programs.reserve(100);
 
         application::debug(application::log_category::video, "%\n", "Init resources");
 

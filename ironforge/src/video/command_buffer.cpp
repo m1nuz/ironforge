@@ -100,10 +100,14 @@ namespace video {
         }
 
         auto dispath_command(const command &c, command_buffer &buf) -> void {
+            float depth_value = 0.f;
+
             switch (c.type) {
             case command_type::clear:
                 glClearColor(buf.clear_color.x, buf.clear_color.y, buf.clear_color.z, buf.clear_color.w);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+                //glClearBufferfv(GL_COLOR, 0, &buf.clear_color[0]);
+                //glClearBufferfv(GL_DEPTH, 0, &depth_value);
                 break;
             case command_type::draw_elements:
                 // TODO: use glDrawElementsBaseVertex

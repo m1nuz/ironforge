@@ -20,7 +20,7 @@ namespace assets {
     };
 
     struct binary_data {
-        void        *data;
+        void        *raw_memory;
         size_t      size;
     };
 
@@ -53,5 +53,4 @@ namespace assets {
     auto get_text(const std::string& name) -> text_data;
     auto get_image(const std::string& name) -> image_data;
     auto get_binary(const std::string& name) -> binary_data;
-    auto get_file(const std::string &name) -> SDL_RWops*;
 } // namespace assets

@@ -1,5 +1,6 @@
 #include <glcore_330.h>
 
+#include <core/application.hpp>
 #include <video/state.hpp>
 
 namespace video {
@@ -36,6 +37,8 @@ namespace video {
                 return GL_ONE_MINUS_CONSTANT_ALPHA;
             }
 
+            application::warning(application::log_category::video, "Unknown blend factor %\n", static_cast<uint32_t>(factor));
+
             return GL_NONE;
         }
 
@@ -49,6 +52,8 @@ namespace video {
                 return GL_FRONT_AND_BACK;
             }
 
+            application::warning(application::log_category::video, "Unknown cull face mode %\n", static_cast<uint32_t>(mode));
+
             return GL_NONE;
         }
 
@@ -61,6 +66,8 @@ namespace video {
             case polygon_mode_fill::fill:
                 return GL_FILL;
             }
+
+            application::warning(application::log_category::video, "Unknown polygon mode fill %\n", static_cast<uint32_t>(mode));
 
             return GL_NONE;
         }
@@ -84,6 +91,8 @@ namespace video {
             case depth_fn::always:
                 return GL_ALWAYS;
             }
+
+            application::warning(application::log_category::video, "Unknown depth func %\n", static_cast<uint32_t>(f));
 
             return GL_NONE;
         }

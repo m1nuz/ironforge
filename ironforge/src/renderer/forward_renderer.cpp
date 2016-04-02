@@ -77,10 +77,16 @@ namespace renderer {
         prepare_commands.clear_color = glm::vec4(0.7f, 0.7f, 0.7f, 0.f);
         prepare_commands.memory_offset = 0;
         prepare_commands.commands.clear();
+        prepare_commands.depth.depth_func = video::gl::depth_fn::less;
+        prepare_commands.depth.depth_test = false;
+        prepare_commands.depth.depth_write = true;
 
         ambient_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         ambient_commands.memory_offset = 0;
         ambient_commands.commands.clear();
+        ambient_commands.depth.depth_test = true;
+        ambient_commands.depth.depth_write = true;
+        ambient_commands.depth.depth_func = video::gl::depth_fn::less;
 
         /*directional_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         directional_commands.memory_offset = 0;

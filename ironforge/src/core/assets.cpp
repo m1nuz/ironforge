@@ -8,21 +8,16 @@ namespace fs = boost::filesystem;
 
 namespace assets {
     _default_readers::_default_readers() {
-        text_readers.push_back(std::make_tuple(".vert", read_shader_text));
-        text_readers.push_back(std::make_tuple(".frag", read_shader_text));
-        text_readers.push_back(std::make_tuple(".glsl", read_shader_text));
-        text_readers.push_back(std::make_tuple(".lua", read_text));
-        text_readers.push_back(std::make_tuple(".scene", read_text));
-        image_readers.push_back(std::make_tuple(".tga", read_targa));
+        text_readers.emplace_back(".vert", read_shader_text);
+        text_readers.emplace_back(".frag", read_shader_text);
+        text_readers.emplace_back(".glsl", read_shader_text);
+        text_readers.emplace_back(".lua", read_text);
+        text_readers.emplace_back(".scene", read_text);
+        image_readers.emplace_back(".tga", read_targa);
+        binary_readers.emplace_back(".*", read_binary);
     }
 
     _default_readers default_readers;
-
-    struct data_source {
-        std::string filepath;
-        void        *raw_memory;
-        size_t      memory_size;
-    };
 
     // ext, reader
     std::unordered_map<std::string, std::function<int32_t (SDL_RWops *rw, binary_data &)>> binary_readers;
@@ -35,7 +30,7 @@ namespace assets {
     std::unordered_map<std::string, image_data>     images;
 
     // name, path
-    std::unordered_map<std::string, data_source> files;
+    std::unordered_map<std::string, std::string>    files;
 
     static auto is_readable(const std::string &ext) -> bool {
         if (binary_readers.find(ext) != binary_readers.end())
@@ -110,7 +105,7 @@ namespace assets {
 
                     application::debug(application::log_category::application, "Asset found %\n", entry.path());
 
-                    files.insert({entry.path().filename().string(), {entry.path().string(), nullptr, 0}});
+                    files.insert({entry.path().filename().string(), entry.path().string()});
                 }
         }
 
@@ -134,20 +129,20 @@ namespace assets {
         auto f = files.find(name);
 
         if (f != files.end()) {
-            fs::path p(f->second.filepath);
+            fs::path p(f->second);
 
             auto r = text_readers.find(p.extension().string());
 
             if (r != text_readers.end()) {
                 auto td = text_data{nullptr, 0};
 
-                auto ret = r->second(get_file(name), td);
+                auto ret = r->second(SDL_RWFromFile(f->second.c_str(), "r"), td);
                 if (ret != 0) {
-                    application::error(application::log_category::system, "Can't read file %\n", f->second.filepath);
+                    application::error(application::log_category::system, "Can't read file %\n", f->second);
                     return {nullptr, 0};
                 }
 
-                application::debug(application::log_category::application, "Read file %\n", f->second.filepath);
+                application::debug(application::log_category::application, "Read file %\n", f->second);
                 texts.insert({p.filename().string(), td}); // TODO: free memory
                 return td;
             }
@@ -167,20 +162,20 @@ namespace assets {
         auto f = files.find(name);
 
         if (f != files.end()) {
-            fs::path p(f->second.filepath);
+            fs::path p(f->second);
 
             auto r = image_readers.find(p.extension().string());
 
             if (r != image_readers.end()) {
                 auto imd = image_data{0, 0, 0, video::pixel_format::unknown, nullptr};
 
-                auto ret = r->second(get_file(name), imd);
+                auto ret = r->second(SDL_RWFromFile(f->second.c_str(), "r"), imd);
                 if (ret != 0) {
-                    application::error(application::log_category::system, "Can't read file %\n", f->second.filepath);
+                    application::error(application::log_category::system, "Can't read file %\n", f->second);
                     return {0, 0, 0, video::pixel_format::unknown, nullptr};
                 }
 
-                application::debug(application::log_category::application, "Read file %\n", f->second.filepath);
+                application::debug(application::log_category::application, "Read file %\n", f->second);
                 images.insert({p.filename().string(), imd}); // TODO: free memory
                 return imd;
             }
@@ -189,51 +184,12 @@ namespace assets {
         return {0, 0, 0, video::pixel_format::unknown, nullptr};
     }
 
-    // TODO: move to readers
-    __must_ckeck auto read_file(SDL_RWops *rw, assets::binary_data &data) -> int32_t {
-        assert(rw != nullptr);
+    auto get_binary(const std::string& name) -> binary_data {
+        auto bin = binaries.find(name);
 
-        if (!rw)
-            return -1;
+        if (bin != binaries.end())
+            return bin->second;
 
-        auto size = SDL_RWsize(rw);
-
-        if (size > 0) {
-            data.data = operator new(size);
-            data.size = size;
-
-            SDL_RWread(rw, data.data, size, 1);
-        }
-
-        SDL_RWclose(rw);
-
-        return 0;
-    }
-
-    auto get_file(const std::string &name) -> SDL_RWops* {
-        auto f = files.find(name);
-
-        if (f != files.end()) {
-
-            if (!f->second.raw_memory)
-            {
-                application::debug(application::log_category::application, "Alloc buffer for file %\n", f->second.filepath);
-                auto data = binary_data{nullptr, 0};
-                if (read_file(SDL_RWFromFile(f->second.filepath.c_str(), "r"), data) != 0)
-                {
-                    application::error(application::log_category::system, "Can't read file %\n", f->second.filepath);
-                    return nullptr;
-                }
-
-                f->second.raw_memory = data.data;
-                f->second.memory_size = data.size;
-
-                return SDL_RWFromConstMem(f->second.raw_memory, f->second.memory_size);
-            }
-
-            return SDL_RWFromConstMem(f->second.raw_memory, f->second.memory_size);
-        }
-
-        return nullptr;
+        return {nullptr, 0};
     }
 } // namespace assets

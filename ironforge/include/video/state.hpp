@@ -56,11 +56,11 @@ namespace video {
             cull_face_mode      cull_mode = cull_face_mode::back;
             bool                polygon_mode = false;
             polygon_mode_fill   fill_mode = polygon_mode_fill::fill;
-            bool                discard;
+            bool                discard = false;
         };
 
         struct depth_stencil_state {
-            bool        depth_test = true;
+            bool        depth_test = false;
             bool        depth_write = true;
             //bool        depth_clamp;
             depth_fn    depth_func = depth_fn::less;
