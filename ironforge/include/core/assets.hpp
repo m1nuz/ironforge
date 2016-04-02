@@ -11,6 +11,8 @@
 #include <ironforge_common.hpp>
 #include <video/video.hpp>
 
+// TODO: handle memory alloc/free
+
 namespace assets {
     enum class result : int32_t {
         success,
@@ -42,11 +44,14 @@ namespace assets {
     extern _default_readers default_readers;
 
     __must_ckeck auto append(const readers &rs) -> result;
-    __must_ckeck auto append(const std::string& ext, std::function<int32_t (SDL_RWops *rw, binary_data &)> reader) -> result;
-    __must_ckeck auto append(const std::string& ext, std::function<int32_t (SDL_RWops *rw, text_data &)> reader) -> result;
-    __must_ckeck auto append(const std::string& ext, std::function<int32_t (SDL_RWops *rw, image_data &)> reader) -> result;
+    __must_ckeck auto append(const std::string &ext, std::function<int32_t (SDL_RWops *rw, binary_data &)> reader) -> result;
+    __must_ckeck auto append(const std::string &ext, std::function<int32_t (SDL_RWops *rw, text_data &)> reader) -> result;
+    __must_ckeck auto append(const std::string &ext, std::function<int32_t (SDL_RWops *rw, image_data &)> reader) -> result;
     __must_ckeck auto open(const std::string& path) -> result;
+    auto process() -> void;
+    auto cleanup() -> void;
     auto get_text(const std::string& name) -> text_data;
     auto get_image(const std::string& name) -> image_data;
-    auto get_file(const std::string& name) -> SDL_RWops*;
+    auto get_binary(const std::string& name) -> binary_data;
+    auto get_file(const std::string &name) -> SDL_RWops*;
 } // namespace assets

@@ -1,5 +1,6 @@
 #include <core/application.hpp>
 #include <core/game.hpp>
+#include <core/assets.hpp>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
@@ -54,6 +55,8 @@ namespace application {
             while (SDL_PollEvent(&e))
                 game::process_event(e);
 
+            assets::process();
+
             last = current;
             current = SDL_GetPerformanceCounter();
             auto freq = SDL_GetPerformanceFrequency();
@@ -81,7 +84,8 @@ namespace application {
     }
 
     auto cleanup() -> void {        
-        game::cleanup();        
+        game::cleanup();
+        assets::cleanup();
 
         info(log_category::application, "%\n", "Cleanup");
     }

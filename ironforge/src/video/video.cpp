@@ -142,9 +142,13 @@ namespace video {
         SDL_DestroyWindow(window);
     }
 
-    auto present(std::vector<gl::command_buffer *>&& buffers) -> void {
+    auto present(const std::vector<gl::command_buffer *>&& buffers) -> void {
+        assert(buffers.size() != 0);
+
         for (auto &buf : buffers) {
             for (auto &c : buf->commands) {
+                assert(buf->commands.size() != 0);
+
                 video::gl::set_color_blend_state(&buf->blend);
                 video::gl::set_rasterizer_state(&buf->rasterizer);
                 video::gl::set_depth_stencil_state(&buf->depth);

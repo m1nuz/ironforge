@@ -20,6 +20,8 @@ namespace assets {
 
     struct data_source {
         std::string filepath;
+        void        *raw_memory;
+        size_t      memory_size;
     };
 
     // ext, reader
@@ -66,7 +68,7 @@ namespace assets {
         return result::success;
     }
 
-    auto append(const std::string& ext, std::function<int32_t (SDL_RWops *rw, binary_data &)> reader) -> result {
+    auto append(const std::string &ext, std::function<int32_t (SDL_RWops *rw, binary_data &)> reader) -> result {
         if (!reader || ext.empty())
             return result::failure;
 
@@ -75,7 +77,7 @@ namespace assets {
         return result::success;
     }
 
-    auto append(const std::string& ext, std::function<int32_t (SDL_RWops *rw, text_data &)> reader) -> result {
+    auto append(const std::string &ext, std::function<int32_t (SDL_RWops *rw, text_data &)> reader) -> result {
         if (!reader || ext.empty())
             return result::failure;
 
@@ -84,7 +86,7 @@ namespace assets {
         return result::success;
     }
 
-    auto append(const std::string& ext, std::function<int32_t (SDL_RWops *rw, image_data &)> reader) -> result {
+    auto append(const std::string &ext, std::function<int32_t (SDL_RWops *rw, image_data &)> reader) -> result {
         if (!reader || ext.empty())
             return result::failure;
 
@@ -108,11 +110,19 @@ namespace assets {
 
                     application::debug(application::log_category::application, "Asset found %\n", entry.path());
 
-                    files.insert({entry.path().filename().string(), {entry.path().string()}});
+                    files.insert({entry.path().filename().string(), {entry.path().string(), nullptr, 0}});
                 }
         }
 
         return result::success;
+    }
+
+    auto process() -> void {
+        // TODO: process file queue, thread loading
+    }
+
+    auto cleanup() -> void {
+
     }
 
     auto get_text(const std::string& name) -> text_data { // TODO: return optional
@@ -131,7 +141,7 @@ namespace assets {
             if (r != text_readers.end()) {
                 auto td = text_data{nullptr, 0};
 
-                auto ret = r->second(SDL_RWFromFile(f->second.filepath.c_str(), "r"), td);
+                auto ret = r->second(get_file(name), td);
                 if (ret != 0) {
                     application::error(application::log_category::system, "Can't read file %\n", f->second.filepath);
                     return {nullptr, 0};
@@ -164,7 +174,7 @@ namespace assets {
             if (r != image_readers.end()) {
                 auto imd = image_data{0, 0, 0, video::pixel_format::unknown, nullptr};
 
-                auto ret = r->second(SDL_RWFromFile(f->second.filepath.c_str(), "r"), imd);
+                auto ret = r->second(get_file(name), imd);
                 if (ret != 0) {
                     application::error(application::log_category::system, "Can't read file %\n", f->second.filepath);
                     return {0, 0, 0, video::pixel_format::unknown, nullptr};
@@ -179,7 +189,51 @@ namespace assets {
         return {0, 0, 0, video::pixel_format::unknown, nullptr};
     }
 
-    auto get_file(const std::string& name) -> SDL_RWops* {
+    // TODO: move to readers
+    __must_ckeck auto read_file(SDL_RWops *rw, assets::binary_data &data) -> int32_t {
+        assert(rw != nullptr);
+
+        if (!rw)
+            return -1;
+
+        auto size = SDL_RWsize(rw);
+
+        if (size > 0) {
+            data.data = operator new(size);
+            data.size = size;
+
+            SDL_RWread(rw, data.data, size, 1);
+        }
+
+        SDL_RWclose(rw);
+
+        return 0;
+    }
+
+    auto get_file(const std::string &name) -> SDL_RWops* {
+        auto f = files.find(name);
+
+        if (f != files.end()) {
+
+            if (!f->second.raw_memory)
+            {
+                application::debug(application::log_category::application, "Alloc buffer for file %\n", f->second.filepath);
+                auto data = binary_data{nullptr, 0};
+                if (read_file(SDL_RWFromFile(f->second.filepath.c_str(), "r"), data) != 0)
+                {
+                    application::error(application::log_category::system, "Can't read file %\n", f->second.filepath);
+                    return nullptr;
+                }
+
+                f->second.raw_memory = data.data;
+                f->second.memory_size = data.size;
+
+                return SDL_RWFromConstMem(f->second.raw_memory, f->second.memory_size);
+            }
+
+            return SDL_RWFromConstMem(f->second.raw_memory, f->second.memory_size);
+        }
+
         return nullptr;
     }
 } // namespace assets
