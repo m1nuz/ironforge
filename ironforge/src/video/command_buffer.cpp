@@ -10,17 +10,20 @@ namespace video {
         }
 
         command_buffer::command_buffer(size_t mem_size) {
-            if (static_cast<size_t>(video::max_uniform_components * 4) < mem_size)
+            assert(mem_size != 0);
+
+            if (mem_size > static_cast<size_t>(video::max_uniform_components * 4))
                 application::error(application::log_category::video, "No uniforms memory % needed %\n", video::max_uniform_components, mem_size);
 
-            memory = malloc(mem_size);
             memory_size = mem_size;
             memory_offset = 0;
+            raw_memory = malloc(memory_size);
+            memset(raw_memory, 0, memory_size);
         }
 
         command_buffer::~command_buffer() {
-            free(memory);
-            memory = nullptr;
+            free(raw_memory);
+            raw_memory = nullptr;
             memory_size = 0;
             memory_offset = 0;
         }
@@ -56,9 +59,12 @@ namespace video {
 
         command_buffer& operator <<(command_buffer &cb, const send_uniform &c) {
             auto cc = c;
-            if (cb.memory) {
+            if (cb.raw_memory) {
                 size_t sz = get_uniform_type_size(c._send_uniform.type) * c._send_uniform.count;
-                memcpy((char*)cb.memory + cb.memory_offset, c._send_uniform.ptr, c._send_uniform.size);
+
+                assert(cb.memory_offset + sz < cb.memory_size);
+
+                memcpy((char*)cb.raw_memory + cb.memory_offset, c._send_uniform.ptr, c._send_uniform.size);
                 cc._send_uniform.offset = cb.memory_offset;
                 cb.memory_offset += sz;
             }
@@ -70,22 +76,22 @@ namespace video {
         inline auto dispath_uniform(command_buffer &buf, uint32_t offset, int32_t location, uint32_t type, uint32_t count) -> void {
             switch (type) {
             case GL_UNSIGNED_INT:
-                glUniform1uiv(location, count, (const uint32_t*)((const char*)buf.memory + offset));
+                glUniform1uiv(location, count, (const uint32_t*)((const char*)buf.raw_memory + offset));
                 break;
             case GL_FLOAT_MAT4:
-                glUniformMatrix4fv(location, count, GL_FALSE, (const float*)((const char*)buf.memory + offset));
+                glUniformMatrix4fv(location, count, GL_FALSE, (const float*)((const char*)buf.raw_memory + offset));
                 break;
             case GL_FLOAT:
-                glUniform1fv(location, count, (const float*)((const char*)buf.memory + offset));
+                glUniform1fv(location, count, (const float*)((const char*)buf.raw_memory + offset));
                 break;
             case GL_FLOAT_VEC2:
-                glUniform2fv(location, count, (const float*)((const char*)buf.memory + offset));
+                glUniform2fv(location, count, (const float*)((const char*)buf.raw_memory + offset));
                 break;
             case GL_FLOAT_VEC3:
-                glUniform3fv(location, count, (const float*)((const char*)buf.memory + offset));
+                glUniform3fv(location, count, (const float*)((const char*)buf.raw_memory + offset));
                 break;
             case GL_FLOAT_VEC4:
-                glUniform4fv(location, count, (const float*)((const char*)buf.memory + offset));
+                glUniform4fv(location, count, (const float*)((const char*)buf.raw_memory + offset));
                 break;
             default:
                 application::warning(application::log_category::video, "Unknown uniform %", type);
@@ -108,6 +114,15 @@ namespace video {
                 break;
             case command_type::bind_program:
                 glUseProgram(c._bind_program.pid);
+                break;
+            case command_type::bind_texture:
+                glActiveTexture(GL_TEXTURE0 + c._bind_texture.unit);
+                glBindTexture(c._bind_texture.target, c._bind_texture.texture);
+
+                glUniform1i(c._bind_texture.location, c._bind_texture.unit);
+                break;
+            case command_type::bind_sampler:
+                glBindSampler(c._bind_sampler.unit, c._bind_sampler.sampler);
                 break;
             case command_type::bind_vertex_array:
                 glBindVertexArray(c._bind_vertex_array.array);

@@ -14,6 +14,7 @@ namespace scene {
     constexpr size_t max_bodies         = 100;
     constexpr size_t max_materials      = 100;
     constexpr size_t max_cameras        = 100;
+    constexpr size_t max_points_lights  = 20;
 
     enum class state_flags : uint32_t {
         start       = 0x00000001,
@@ -34,6 +35,8 @@ namespace scene {
     struct body_instance;
     struct input_instance;
     struct transform_instance;
+    struct light_info;
+    // struct any_light;
     struct emitter_info;
     struct emitter_instance;
     struct entity_info;
@@ -55,6 +58,7 @@ namespace scene {
 
         virtual auto create_entity(const entity_info &info) -> int32_t = 0;
         virtual auto get_entity(const std::string &_name) -> int32_t = 0;
+        virtual auto get_entity_num() -> size_t = 0;
 
         // NOTE: return always valid and not null pointer
         virtual auto get_transform(int32_t id) -> transform_instance* = 0;
@@ -69,20 +73,18 @@ namespace scene {
         uint32_t        state;
     };
 
-    struct entity {
-        enum class flag {
-            root            = 0x00000001,
-            camera          = 0x00000002,
-            current_camera  = 0x00000004,
-            renderable      = 0x00000008,
-            visible         = 0x00000010
-        };
+    enum class entity_flags : uint32_t {
+        root            = 0x00000001,
+        camera          = 0x00000002,
+        current_camera  = 0x00000004,
+        renderable      = 0x00000008,
+        visible         = 0x00000010
     };
 
     struct entity_info {
         const char          *name = nullptr;
         body_info           *body = nullptr;
-        //point_light_info    *point_light;
+        light_info          *light = nullptr;
         const char          *material = nullptr;
         const char          *model = nullptr;
         const char          *input = nullptr;

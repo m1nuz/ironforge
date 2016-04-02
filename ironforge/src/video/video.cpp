@@ -10,6 +10,7 @@ namespace video {
 
     int32_t max_uniform_components = 0;
     _screen screen;
+    _config config;
 
     static SDL_Window *window;
     static SDL_GLContext context;
@@ -120,12 +121,16 @@ namespace video {
         // get constants
         glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &max_uniform_components);
 
-        init_resources();
-
+        // setup default screen
         screen.width = w;
         screen.height = h;
         screen.vsync = vsync;
         screen.aspect = (float)screen.width / (float)screen.height;
+
+        // setup default config
+        config.filtering = texture_filtering::trilinear;
+
+        init_resources();
 
         return result::success;
     }

@@ -178,4 +178,8 @@ namespace assets {
 
         return {0, 0, 0, video::pixel_format::unknown, nullptr};
     }
+
+    auto get_file(const std::string& name) -> SDL_RWops* {
+        return nullptr;
+    }
 } // namespace assets

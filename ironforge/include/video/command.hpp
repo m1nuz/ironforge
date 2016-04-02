@@ -21,6 +21,7 @@ namespace video {
             bind_framebuffer,
             bind_program,
             bind_texture,
+            bind_sampler,
             bind_buffer,
             bind_vertex_array,
 
@@ -46,6 +47,18 @@ namespace video {
                 struct {
                     uint32_t pid;
                 } _bind_program;
+
+                struct {
+                    uint32_t unit;
+                    uint32_t target;
+                    uint32_t texture;
+                    int32_t location;
+                } _bind_texture;
+
+                struct {
+                    uint32_t unit;
+                    uint32_t sampler;
+                } _bind_sampler;
 
                 struct {
                     uint32_t array;
@@ -89,6 +102,22 @@ namespace video {
         struct bind_program_op : public command {
             bind_program_op(uint32_t pid) : command{command_type::bind_program} {
                 _bind_program.pid = pid;
+            }
+        };
+
+        struct bind_texture_op : public command  {
+            bind_texture_op(int32_t location, uint32_t unit, uint32_t target, uint32_t tex) : command{command_type::bind_texture} {
+                _bind_texture.location = location;
+                _bind_texture.unit = unit;
+                _bind_texture.target = target;
+                _bind_texture.texture = tex;
+            }
+        };
+
+        struct bind_sampler_op : public command  {
+            bind_sampler_op(uint32_t unit, uint32_t sam) : command{command_type::bind_sampler} {
+                _bind_sampler.unit = unit;
+                _bind_sampler.sampler = sam;
             }
         };
 

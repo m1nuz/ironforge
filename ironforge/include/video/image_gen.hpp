@@ -14,7 +14,7 @@ namespace video {
     };
 
     namespace imgen {
-        using rgb_color = glm::i8vec4;
+        using rgb_color = glm::u8vec3;
 
         auto make_radial_gradient(int32_t width, int32_t height, uint8_t c0, uint8_t c1, int32_t radius) -> image_data;
         auto make_color(int32_t width, int32_t height, rgb_color color) -> image_data;

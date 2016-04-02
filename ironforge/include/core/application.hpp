@@ -40,7 +40,7 @@ namespace application {
         max_priority
     };
 
-    constexpr auto timestep = 0.001f;
+    constexpr auto timestep = 0.002f;
 
     __must_ckeck auto init(const std::string& title) -> result;
     __must_ckeck auto exec() -> result;

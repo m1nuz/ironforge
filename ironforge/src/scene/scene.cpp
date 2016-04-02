@@ -16,6 +16,7 @@
 #include "camera.hpp"
 #include "input.hpp"
 #include "script.hpp"
+#include "light.hpp"
 
 #include <jansson.h>
 
@@ -59,6 +60,9 @@ namespace scene {
             inputs.reserve(capacity);
             models.reserve(capacity);
             scripts.reserve(capacity);
+            ambient_lights.reserve(capacity);
+            directional_lights.reserve(capacity);
+            point_lights.reserve(capacity);
             names.reserve(capacity);
             name_hashes.reserve(capacity);
             flags.reserve(capacity);
@@ -69,12 +73,12 @@ namespace scene {
         }
 
         virtual auto create_entity(const entity_info &info) -> int32_t {
-            int32_t eid = size++;
-
             if ((size > capacity) || (size > INT_MAX)) {
                 application::error(application::log_category::scene, "Can't create more then % entities\n", capacity);
                 return -1;
             }
+
+            int32_t eid = size++;
 
             auto parent_name = std::string{"root"};
             if (info.parent > 0)
@@ -83,7 +87,7 @@ namespace scene {
             if (info.parent == eid)
                 parent_name = "self";
 
-            if (info.flags & static_cast<uint32_t>(entity::flag::current_camera))
+            if (info.flags & static_cast<uint32_t>(entity_flags::current_camera))
                 current_camera = eid;
 
             auto hash = utils::xxhash64(info.name, strlen(info.name), 0);
@@ -93,25 +97,53 @@ namespace scene {
 
             application::debug(application::log_category::scene, "Create entity '%' % parent '%' ID %\n", info.name, hash, parent_name, eid);
 
-            if (info.flags & static_cast<uint32_t>(entity::flag::root)) {
+            if (info.flags & static_cast<uint32_t>(entity_flags::root)) {
                 bodies.push_back(create_body(body_info{}));
                 transforms.push_back(create_transform(0, 0));
                 cameras.push_back(create_camera(eid, camera_info{}));
                 materials.push_back(nullptr);
                 inputs.push_back(nullptr);
                 models.push_back(nullptr);
-                scripts.push_back(nullptr);
+                scripts.push_back(nullptr);                
+                ambient_lights.push_back(nullptr);
+                directional_lights.push_back(nullptr);
+                point_lights.push_back(nullptr);
                 names.push_back(info.name);
                 name_hashes.push_back(hash);
                 flags.push_back(info.flags);
             } else {
                 bodies.push_back(info.body ? create_body(*info.body) : nullptr);
-                transforms.push_back(info.flags & static_cast<uint32_t>(entity::flag::renderable) ? create_transform(eid, info.parent) : nullptr);
+                transforms.push_back(info.flags & static_cast<uint32_t>(entity_flags::renderable) ? create_transform(eid, info.parent) : nullptr);
                 cameras.push_back(info.camera ? create_camera(eid, *info.camera) : nullptr);
                 materials.push_back(info.material ? find_material(info.name) : nullptr);
                 inputs.push_back(nullptr);
                 models.push_back(info.model ? find_model(info.model) : nullptr);
                 scripts.push_back(nullptr);
+
+                auto any_light = info.light ? create_light(eid, *info.light) : std::make_pair(light_type::unknown, nullptr);
+                switch (any_light.first) {
+                case light_type::unknown:
+                    ambient_lights.push_back(nullptr);
+                    directional_lights.push_back(nullptr);
+                    point_lights.push_back(nullptr);
+                    break;
+                case light_type::ambient:
+                    ambient_lights.push_back(reinterpret_cast<ambient_light_instance*>(any_light.second));
+                    directional_lights.push_back(nullptr);
+                    point_lights.push_back(nullptr);
+                    break;
+                case light_type::directional:
+                    ambient_lights.push_back(nullptr);
+                    directional_lights.push_back(reinterpret_cast<directional_light_instance*>(any_light.second));
+                    point_lights.push_back(nullptr);
+                    break;
+                case light_type::point:
+                    ambient_lights.push_back(nullptr);
+                    directional_lights.push_back(nullptr);
+                    point_lights.push_back(reinterpret_cast<point_light_instance*>(any_light.second));
+                    break;
+                }
+
                 names.push_back(info.name);
                 name_hashes.push_back(hash);
                 flags.push_back(info.flags);
@@ -136,6 +168,10 @@ namespace scene {
                     return i;
 
             return -1;
+        }
+
+        virtual auto get_entity_num() -> size_t {
+            return size;
         }
 
         virtual auto get_transform(int32_t id) -> transform_instance* {
@@ -173,23 +209,25 @@ namespace scene {
         }
 
         // TODO: use handle for this
-        std::vector<body_instance*>         bodies;
-        std::vector<transform_instance*>    transforms;
-        std::vector<camera_instance*>       cameras;
-        std::vector<material_instance*>     materials;
-        std::vector<input_instance*>        inputs;
-        std::vector<model_instance*>        models;
-        std::vector<script_instance*>       scripts;
-        //std::vector<> point_lights;
+        std::vector<body_instance*>                 bodies;
+        std::vector<transform_instance*>            transforms;
+        std::vector<camera_instance*>               cameras;
+        std::vector<material_instance*>             materials;
+        std::vector<input_instance*>                inputs;
+        std::vector<model_instance*>                models;
+        std::vector<script_instance*>               scripts;
+        std::vector<ambient_light_instance*>        ambient_lights;
+        std::vector<directional_light_instance*>    directional_lights;
+        std::vector<point_light_instance*>          point_lights;
         //std::vector<> emitters;
-        std::vector<std::string>            names;
-        std::vector<uint64_t>               name_hashes;
-        std::vector<uint32_t>               flags;
+        std::vector<std::string>                    names;
+        std::vector<uint64_t>                       name_hashes;
+        std::vector<uint32_t>                       flags;
 
-        size_t                              current_camera;
+        size_t                                      current_camera;
 
-        size_t                              size;
-        size_t                              capacity;
+        size_t                                      size;
+        size_t                                      capacity;
     };
 
     inline glm::vec3 json_vec3_value(json_t *arr) {
@@ -236,7 +274,7 @@ namespace scene {
 
         std::unique_ptr<instance> this_scene{new simple_instance(_name, flags)};
         entity_info root_info;
-        root_info.flags = static_cast<uint32_t>(entity::flag::root);
+        root_info.flags = static_cast<uint32_t>(entity_flags::root);
         root_info.name = "root";
         root_info.parent = 0;
         this_scene->create_entity(root_info);
@@ -269,40 +307,11 @@ namespace scene {
 
             application::debug(application::log_category::game, "Effect % '%'\n", json_string_value(type), json_string_value(name));
 
-            // TODO: move ambient and direction light to the nodes
-            // and add skybox effect
-            if (strcmp(json_string_value(type), "ambient_light") == 0) {
-                auto ambient = json_object_get(effect, "ambient");
-                json_error_if(ambient, !json_is_array, -1, root, "%\n", "ambient is not an array");
-
-                auto La = json_vec3_value(ambient);
-
-                //render_set_ambientlight(&(AMBIENT_LIGHT){.La = {La[0], La[1], La[2]}});
-                application::debug(application::log_category::game, "Ambient light % % %\n", La.x, La.y, La.z);
-            }
-
-            if (strcmp(json_string_value(type), "directional_light") == 0) {
-                auto diffuse = json_object_get(effect, "diffuse");
-                json_error_if(diffuse, !json_is_array, -1, root, "%\n", "diffuse is not an array");
-                auto specular = json_object_get(effect, "specular");
-                json_error_if(specular, !json_is_array, -1, root, "%\n", "specular is not an array");
-                auto direction = json_object_get(effect, "direction");
-                json_error_if(direction, !json_is_array, -1, root, "%\n", "direction is not an array");
-
-                auto Ld = json_vec3_value(diffuse);
-                auto Ls = json_vec3_value(specular);
-                auto d = json_vec3_value(direction);
-
-                /*render_set_directionallight(&(DIRECTIONAL_LIGHT){.Ld = {Ld[0], Ld[1], Ld[2]},
-                                                                 .Ls = {Ls[0], Ls[1], Ls[2]},
-                                                                 .direction = {d[0], d[1], d[2]}});*/
-
-                application::debug(application::log_category::game, "Diffuse light d% d% d% s% s% s% % % %\n",
-                                   Ld.x, Ld.y, Ld.z, Ls.x, Ls.y, Ls.z, d.x, d.y, d.z);
-            }
+            // TODO: and add skybox effect
         }
 
         // read materials
+        // TODO: add materials sets
         auto materials = json_object_get(root, "materials");
         json_error_if(materials, !json_is_array, -1, root, "%\n", "materials is not an array");
 
@@ -498,15 +507,15 @@ namespace scene {
             // read node flags
             auto current_camera = json_object_get(node, "current_camera");
             if (json_is_true(current_camera))
-                ei.flags |= static_cast<uint32_t>(entity::flag::current_camera);
+                ei.flags |= static_cast<uint32_t>(entity_flags::current_camera);
 
             auto renderable = json_object_get(node, "renderable");
             if (json_is_true(renderable))
-                ei.flags |= static_cast<uint32_t>(entity::flag::renderable);
+                ei.flags |= static_cast<uint32_t>(entity_flags::renderable);
 
             auto visible = json_object_get(node, "visible");
             if (json_is_true(visible))
-                ei.flags |= static_cast<uint32_t>(entity::flag::visible);
+                ei.flags |= static_cast<uint32_t>(entity_flags::visible);
 
             auto model = json_object_get(node, "model");
             if (json_is_string(model))
@@ -532,7 +541,7 @@ namespace scene {
 
                 ci->type = camera_type::perspective;
                 ci->parent = ei.parent;
-                ei.flags |= static_cast<uint32_t>(entity::flag::camera);
+                ei.flags |= static_cast<uint32_t>(entity_flags::camera);
                 ei.camera = ci.get();
             }
 
@@ -564,6 +573,51 @@ namespace scene {
                 ei.body = bi.get(); // create_body(bi)
             }
 
+            light_info li;
+            auto light = json_object_get(node, "light");
+            if (json_is_object(light)) {
+                auto type = json_object_get(light, "type");
+                json_error_if(type, !json_is_string, -1, root, "%\n", "type is not a string");
+
+                li.type = light_type::unknown;
+
+                if (strcmp(json_string_value(type), "ambient_light") == 0) {
+                    auto ambient = json_object_get(light, "ambient");
+                    json_error_if(ambient, !json_is_array, -1, root, "%\n", "ambient is not an array");
+
+                    auto La = json_vec3_value(ambient);
+
+                    application::debug(application::log_category::game, "Ambient light % % %\n", La.x, La.y, La.z);
+
+                    li.type = light_type::ambient;
+                    li.ambient_light.ambient = La;
+                }
+
+                if (strcmp(json_string_value(type), "directional_light") == 0) {
+                    auto diffuse = json_object_get(light, "diffuse");
+                    json_error_if(diffuse, !json_is_array, -1, root, "%\n", "diffuse is not an array");
+                    auto specular = json_object_get(light, "specular");
+                    json_error_if(specular, !json_is_array, -1, root, "%\n", "specular is not an array");
+                    auto direction = json_object_get(light, "direction");
+                    json_error_if(direction, !json_is_array, -1, root, "%\n", "direction is not an array");
+
+                    auto Ld = json_vec3_value(diffuse);
+                    auto Ls = json_vec3_value(specular);
+                    auto d = json_vec3_value(direction);
+
+                    application::debug(application::log_category::game, "Directional light d% d% d% s% s% s% % % %\n",
+                                       Ld.x, Ld.y, Ld.z, Ls.x, Ls.y, Ls.z, d.x, d.y, d.z);
+
+                    li.type = light_type::directional;
+                    li.directional_light.direction = d;
+                    li.directional_light.diffuse = Ld;
+                    li.directional_light.specular = Ls;
+                }
+
+                if (li.type != light_type::unknown)
+                    ei.light = &li;
+            }
+
             std::unique_ptr<script_info> si{new script_info};
             auto script = json_object_get(node, "script");
             if (json_is_object(script)) {
@@ -591,6 +645,8 @@ namespace scene {
             this_scene->create_entity(ei);
         }
 
+        application::debug(application::log_category::scene, "Scene entities %\n", this_scene->get_entity_num());
+
         // TODO: make optimization, sort all objets in arrays(material.cpp, ...)
         // to use binary search, make a flag that show then array is sorted, and we can
         // in other case use std::find
@@ -599,11 +655,11 @@ namespace scene {
     }
 
     auto update(std::unique_ptr<instance>& s, float dt) -> void {
+        UNUSED(s);
         physics::integrate_all(dt);
     }
 
     auto present_all_transforms(std::unique_ptr<instance> &s, std::function<void(int32_t, const glm::mat4 &)> cb) -> void;
-
     auto present(std::unique_ptr<instance>& scn, std::unique_ptr<renderer::instance> &render, float interpolation) -> void {
         using namespace glm;
 
@@ -611,12 +667,12 @@ namespace scene {
 
         physics::interpolate_all(interpolation);
         scene::present_all_cameras(scn);
+        scene::present_all_lights(scn, render);
         scene::present_all_transforms(scn, [&scn, &render](int32_t e, const glm::mat4 &m) {
             for (const auto &msh : scn->get_model(e)->meshes)
                 for (const auto &dr : msh.draws) {
-                    render->append(scn->get_material(e)->m0);
-                    //render->append(scn->get_transform(e)->model);
-                    render->append(m);
+                    render->append(scn->get_material(e)->m0);                    
+                    render->append(m); //render->append(scn->get_transform(e)->model);
                     render->append(msh.source, dr);
                 }
         });

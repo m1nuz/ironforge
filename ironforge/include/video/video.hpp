@@ -87,7 +87,17 @@ namespace video {
         failure,
         error_create_window,
         error_create_context
-    };    
+    };
+
+    enum class texture_filtering {
+        bilinear,
+        trilinear,
+        anisotropic,
+    };
+
+    struct _config {
+        texture_filtering filtering;
+    };
 
     __must_ckeck auto init(const std::string &title, int32_t w, int32_t h, bool vsync) -> result;
     auto cleanup() -> void;
@@ -109,5 +119,6 @@ namespace video {
     auto make_program(const gl::program_info &info) -> program;
     auto get_shader(const char *name) -> program;
 
+    extern _config config;
     extern int32_t max_uniform_components;    
 } // namespace video

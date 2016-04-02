@@ -35,7 +35,17 @@ namespace video {
         }
 
         auto create_texture_2d(const assets::image_data &data) -> texture {
-            return create_texture_2d({data.pixelformat, 0, 0, static_cast<int32_t>(data.width), static_cast<int32_t>(data.height), 0, data.pixels});
+            uint32_t flags = 0;
+            switch (config.filtering) {
+            case texture_filtering::bilinear:
+                break;
+            case texture_filtering::trilinear:
+            case texture_filtering::anisotropic:
+                flags |= static_cast<uint32_t>(texture_flags::auto_mipmaps);
+                break;
+            }
+
+            return create_texture_2d({data.pixelformat, 0, flags, static_cast<int32_t>(data.width), static_cast<int32_t>(data.height), 0, data.pixels});
         }
 
         auto destroy_texture(texture &tex) -> void {

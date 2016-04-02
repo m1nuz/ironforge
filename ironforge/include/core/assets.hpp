@@ -48,4 +48,5 @@ namespace assets {
     __must_ckeck auto open(const std::string& path) -> result;
     auto get_text(const std::string& name) -> text_data;
     auto get_image(const std::string& name) -> image_data;
+    auto get_file(const std::string& name) -> SDL_RWops*;
 } // namespace assets

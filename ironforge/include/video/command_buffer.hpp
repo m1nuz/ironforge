@@ -13,6 +13,9 @@ namespace video {
             command_buffer(size_t mem_size);
             ~command_buffer();
 
+            command_buffer(command_buffer const&) = delete;
+            command_buffer& operator=(command_buffer const&) = delete;
+
             glm::vec4 clear_color;
 
             color_blend_state   blend;
@@ -22,7 +25,7 @@ namespace video {
             std::vector<command> commands;
 
             // for unifroms
-            void    *memory;
+            void    *raw_memory;
             size_t  memory_size;
             size_t  memory_offset;
         };

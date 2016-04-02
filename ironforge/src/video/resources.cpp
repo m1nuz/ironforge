@@ -44,36 +44,34 @@ namespace video {
         application::debug(application::log_category::video, "%\n", "Init resources");
 
         auto white_name = "white-map";
-        auto im = video::imgen::make_color(128, 128, {1, 1, 1, 1}); // white
+        auto im = video::imgen::make_color(128, 128, {255, 255, 255}); // white
         textures.push_back({white_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name))});
         delete[] im.pixels;
 
         auto black_name = "black-map";
-        im = video::imgen::make_color(128, 128, {0, 0, 0, 0}); // black
+        im = video::imgen::make_color(128, 128, {0, 0, 0}); // black
         textures.push_back({black_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(black_name, strlen(black_name))});
         delete[] im.pixels;
 
         auto check_name = "check-map";
-        im = video::imgen::make_check(128, 128, 0x08, {0, 0, 0, 0}); // check
+        im = video::imgen::make_check(128, 128, 0x10, {255, 255, 255}); // check
         textures.push_back({check_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name))});
         delete[] im.pixels;
 
         make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
-        //make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
         make_program({"ambient-light-shader", {{"forward-ambient.vert", {}}, {"forward-ambient.frag", {}}}});
+        //make_program({"forward-directional-shader", {{"forward-directional.vert", {}}, {"forward-directional.frag", {}}}});
     }
 
     auto cleanup_resources() -> void {
         for (auto &td : textures)
             gl::destroy_texture(td.tex);
 
-        for (auto &bd : buffers) {
+        for (auto &bd : buffers)
             gl::destroy_buffer(bd.buf);
-        }
 
-        for (auto &arr : vertex_arrays) {
+        for (auto &arr : vertex_arrays)
             gl::destroy_vertex_array(arr.va);
-        }
 
         for (auto &p : programs)
             gl::destroy_program(p.pro);

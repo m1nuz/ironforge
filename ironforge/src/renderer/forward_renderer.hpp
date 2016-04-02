@@ -48,12 +48,12 @@ namespace renderer {
         video::gl::sampler                      texture_sampler;
 
         video::gl::command_buffer               prepare_commands;
-        video::gl::command_buffer               post_commands;
+        //video::gl::command_buffer               post_commands;
         video::gl::command_buffer               ambient_commands;
         video::gl::command_buffer               directional_commands;
-        video::gl::command_buffer               point_commands;
-        video::gl::command_buffer               transparent_commands;
-        video::gl::command_buffer               glow_commands;
+        //video::gl::command_buffer               point_commands;
+        //video::gl::command_buffer               transparent_commands;
+        //video::gl::command_buffer               glow_commands;
 
         video::gl::program                      emission_shader;
         video::gl::program                      ambient_light_shader;

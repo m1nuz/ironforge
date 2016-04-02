@@ -33,8 +33,8 @@ namespace renderer {
 
         struct directional_light {
             glm::vec3  direction;
-            glm::vec3  Ld;
-            glm::vec3  Ls;
+            glm::vec3  ld;
+            glm::vec3  ls;
         };
     } // namespace phong
 

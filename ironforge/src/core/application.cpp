@@ -70,7 +70,7 @@ namespace application {
                 timesteps++;
             }
 
-            game::present(accumulator / timestep);            
+            game::present(accumulator / timestep);
         }
 
         return result::success;

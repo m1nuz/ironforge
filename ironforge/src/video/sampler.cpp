@@ -32,6 +32,8 @@ namespace video {
                 return GL_LINEAR_MIPMAP_LINEAR;
             }
 
+            application::debug(application::log_category::video, "Texture min filter not found %\n", static_cast<uint32_t>(filter));
+
             return GL_NONE;
         }
 
@@ -47,6 +49,8 @@ namespace video {
                 return GL_CLAMP_TO_BORDER;
             }
 
+            application::debug(application::log_category::video, "Texture wrap not found %\n", static_cast<uint32_t>(wrap));
+
             return GL_NONE;
         }
 
@@ -59,7 +63,7 @@ namespace video {
 
             glSamplerParameteri(sid, GL_TEXTURE_WRAP_S, get_texture_wrap(info.wrap_s));
             glSamplerParameteri(sid, GL_TEXTURE_WRAP_T, get_texture_wrap(info.wrap_t));
-            glSamplerParameteri(sid, GL_TEXTURE_WRAP_R, get_texture_wrap(info.wrap_r));
+            //glSamplerParameteri(sid, GL_TEXTURE_WRAP_R, get_texture_wrap(info.wrap_r));
 
             if (info.compare_mode != GL_NONE)
                 glSamplerParameteri(sid, GL_TEXTURE_COMPARE_MODE, info.compare_mode); // initial GL_NONE
