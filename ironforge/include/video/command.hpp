@@ -33,6 +33,13 @@ namespace video {
 
             union {
                 struct {
+                    int32_t x;
+                    int32_t y;
+                    int32_t w;
+                    int32_t h;
+                } _viewport;
+
+                struct {
                     uint32_t mode;
                     uint32_t type;
                     uint32_t count;
@@ -84,6 +91,19 @@ namespace video {
         struct clear_op : public command {
             clear_op() : command{command_type::clear} {
 
+            }
+        };
+
+        struct viewpor_op : public command {
+            viewpor_op(int32_t x, int32_t y, int32_t w, int32_t h) : viewpor_op{{x, y, w, h}} {
+
+            }
+
+            viewpor_op(const glm::ivec4 &vp) : command{command_type::viewport} {
+                _viewport.x = vp.x;
+                _viewport.y = vp.y;
+                _viewport.w = vp.z;
+                _viewport.h = vp.w;
             }
         };
 

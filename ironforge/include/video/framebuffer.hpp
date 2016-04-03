@@ -12,18 +12,18 @@ namespace video {
         };*/
 
         enum class framebuffer_attachment : uint32_t {
-            color_attachment0,
-            color_attachment1,
-            color_attachment2,
-            color_attachment3,
-            color_attachment4,
-            color_attachment5,
-            color_attachment6,
-            color_attachment7,
+            color0,
+            color1,
+            color2,
+            color3,
+            color4,
+            color5,
+            color6,
+            color7,
             // can be more color_attachment
-            depth_attachment,
-            stencil_attachment,
-            depth_stencil_attachment
+            depth,
+            stencil,
+            depth_stencil
         };
 
         enum class framebuffer_attachment_target : uint32_t {

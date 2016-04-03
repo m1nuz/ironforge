@@ -46,14 +46,25 @@ namespace renderer {
         //std::vector<phong::spot_light>        spot_lights;
 
         video::gl::sampler                      texture_sampler;
+        video::gl::sampler                      filter_sampler;
+
+        video::gl::texture                      color_map;
+        video::gl::texture                      depth_map;
+        video::gl::texture                      glow_map;
+        video::gl::texture                      blur_map;
+
+        video::gl::framebuffer                  color_framebuffer;
+
+        video::vertices_source                  fullscreen_quad;
+        video::vertices_draw                    fullscreen_draw;
 
         video::gl::command_buffer               prepare_commands;
-        //video::gl::command_buffer               post_commands;
+        video::gl::command_buffer               post_commands;
         video::gl::command_buffer               ambient_commands;
         video::gl::command_buffer               directional_commands;
         //video::gl::command_buffer               point_commands;
         //video::gl::command_buffer               transparent_commands;
-        //video::gl::command_buffer               glow_commands;
+        video::gl::command_buffer               glow_commands;
 
         video::gl::program                      emission_shader;
         video::gl::program                      ambient_light_shader;

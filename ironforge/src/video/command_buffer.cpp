@@ -5,15 +5,12 @@
 
 namespace video {
     namespace gl330 {
-        command_buffer::command_buffer() : command_buffer{0} {
-
-        }
-
         command_buffer::command_buffer(size_t mem_size) {
-            assert(mem_size != 0);
+            if (mem_size == 0)
+                mem_size = static_cast<size_t>(video::max_uniform_components * sizeof (float));
 
-            if (mem_size > static_cast<size_t>(video::max_uniform_components * 4))
-                application::error(application::log_category::video, "No uniforms memory % needed %\n", video::max_uniform_components, mem_size);
+            if (mem_size > static_cast<size_t>(video::max_uniform_components * sizeof (float)))
+                application::error(application::log_category::video, "No uniforms memory % needed %\n", video::max_uniform_components * sizeof (float), mem_size);
 
             memory_size = mem_size;
             memory_offset = 0;
@@ -108,6 +105,9 @@ namespace video {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                 //glClearBufferfv(GL_COLOR, 0, &buf.clear_color[0]);
                 //glClearBufferfv(GL_DEPTH, 0, &depth_value);
+                break;
+            case command_type::viewport:
+                glViewport(c._viewport.x, c._viewport.y, c._viewport.w, c._viewport.h);
                 break;
             case command_type::draw_elements:
                 // TODO: use glDrawElementsBaseVertex

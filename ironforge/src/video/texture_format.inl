@@ -42,6 +42,11 @@ namespace video {
                 format = GL_RGBA;
                 type = GL_FLOAT;
                 break;
+            case pixel_format::depth:
+                internalformat = GL_DEPTH_COMPONENT;
+                format = GL_DEPTH_COMPONENT;
+                type = GL_UNSIGNED_SHORT;
+                break;
             default:
                 application::error(application::log_category::video, "% %\n", "Unknown texture format for pixel format", static_cast<uint32_t>(pf));
                 break;

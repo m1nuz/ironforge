@@ -18,7 +18,8 @@ namespace video {
         rgb16f,
         rgba16f,
         rgb32f,
-        rgba32f
+        rgba32f,
+        depth
     };
 
     enum class texture_flags : uint32_t {

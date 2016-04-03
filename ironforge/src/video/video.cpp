@@ -77,10 +77,10 @@ namespace video {
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-        /*if (screen.msaa) {
+        if (screen.msaa) {
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, screen.msaa);
-        }*/
+        }
 
         /*if (screen.srgb_capable)
             SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);*/
@@ -109,10 +109,10 @@ namespace video {
         glLoadFunctions();
         glLoadExtensions();
 
-        /*if (msaa)
+        if (screen.msaa)
             glEnable(GL_MULTISAMPLE);
 
-        if (srgb_capable)
+        /*if (srgb_capable)
             glEnable(GL_FRAMEBUFFER_SRGB);*/
 
         if (debug)
@@ -147,7 +147,6 @@ namespace video {
 
         for (auto &buf : buffers) {
             for (auto &c : buf->commands) {
-                assert(buf->commands.size() != 0);
 
                 video::gl::set_color_blend_state(&buf->blend);
                 video::gl::set_rasterizer_state(&buf->rasterizer);

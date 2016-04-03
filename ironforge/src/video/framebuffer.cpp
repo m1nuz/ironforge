@@ -19,27 +19,27 @@ namespace video {
 
         inline auto get_framebuffer_attachment(framebuffer_attachment attachment) {
             switch (attachment) {
-            case framebuffer_attachment::color_attachment0:
+            case framebuffer_attachment::color0:
                 return GL_COLOR_ATTACHMENT0;
-            case framebuffer_attachment::color_attachment1:
+            case framebuffer_attachment::color1:
                 return GL_COLOR_ATTACHMENT1;
-            case framebuffer_attachment::color_attachment2:
+            case framebuffer_attachment::color2:
                 return GL_COLOR_ATTACHMENT2;
-            case framebuffer_attachment::color_attachment3:
+            case framebuffer_attachment::color3:
                 return GL_COLOR_ATTACHMENT3;
-            case framebuffer_attachment::color_attachment4:
+            case framebuffer_attachment::color4:
                 return GL_COLOR_ATTACHMENT4;
-            case framebuffer_attachment::color_attachment5:
+            case framebuffer_attachment::color5:
                 return GL_COLOR_ATTACHMENT5;
-            case framebuffer_attachment::color_attachment6:
+            case framebuffer_attachment::color6:
                 return GL_COLOR_ATTACHMENT6;
-            case framebuffer_attachment::color_attachment7:
+            case framebuffer_attachment::color7:
                 return GL_COLOR_ATTACHMENT7;
-            case framebuffer_attachment::depth_attachment:
+            case framebuffer_attachment::depth:
                 return GL_DEPTH_ATTACHMENT;
-            case framebuffer_attachment::stencil_attachment:
+            case framebuffer_attachment::stencil:
                 return GL_STENCIL_ATTACHMENT;
-            case framebuffer_attachment::depth_stencil_attachment:
+            case framebuffer_attachment::depth_stencil:
                 return GL_DEPTH_STENCIL_ATTACHMENT;
             }
 

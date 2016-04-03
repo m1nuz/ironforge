@@ -22,6 +22,7 @@ namespace scene {
         // TODO: check copy in materials
 
         material_instance mi;
+
         mi.name = info.name;
         mi.name_hash = utils::xxhash64(info.name, strlen(info.name), 0);
         mi.m0.ka = info.ambient;
