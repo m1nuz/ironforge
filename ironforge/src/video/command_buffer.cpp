@@ -5,7 +5,7 @@
 
 namespace video {
     namespace gl330 {
-        command_buffer::command_buffer(size_t mem_size) {
+        command_buffer::command_buffer(size_t mem_size) : memory_offset{0} {
             if (mem_size == 0)
                 mem_size = static_cast<size_t>(video::max_uniform_components * sizeof (float));
 
@@ -13,7 +13,6 @@ namespace video {
                 application::error(application::log_category::video, "No uniforms memory % needed %\n", video::max_uniform_components * sizeof (float), mem_size);
 
             memory_size = mem_size;
-            memory_offset = 0;
             raw_memory = malloc(memory_size);
             memset(raw_memory, 0, memory_size);
         }

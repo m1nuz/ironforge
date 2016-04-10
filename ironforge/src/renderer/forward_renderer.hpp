@@ -10,11 +10,11 @@ namespace renderer {
     // limits
     constexpr size_t max_ambient_lights     = 1;
     constexpr size_t max_directional_lights = 1;
-    constexpr size_t max_point_lights       = 10;
-    constexpr size_t max_materials          = 10;
-    constexpr size_t max_draws              = 10;
-    constexpr size_t max_matrices           = 10;
-    constexpr size_t max_sources            = 10;
+    constexpr size_t max_point_lights       = 20;
+    constexpr size_t max_materials          = 20;
+    constexpr size_t max_draws              = 20;
+    constexpr size_t max_matrices           = 20;
+    constexpr size_t max_sources            = 20;
 
     struct raw_material {
         glm::vec4 values[4];
@@ -31,6 +31,7 @@ namespace renderer {
         virtual auto append(const phong::material &material) -> void;
         virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw) -> void;
         virtual auto append(const glm::mat4 &model) -> void;
+        virtual auto append(const video::texture &cubemap, uint32_t flags) -> void;
 
         virtual auto reset() -> void;
         virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void;
@@ -53,7 +54,13 @@ namespace renderer {
         video::gl::texture                      glow_map;
         video::gl::texture                      blur_map;
 
+        video::gl::renderbuffer                 blur_depth;
+
+        video::texture                          skybox_map;
+
         video::gl::framebuffer                  color_framebuffer;
+        video::gl::framebuffer                  glow_framebuffer;
+        video::gl::framebuffer                  blur_framebuffer;
 
         video::vertices_source                  fullscreen_quad;
         video::vertices_draw                    fullscreen_draw;
@@ -65,6 +72,7 @@ namespace renderer {
         //video::gl::command_buffer               point_commands;
         //video::gl::command_buffer               transparent_commands;
         video::gl::command_buffer               glow_commands;
+        video::gl::command_buffer               skybox_commands;
 
         video::gl::program                      emission_shader;
         video::gl::program                      ambient_light_shader;

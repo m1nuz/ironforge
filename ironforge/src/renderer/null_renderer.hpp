@@ -44,6 +44,10 @@ namespace renderer {
             UNUSED(model);
         }
 
+        virtual auto append(const video::texture &cubemap, uint32_t flags) -> void {
+            UNUSED(cubemap), UNUSED(flags);
+        }
+
         virtual auto reset() -> void {
             commands.clear_color = glm::vec4(1.f, 1.f, 1.f, 1.f);
         }

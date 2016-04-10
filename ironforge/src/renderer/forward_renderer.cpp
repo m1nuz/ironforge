@@ -5,10 +5,12 @@ namespace renderer {
     forward_renderer::forward_renderer() {
         application::debug(application::log_category::render, "% % with % %\n", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);        
 
-        //emission_shader = video::get_shader("emission-shader");
+        emission_shader = video::get_shader("emission-shader");
         ambient_light_shader = video::get_shader("ambient-light-shader");
         directional_light_shader = video::get_shader("forward-directional-shader");
         postprocess_shader = video::get_shader("postprocess-shader");
+        filter_vblur_shader = video::get_shader("vblur-shader");
+        filter_hblur_shader = video::get_shader("hblur-shader");
 
         video::gl::sampler_info sam_info;
 
@@ -33,8 +35,15 @@ namespace renderer {
         filter_info.wrap_r = video::gl::texture_wrap::clamp_to_edge;
         filter_info.wrap_s = video::gl::texture_wrap::clamp_to_edge;
         filter_sampler = video::gl::create_sampler(filter_info);
+
+        const auto ratio = 2;
+
         color_map = video::gl::create_texture_2d({video::pixel_format::rgba16f, 0, 0, video::screen.width, video::screen.height, 0, nullptr});
         depth_map = video::gl::create_texture_2d({video::pixel_format::depth, 0, 0, video::screen.width, video::screen.height, 0, nullptr});
+        glow_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, video::screen.width / ratio, video::screen.height / ratio, 0, nullptr});
+        blur_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, video::screen.width / ratio, video::screen.height / ratio, 0, nullptr});
+
+        blur_depth = video::gl::create_renderbuffer({video::pixel_format::depth, video::screen.width / ratio, video::screen.height / ratio, 0});
 
         uint32_t mask = static_cast<uint32_t>(video::gl::framebuffer_mask::color_buffer) | static_cast<uint32_t>(video::gl::framebuffer_mask::depth_buffer);
 
@@ -43,6 +52,10 @@ namespace renderer {
         color_framebuffer = gl::create_framebuffer({screen.width, screen.height, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, color_map.id},
                                                                                         {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::texture, depth_map.id}}});
 
+        glow_framebuffer = gl::create_framebuffer({screen.width / ratio, screen.height / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, glow_map.id},
+                                                                                       {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, blur_depth.id}}});
+
+        blur_framebuffer = gl::create_framebuffer({screen.width / ratio, screen.height / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, blur_map.id}}});
         auto quad_vi = video::vertgen::make_quad_plane(glm::mat4{1.f});
         std::vector<vertices_draw> quad_vd;
         fullscreen_quad = video::make_vertices_source({quad_vi.data}, quad_vi.desc, quad_vd);
@@ -59,6 +72,10 @@ namespace renderer {
     forward_renderer::~forward_renderer() {
         video::gl::destroy_framebuffer(color_framebuffer);
         video::gl::destroy_texture(color_map);
+        video::gl::destroy_texture(depth_map);
+        video::gl::destroy_texture(glow_map);
+        video::gl::destroy_texture(blur_map);
+        video::gl::destroy_renderbuffer(blur_depth);
         video::gl::destroy_sampler(texture_sampler);
         video::gl::destroy_sampler(filter_sampler);
         application::debug(application::log_category::render, "%\n", "Destroy forward render");
@@ -88,6 +105,12 @@ namespace renderer {
 
     auto forward_renderer::append(const glm::mat4 &model) -> void {
         matrices.push_back(model);
+    }
+
+    auto forward_renderer::append(const video::texture &cubemap, uint32_t flags) -> void {
+        UNUSED(flags);
+
+        skybox_map = cubemap;
     }
 
     auto forward_renderer::reset() -> void {
@@ -124,8 +147,24 @@ namespace renderer {
         directional_commands.depth.depth_write = false;
         directional_commands.depth.depth_func = video::gl::depth_fn::equal;
 
+        glow_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
+        glow_commands.memory_offset = 0;
+        glow_commands.commands.clear();
+        glow_commands.depth.depth_test = true;
+        glow_commands.depth.depth_write = true;
+
+        post_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         post_commands.memory_offset = 0;
         post_commands.commands.clear();
+
+        skybox_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
+        skybox_commands.memory_offset = 0;
+        skybox_commands.commands.clear();
+        skybox_commands.depth.depth_test = true;
+        skybox_commands.depth.depth_write = false;
+        skybox_commands.depth.depth_func = video::gl::depth_fn::lequal;
+        skybox_commands.rasterizer.cull_mode = video::gl::cull_face_mode::front;
+        skybox_commands.rasterizer.polygon_mode = true;
     }
 
     auto forward_renderer::present(const glm::mat4 &proj, const glm::mat4 &view) -> void {
@@ -186,6 +225,58 @@ namespace renderer {
             }
         }
 
+        glow_commands << video::gl::bind_framebuffer_op{glow_framebuffer.id};
+        glow_commands << video::gl::viewpor_op{0, 0, glow_framebuffer.width, glow_framebuffer.height};
+        glow_commands << video::gl::clear_op{};
+
+        glow_commands << video::gl::bind_program_op{emission_shader.pid};
+        glow_commands << video::gl::send_uniform{video::gl::get_uniform_location(emission_shader, "projection_view_matrix"), projection_view};
+
+        for (size_t i = 0; i < draws.size(); i++) {
+            glow_commands << video::gl::send_uniform{video::gl::get_uniform_location(emission_shader, "model_matrix"), matrices[i]};
+            glow_commands << video::gl::send_uniform{video::gl::get_uniform_location(emission_shader, "emission_color"), materials[i].ke};
+
+            glow_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(emission_shader, "emission_map"), 1, video::default_check_texture().target, video::default_check_texture().id};
+            glow_commands << video::gl::bind_sampler_op{1, texture_sampler.id};
+
+            glow_commands << video::gl::bind_vertex_array_op{sources[i].array.id};
+            glow_commands << video::gl::draw_elements_op{draws[i].count};
+        }
+
+        // vblur
+        post_commands << video::gl::bind_framebuffer_op{blur_framebuffer.id};
+        post_commands << video::gl::viewpor_op{0, 0, blur_framebuffer.width, blur_framebuffer.height};
+        post_commands << video::gl::clear_op{};
+
+        post_commands << video::gl::bind_program_op{filter_vblur_shader.pid};
+
+        const glm::vec2 size = glm::vec2(1.f / blur_framebuffer.width, 1.f / blur_framebuffer.height);
+        post_commands << video::gl::send_uniform{video::gl::get_uniform_location(filter_vblur_shader, "size"), size};
+        post_commands << video::gl::send_uniform{video::gl::get_uniform_location(filter_vblur_shader, "scale"), 2.0f};
+
+        post_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(filter_vblur_shader, "tex0"), 0, glow_map.target, glow_map.id};
+        post_commands << video::gl::bind_sampler_op{0, filter_sampler.id};
+
+        post_commands << video::gl::bind_vertex_array_op{fullscreen_quad.array.id};
+        post_commands << video::gl::draw_elements_op{fullscreen_draw.count};
+
+        // hblur
+        post_commands << video::gl::bind_framebuffer_op{glow_framebuffer.id};
+        post_commands << video::gl::viewpor_op{0, 0, glow_framebuffer.width, glow_framebuffer.height};
+        post_commands << video::gl::clear_op{};
+
+        post_commands << video::gl::bind_program_op{filter_hblur_shader.pid};
+
+        post_commands << video::gl::send_uniform{video::gl::get_uniform_location(filter_hblur_shader, "size"), size};
+        post_commands << video::gl::send_uniform{video::gl::get_uniform_location(filter_hblur_shader, "scale"), 2.0f};
+
+        post_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(filter_hblur_shader, "tex0"), 0, blur_map.target, blur_map.id};
+        post_commands << video::gl::bind_sampler_op{0, filter_sampler.id};
+
+        post_commands << video::gl::bind_vertex_array_op{fullscreen_quad.array.id};
+        post_commands << video::gl::draw_elements_op{fullscreen_draw.count};
+
+        // postprocess
         post_commands << video::gl::bind_framebuffer_op{def_framebuffer.id};
         post_commands << video::gl::viewpor_op{0, 0, def_framebuffer.width, def_framebuffer.height};
         post_commands << video::gl::clear_op{};
@@ -195,13 +286,13 @@ namespace renderer {
         post_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(postprocess_shader, "color_map"), 0, color_map.target, color_map.id};
         post_commands << video::gl::bind_sampler_op{0, filter_sampler.id};
 
-        post_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(postprocess_shader, "glow_map"), 1, video::default_black_texture().target, video::default_black_texture().id};
+        post_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(postprocess_shader, "glow_map"), 1, glow_map.target, glow_map.id};
         post_commands << video::gl::bind_sampler_op{1, filter_sampler.id};
 
         post_commands << video::gl::bind_vertex_array_op{fullscreen_quad.array.id};
         post_commands << video::gl::draw_elements_op{fullscreen_draw.count};
 
-        video::present({&prepare_commands, &ambient_commands, &directional_commands, &post_commands});
+        video::present({&prepare_commands, &ambient_commands, &directional_commands, &glow_commands, &post_commands});
         reset();
     }
 } // namespace renderer

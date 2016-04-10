@@ -63,6 +63,8 @@ namespace video {
         make_program({"ambient-light-shader", {{"forward-ambient.vert", {}}, {"forward-ambient.frag", {}}}});
         make_program({"forward-directional-shader", {{"forward-directional.vert", {}}, {"forward-directional.frag", {}}}});
         make_program({"postprocess-shader", {{"screenspace.vert", {}}, {"postprocess_final.frag", {}}}});
+        make_program({"hblur-shader", {{"screenspace.vert", {}}, {"filter-hblur.frag", {}}}});
+        make_program({"vblur-shader", {{"screenspace.vert", {}}, {"filter-vblur.frag", {}}}});
     }
 
     auto cleanup_resources() -> void {
@@ -214,8 +216,10 @@ namespace video {
 
         auto imd = assets::get_image(name);
 
-        if (!imd.pixels)
+        if (!imd.pixels) {
+            application::warning(application::log_category::application, "Texture % not found\n", name);
             return default_tex;
+        }
 
         return make_texture_2d(imd);
     }

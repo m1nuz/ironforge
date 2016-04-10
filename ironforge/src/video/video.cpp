@@ -82,8 +82,8 @@ namespace video {
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, screen.msaa);
         }
 
-        /*if (screen.srgb_capable)
-            SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);*/
+        if (screen.srgb_capable)
+            SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, gl::major_version);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, gl::minor_version);
@@ -112,8 +112,8 @@ namespace video {
         if (screen.msaa)
             glEnable(GL_MULTISAMPLE);
 
-        /*if (srgb_capable)
-            glEnable(GL_FRAMEBUFFER_SRGB);*/
+        if (screen.srgb_capable)
+            glEnable(GL_FRAMEBUFFER_SRGB);
 
         if (debug)
             enable_debug();

@@ -307,6 +307,18 @@ namespace scene {
 
             application::debug(application::log_category::game, "Effect % '%'\n", json_string_value(type), json_string_value(name));
 
+            if (strcmp(json_string_value(type), "skybox") == 0) {
+
+                auto textures = json_object_get(effect, "textures");
+                if (textures)
+                   for (size_t j = 0; j < json_array_size(textures); j++) {
+                       auto tex_name = json_array_get(textures, j);
+
+                       application::debug(application::log_category::game, "TEX %\n", json_string_value(tex_name));
+                   }
+
+            }
+
             // TODO: and add skybox effect
         }
 

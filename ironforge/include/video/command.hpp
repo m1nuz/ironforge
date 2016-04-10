@@ -150,7 +150,7 @@ namespace video {
         struct send_uniform : public command {
             send_uniform(int location, const glm::mat4 &m);
             send_uniform(int location, const glm::mat3 &m);
-            send_uniform(int location, float value);
+            send_uniform(int location, const float &value);
             send_uniform(int location, const glm::vec2 &value);
             send_uniform(int location, const glm::vec3 &value);
             send_uniform(int location, const glm::vec4 &value);
