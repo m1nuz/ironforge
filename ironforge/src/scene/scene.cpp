@@ -310,16 +310,20 @@ namespace scene {
             if (strcmp(json_string_value(type), "skybox") == 0) {
 
                 auto textures = json_object_get(effect, "textures");
-                if (textures)
-                   for (size_t j = 0; j < json_array_size(textures); j++) {
-                       auto tex_name = json_array_get(textures, j);
+                if (textures) {
+                    std::string texs[6];
 
-                       application::debug(application::log_category::game, "TEX %\n", json_string_value(tex_name));
-                   }
+                    for (size_t j = 0; j < json_array_size(textures); j++) {
+                        auto tex_name = json_array_get(textures, j);
+                        texs[j] = json_string_value(tex_name);
 
+                        application::debug(application::log_category::game, "TEX % %\n", json_string_value(name), json_string_value(tex_name));
+                    }
+
+                    // TODO: and add skybox effect to scene
+                    video::make_texture_cube(json_string_value(name), texs);
+                }
             }
-
-            // TODO: and add skybox effect
         }
 
         // read materials

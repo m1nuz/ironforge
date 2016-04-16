@@ -29,6 +29,7 @@ namespace video {
     };
 
     struct texture_info {
+        texture_info() = default;
         texture_info(pixel_format _format, int32_t _mipmaps, uint32_t _flags, int32_t w, int32_t h, int32_t d, void *_pixels)
             : format{_format}, mipmaps{_mipmaps}, flags{_flags}, width{w}, height{h}, depth{d}, pixels{_pixels} {
         }
@@ -67,7 +68,8 @@ namespace video {
         auto create_texture_2d(const texture_info &info) -> texture;
         auto create_texture_2d(const image_data &data) -> texture;
         auto create_texture_array() -> texture;
-        auto create_texture_cube() -> texture;
+        auto create_texture_cube(const texture_info (&infos)[6]) -> texture;
+        auto create_texture_cube(const image_data (&datas)[6]) -> texture;
 
         auto destroy_texture(texture &tex) -> void;
     } // namespace gl330

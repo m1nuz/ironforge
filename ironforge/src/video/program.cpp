@@ -86,6 +86,7 @@ namespace video {
             std::vector<shader> shaders;
             shaders.reserve(5);
 
+            // TODO: select by type, not by ext
             for (const auto &s : info.sources) {
                 auto ext = s.name.substr(s.name.find_last_of('.') + 1);
 

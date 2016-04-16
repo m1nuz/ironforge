@@ -65,6 +65,7 @@ namespace video {
         make_program({"postprocess-shader", {{"screenspace.vert", {}}, {"postprocess_final.frag", {}}}});
         make_program({"hblur-shader", {{"screenspace.vert", {}}, {"filter-hblur.frag", {}}}});
         make_program({"vblur-shader", {{"screenspace.vert", {}}, {"filter-vblur.frag", {}}}});
+        make_program({"skybox-shader", {{"skybox.vert", {}}, {"skybox.frag", {}}}});
     }
 
     auto cleanup_resources() -> void {
@@ -89,6 +90,8 @@ namespace video {
     auto make_texture_2d(const texture_info &info) -> texture {
         texture_desc desc;
         desc.tex = gl::create_texture_2d(info);
+        desc.name_hash = 0;
+        desc.usage = 0;
 
         textures.push_back(desc);
 
@@ -98,6 +101,28 @@ namespace video {
     auto make_texture_2d(const image_data &data) -> texture {
         texture_desc desc;
         desc.tex = gl::create_texture_2d(data);
+        desc.name_hash = 0;
+        desc.usage = 0;
+
+        textures.push_back(desc);
+
+        return desc.tex;
+    }
+
+    auto make_texture_cube(const std::string &name, const std::string (&names)[6]) -> texture {
+        image_data images[6];
+
+        for (size_t i = 0; i < 6; i++) {
+            images[i] = assets::get_image(names[i]);
+
+            // TODO: make error
+        }
+
+        texture_desc desc;
+        desc.tex = video::gl::create_texture_cube(images);
+        desc.name = name;
+        desc.name_hash = utils::xxhash64(name);
+        desc.usage = 0;
 
         textures.push_back(desc);
 
@@ -212,7 +237,14 @@ namespace video {
     }
 
     auto get_texture(const char *name, const texture &default_tex) -> texture {
-        // TODO: find already created texture
+
+        auto hash = utils::xxhash64(name, strlen(name));
+        auto it = std::find_if(textures.begin(), textures.end(), [hash](const texture_desc &td) {
+            return td.name_hash == hash;
+        });
+
+        if (it != textures.end())
+            return it->tex;
 
         auto imd = assets::get_image(name);
 

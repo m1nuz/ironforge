@@ -65,6 +65,9 @@ namespace renderer {
         video::vertices_source                  fullscreen_quad;
         video::vertices_draw                    fullscreen_draw;
 
+        video::vertices_source                  skybox_cube;
+        video::vertices_draw                    skybox_draw;
+
         video::gl::command_buffer               prepare_commands;
         video::gl::command_buffer               post_commands;
         video::gl::command_buffer               ambient_commands;
@@ -81,5 +84,6 @@ namespace renderer {
         video::gl::program                      postprocess_shader;
         video::gl::program                      filter_vblur_shader;
         video::gl::program                      filter_hblur_shader;
+        video::program                          skybox_shader;
     };
 } // namespace renderer

@@ -109,6 +109,7 @@ namespace video {
 
     auto make_texture_2d(const video::texture_info &info) -> texture;
     auto make_texture_2d(const image_data &data) -> texture;
+    auto make_texture_cube(const std::string &name, const std::string (&names)[6]) -> texture;
     auto make_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc, std::vector<vertices_draw> &draws) -> vertices_source;
 
     auto default_white_texture() -> texture;

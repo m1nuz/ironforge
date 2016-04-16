@@ -80,10 +80,10 @@ auto read_targa(SDL_RWops *rw, assets::image_data& image) -> int32_t {
         image.pixelformat = video::pixel_format::r8;
         break;
     case 24:
-        image.pixelformat = video::pixel_format::rgb8;
+        image.pixelformat = video::pixel_format::bgr8;
         break;
     case 32:
-        image.pixelformat = video::pixel_format::rgba8;
+        image.pixelformat = video::pixel_format::bgra8;
         break;
     }
 

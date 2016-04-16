@@ -11,6 +11,7 @@ namespace renderer {
         postprocess_shader = video::get_shader("postprocess-shader");
         filter_vblur_shader = video::get_shader("vblur-shader");
         filter_hblur_shader = video::get_shader("hblur-shader");
+        skybox_shader = video::get_shader("skybox-shader");
 
         video::gl::sampler_info sam_info;
 
@@ -45,6 +46,8 @@ namespace renderer {
 
         blur_depth = video::gl::create_renderbuffer({video::pixel_format::depth, video::screen.width / ratio, video::screen.height / ratio, 0});
 
+        memset(&skybox_map, 0, sizeof skybox_map);
+
         uint32_t mask = static_cast<uint32_t>(video::gl::framebuffer_mask::color_buffer) | static_cast<uint32_t>(video::gl::framebuffer_mask::depth_buffer);
 
         using namespace video;
@@ -56,10 +59,16 @@ namespace renderer {
                                                                                        {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, blur_depth.id}}});
 
         blur_framebuffer = gl::create_framebuffer({screen.width / ratio, screen.height / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, blur_map.id}}});
+
         auto quad_vi = video::vertgen::make_quad_plane(glm::mat4{1.f});
         std::vector<vertices_draw> quad_vd;
         fullscreen_quad = video::make_vertices_source({quad_vi.data}, quad_vi.desc, quad_vd);
         fullscreen_draw = quad_vd[0];
+
+        auto cube_vi = video::vertgen::make_cube(glm::mat4{1.f});
+        std::vector<vertices_draw> cube_vd;
+        skybox_cube = video::make_vertices_source({cube_vi.data}, cube_vi.desc, cube_vd);
+        skybox_draw = cube_vd[0];
 
         sources.reserve(max_sources);
         draws.reserve(max_draws);
@@ -110,6 +119,7 @@ namespace renderer {
     auto forward_renderer::append(const video::texture &cubemap, uint32_t flags) -> void {
         UNUSED(flags);
 
+        // TODO: add flag for special case
         skybox_map = cubemap;
     }
 
@@ -170,6 +180,10 @@ namespace renderer {
     auto forward_renderer::present(const glm::mat4 &proj, const glm::mat4 &view) -> void {
         UNUSED(proj), UNUSED(view);
 
+        if (skybox_map.id == 0)
+            skybox_map = video::get_texture("skybox1");
+
+        glm::mat4 cam_model = glm::translate(glm::mat4(1.f), -glm::vec3(view[3]));
         glm::mat4 projection_view = proj * view;
 
         auto def_framebuffer = video::gl::default_framebuffer();
@@ -177,6 +191,16 @@ namespace renderer {
         prepare_commands << video::gl::bind_framebuffer_op{color_framebuffer.id};
         prepare_commands << video::gl::viewpor_op{0, 0, color_framebuffer.width, color_framebuffer.height};
         prepare_commands << video::gl::clear_op{};
+
+        skybox_commands << video::gl::bind_program_op{skybox_shader.pid};
+        skybox_commands << video::gl::send_uniform{video::gl::get_uniform_location(skybox_shader, "projection_view_matrix"), projection_view};
+        skybox_commands << video::gl::send_uniform{video::gl::get_uniform_location(skybox_shader, "model_matrix"), cam_model};
+
+        skybox_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(skybox_shader, "cubemap"), 0, skybox_map.target, skybox_map.id};
+        skybox_commands << video::gl::bind_sampler_op{0, texture_sampler.id};
+
+        skybox_commands << video::gl::bind_vertex_array_op{skybox_cube.array.id};
+        skybox_commands << video::gl::draw_elements_op{skybox_draw.count};
 
         ambient_commands << video::gl::bind_program_op{ambient_light_shader.pid};
         ambient_commands << video::gl::send_uniform{video::gl::get_uniform_location(ambient_light_shader, "projection_view_matrix"), projection_view};
@@ -292,7 +316,7 @@ namespace renderer {
         post_commands << video::gl::bind_vertex_array_op{fullscreen_quad.array.id};
         post_commands << video::gl::draw_elements_op{fullscreen_draw.count};
 
-        video::present({&prepare_commands, &ambient_commands, &directional_commands, &glow_commands, &post_commands});
+        video::present({&prepare_commands, &skybox_commands, &ambient_commands, &directional_commands, &glow_commands, &post_commands});
         reset();
     }
 } // namespace renderer
