@@ -11,3 +11,6 @@ foreach(subdir ${subdirs})
 endforeach()
 
 set(audio_lib "ironforge-audio-al")
+
+add_library(lua STATIC IMPORTED)
+set_property(TARGET lua PROPERTY IMPORTED_LOCATION -usr/local/lib/liblua.a)

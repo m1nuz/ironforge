@@ -27,14 +27,6 @@
     }
 
 namespace scene {
-    auto create_input(const std::string &name, const std::vector<input_action> actions) -> input_instance* {
-        application::debug(application::log_category::scene, "Create input %\n", name);
-
-        return nullptr;
-    }
-} // namespace scene
-
-namespace scene {
     instance::instance() : instance{"empty", 0} {
     }
 
@@ -116,9 +108,9 @@ namespace scene {
                 transforms.push_back(info.flags & static_cast<uint32_t>(entity_flags::renderable) ? create_transform(eid, info.parent) : nullptr);
                 cameras.push_back(info.camera ? create_camera(eid, *info.camera) : nullptr);
                 materials.push_back(info.material ? find_material(info.name) : nullptr);
-                inputs.push_back(nullptr);
+                inputs.push_back(info.input ? create_input(eid, find_input_source(info.input)) : nullptr);
                 models.push_back(info.model ? find_model(info.model) : nullptr);
-                scripts.push_back(nullptr);
+                scripts.push_back(info.script ? create_script(eid, *info.script) : nullptr);
 
                 auto any_light = info.light ? create_light(eid, *info.light) : std::make_pair(light_type::unknown, nullptr);
                 switch (any_light.first) {
@@ -148,6 +140,9 @@ namespace scene {
                 name_hashes.push_back(hash);
                 flags.push_back(info.flags);
             }
+
+            if (scripts[eid])
+                call_fn(scripts[eid], "_init");
 
             // TODO: check if all vectors is same size
 
@@ -202,6 +197,13 @@ namespace scene {
             return models[id];
         }
 
+        virtual auto get_script(int32_t id) -> script_instance* {
+            assert(id >= 0);
+            assert(id < (int32_t)scripts.capacity());
+
+            return scripts[id];
+        }
+
         virtual auto get_current_camera() -> camera_instance* {
             assert(current_camera < cameras.capacity());
 
@@ -223,6 +225,8 @@ namespace scene {
         std::vector<std::string>                    names;
         std::vector<uint64_t>                       name_hashes;
         std::vector<uint32_t>                       flags;
+
+        script_instance                             *main_script;
 
         size_t                                      current_camera;
 
@@ -255,9 +259,11 @@ namespace scene {
         init_all_materials();
         init_all_cameras();
         init_all_models();
+        init_all_scripts();
     }
 
     auto cleanup_all() -> void {
+        cleanup_all_scripts();
         cleanup_all_models();
         cleanup_all_cameras();
         cleanup_all_materials();
@@ -497,7 +503,7 @@ namespace scene {
                 application::debug(application::log_category::game, "Input '%' % %\n", json_string_value(name), json_string_value(on_keydown), json_string_value(on_keyup));
             }
 
-            create_input(json_string_value(name), input_actions);
+            create_input_source(json_string_value(name), input_actions);
         }
 
         // read nodes
@@ -648,7 +654,7 @@ namespace scene {
 
                 si->name = json_string_value(script_name);
                 si->source = json_string_value(source);
-                si->class_name = json_string_value(class_name);
+                si->table_name = json_string_value(class_name);
 
                 ei.script = si.get(); // create_script(si)
             }
@@ -673,6 +679,10 @@ namespace scene {
     auto update(std::unique_ptr<instance>& s, float dt) -> void {
         UNUSED(s);
         physics::integrate_all(dt);
+    }
+
+    auto process_event(std::unique_ptr<instance> &s, const SDL_Event &event) -> void {
+        process_input_events(s, event);
     }
 
     auto present_all_transforms(std::unique_ptr<instance> &s, std::function<void(int32_t, const glm::mat4 &)> cb) -> void;

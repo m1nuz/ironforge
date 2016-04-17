@@ -15,6 +15,9 @@ namespace scene {
     constexpr size_t max_materials      = 100;
     constexpr size_t max_cameras        = 100;
     constexpr size_t max_points_lights  = 20;
+    constexpr size_t max_scripts        = 20;
+    constexpr size_t max_input_sources  = 20;
+    constexpr size_t max_inputs         = 100;
 
     enum class state_flags : uint32_t {
         start       = 0x00000001,
@@ -65,6 +68,7 @@ namespace scene {
         virtual auto get_body(int32_t id) -> body_instance* = 0;
         virtual auto get_material(int32_t id) -> material_instance* = 0;
         virtual auto get_model(int32_t id) -> model_instance* = 0;
+        virtual auto get_script(int32_t id) -> script_instance* = 0;
 
         virtual auto get_current_camera() -> camera_instance* = 0;
 
@@ -100,5 +104,6 @@ namespace scene {
     auto empty(uint32_t state = 0) -> std::unique_ptr<instance>;
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance>;
     auto update(std::unique_ptr<instance> &s, float dt) -> void;
+    auto process_event(std::unique_ptr<instance> &s, const SDL_Event &event) -> void;
     auto present(std::unique_ptr<instance> &s, std::unique_ptr<renderer::instance> &render, float interpolation) -> void;
 } // namespace scene

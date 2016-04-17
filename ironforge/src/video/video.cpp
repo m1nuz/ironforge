@@ -121,6 +121,10 @@ namespace video {
         // get constants
         glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &max_uniform_components);
 
+
+        // get real window size
+        SDL_GetWindowSize(window, &w, &h);
+
         // setup default screen
         screen.width = w;
         screen.height = h;

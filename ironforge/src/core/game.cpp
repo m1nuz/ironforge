@@ -78,7 +78,7 @@ namespace game {
                 application::quit();
             }
 
-        // scene::process_event(get_current(), e);
+        scene::process_event(get_current(), e);
     }
 
     auto update(float dt) -> void {
