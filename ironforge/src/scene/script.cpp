@@ -4,6 +4,7 @@
 #include <lua.hpp>
 
 #include "script.hpp"
+#include "lua_bindings.hpp"
 
 namespace scene {
     static std::vector<script_instance> scripts;
@@ -45,7 +46,7 @@ namespace scene {
         }
 
         luaL_openlibs(lua_state);
-        //bindings_init(lua_state);
+        bindings::init(lua_state);
 
         return 0;
     }

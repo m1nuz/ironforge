@@ -115,6 +115,8 @@ namespace video {
         if (screen.srgb_capable)
             glEnable(GL_FRAMEBUFFER_SRGB);
 
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
         if (debug)
             enable_debug();
 

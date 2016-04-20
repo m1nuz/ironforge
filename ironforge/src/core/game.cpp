@@ -13,7 +13,7 @@ namespace game {
     std::vector<std::unique_ptr<scene::instance>>   scenes;
     std::unique_ptr<renderer::instance>             render;
 
-    static auto get_current() -> std::unique_ptr<scene::instance>& {
+    auto get_current() -> std::unique_ptr<scene::instance>& {
         // TODO: optimize this shit
         auto s = std::find_if(scenes.begin(), scenes.end(), [](std::unique_ptr<scene::instance>& sc) {
             if (sc->state & static_cast<uint32_t>(scene::state_flags::current))

@@ -9,6 +9,7 @@ namespace scene {
         std::string source;
         std::string table;
         int32_t     entity;
+        //script_type type; but now only Lua supported
     };
 
     struct script_info {

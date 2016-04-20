@@ -146,6 +146,8 @@ namespace renderer {
         ambient_commands.depth.depth_test = true;
         ambient_commands.depth.depth_write = true;
         ambient_commands.depth.depth_func = video::gl::depth_fn::less;
+        ambient_commands.rasterizer.cull_face = true;
+        ambient_commands.rasterizer.cull_mode = video::gl::cull_face_mode::front;
 
         directional_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         directional_commands.memory_offset = 0;
@@ -156,12 +158,16 @@ namespace renderer {
         directional_commands.depth.depth_test = true;
         directional_commands.depth.depth_write = false;
         directional_commands.depth.depth_func = video::gl::depth_fn::equal;
+        directional_commands.rasterizer.cull_face = true;
+        directional_commands.rasterizer.cull_mode = video::gl::cull_face_mode::front;
 
         glow_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         glow_commands.memory_offset = 0;
         glow_commands.commands.clear();
         glow_commands.depth.depth_test = true;
         glow_commands.depth.depth_write = true;
+        glow_commands.rasterizer.cull_face = true;
+        glow_commands.rasterizer.cull_mode = video::gl::cull_face_mode::front;
 
         post_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         post_commands.memory_offset = 0;
@@ -173,6 +179,7 @@ namespace renderer {
         skybox_commands.depth.depth_test = true;
         skybox_commands.depth.depth_write = false;
         skybox_commands.depth.depth_func = video::gl::depth_fn::lequal;
+        skybox_commands.rasterizer.cull_face = true;
         skybox_commands.rasterizer.cull_mode = video::gl::cull_face_mode::front;
         skybox_commands.rasterizer.polygon_mode = true;
     }
@@ -183,7 +190,8 @@ namespace renderer {
         if (skybox_map.id == 0)
             skybox_map = video::get_texture("skybox1");
 
-        glm::mat4 cam_model = glm::translate(glm::mat4(1.f), -glm::vec3(view[3]));
+        glm::mat4 cam_model = glm::translate(glm::mat4(1.f), -glm::vec3(view[3])/*glm::vec3(0.f)*/);
+        cam_model = glm::scale(cam_model, glm::vec3(5.f));
         glm::mat4 projection_view = proj * view;
 
         auto def_framebuffer = video::gl::default_framebuffer();
