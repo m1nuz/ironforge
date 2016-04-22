@@ -3,6 +3,7 @@
 #include <video/video.hpp>
 #include <core/application.hpp>
 #include <renderer/renderer.hpp>
+#include <video/commands.hpp>
 
 namespace renderer {
     struct null_instance : public instance {
@@ -55,7 +56,7 @@ namespace renderer {
         virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void {
             UNUSED(proj), UNUSED(view);            
 
-            commands << video::gl::clear_op{};
+            commands << vcs::clear{};
 
             video::present({&commands});
             reset();

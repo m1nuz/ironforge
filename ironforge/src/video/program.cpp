@@ -129,7 +129,7 @@ namespace video {
             pro.pid = 0;
         }
 
-        auto get_uniform_location(program &pro, const std::string &name) -> int32_t {
+        auto get_uniform_location(const program &pro, const std::string &name) -> int32_t {
             auto hash = utils::xxhash64(name);
 
             auto it = std::find_if(pro.uniforms.begin(), pro.uniforms.end(), [&](const uniform &u) {

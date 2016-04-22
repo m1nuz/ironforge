@@ -53,22 +53,6 @@ namespace video {
             return sz;
         }
 
-        command_buffer& operator <<(command_buffer &cb, const send_uniform &c) {
-            auto cc = c;
-            if (cb.raw_memory) {
-                size_t sz = get_uniform_type_size(c._send_uniform.type) * c._send_uniform.count;
-
-                assert(cb.memory_offset + sz < cb.memory_size);
-
-                memcpy((char*)cb.raw_memory + cb.memory_offset, c._send_uniform.ptr, c._send_uniform.size);
-                cc._send_uniform.offset = cb.memory_offset;
-                cb.memory_offset += sz;
-            }
-
-            cb.commands.push_back(cc);
-            return cb;
-        }
-
         inline auto dispath_uniform(command_buffer &buf, uint32_t offset, int32_t location, uint32_t type, uint32_t count) -> void {
             switch (type) {
             case GL_UNSIGNED_INT:
@@ -110,7 +94,10 @@ namespace video {
                 break;
             case command_type::draw_elements:
                 // TODO: use glDrawElementsBaseVertex
-                glDrawElements(GL_TRIANGLES, c._draw_elements.count, GL_UNSIGNED_SHORT, nullptr);
+                glDrawElementsBaseVertex(c._draw_elements.mode, c._draw_elements.count, GL_UNSIGNED_SHORT, nullptr, c._draw_elements.base_vertex);
+                break;
+            case command_type::draw_elements_instanced:
+                glDrawElementsInstancedBaseVertex(c._draw_elements.mode, c._draw_elements.count, GL_UNSIGNED_SHORT, nullptr, c._draw_elements.primcount, c._draw_elements.base_vertex);
                 break;
             case command_type::bind_framebuffer:
                 glBindFramebuffer(GL_FRAMEBUFFER, c._bind_framebuffer.id);

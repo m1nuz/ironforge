@@ -35,23 +35,12 @@ namespace video {
 
         auto get_uniform_type_size(uint32_t type) -> size_t;
 
-        /*inline auto& operator <<(command_buffer &cb, const clear_op &c) {
-            cb.commands.push_back(c);
-            return cb;
-        }
-
-        inline auto& operator <<(command_buffer &cb, const draw_elements_op &c) {
-            cb.commands.push_back(c);
-            return cb;
-        }*/
-
         template <typename T>
         inline auto& operator <<(command_buffer &cb, const T &c) {
             cb.commands.push_back(c);
             return cb;
         }
 
-        command_buffer& operator <<(command_buffer &cb, const send_uniform &c);
         auto dispath_command(const command &c, command_buffer &buf) -> void;
     } // namespace gl330
 } // namespace video

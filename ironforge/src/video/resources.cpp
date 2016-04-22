@@ -180,7 +180,7 @@ namespace video {
             buffers_info.push_back({vb_size, ib_size});
 
             const uint32_t count = vd.indices_num ? vd.indices_num : vd.vertices_num; // vertices_num never should be 0
-            draws.push_back({0, 0, count, base_vertex, base_index}); // offsets calcs later
+            draws.push_back({desc.primitive, 0, 0, count, base_vertex, base_index}); // offsets calcs later
 
             base_vertex += vd.vertices_num;
             base_index += vd.indices_num;

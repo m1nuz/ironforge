@@ -1,4 +1,5 @@
 #include <video/screen.hpp>
+#include <video/commands.hpp>
 #include "forward_renderer.hpp"
 
 namespace renderer {
@@ -196,133 +197,133 @@ namespace renderer {
 
         auto def_framebuffer = video::gl::default_framebuffer();
 
-        prepare_commands << video::gl::bind_framebuffer_op{color_framebuffer.id};
-        prepare_commands << video::gl::viewpor_op{0, 0, color_framebuffer.width, color_framebuffer.height};
-        prepare_commands << video::gl::clear_op{};
+        prepare_commands << vcs::bind{color_framebuffer};
+        prepare_commands << vcs::viewport{color_framebuffer};
+        prepare_commands << vcs::clear{};
 
-        skybox_commands << video::gl::bind_program_op{skybox_shader.pid};
-        skybox_commands << video::gl::send_uniform{video::gl::get_uniform_location(skybox_shader, "projection_view_matrix"), projection_view};
-        skybox_commands << video::gl::send_uniform{video::gl::get_uniform_location(skybox_shader, "model_matrix"), cam_model};
+        skybox_commands << vcs::bind{skybox_shader};
+        skybox_commands << vcs::uniform{skybox_shader, "projection_view_matrix", projection_view};
+        skybox_commands << vcs::uniform{skybox_shader, "model_matrix", cam_model};
 
-        skybox_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(skybox_shader, "cubemap"), 0, skybox_map.target, skybox_map.id};
-        skybox_commands << video::gl::bind_sampler_op{0, texture_sampler.id};
+        skybox_commands << vcs::bind{skybox_shader, "cubemap", 0, skybox_map};
+        skybox_commands << vcs::bind{0, texture_sampler};
 
-        skybox_commands << video::gl::bind_vertex_array_op{skybox_cube.array.id};
-        skybox_commands << video::gl::draw_elements_op{skybox_draw.count};
+        skybox_commands << vcs::bind{skybox_cube};
+        skybox_commands << vcs::draw_elements{skybox_draw};
 
-        ambient_commands << video::gl::bind_program_op{ambient_light_shader.pid};
-        ambient_commands << video::gl::send_uniform{video::gl::get_uniform_location(ambient_light_shader, "projection_view_matrix"), projection_view};
+        ambient_commands << vcs::bind{ambient_light_shader};
+        ambient_commands << vcs::uniform{ambient_light_shader, "projection_view_matrix", projection_view};
 
         for (const auto &lt : ambient_lights) {
-            ambient_commands << video::gl::send_uniform{video::gl::get_uniform_location(ambient_light_shader, "ambient_intensity"), lt.la};
+            ambient_commands << vcs::uniform{ambient_light_shader, "ambient_intensity", lt.la};
 
             for (size_t i = 0; i < draws.size(); i++) {
-                ambient_commands << video::gl::send_uniform{video::gl::get_uniform_location(ambient_light_shader, "model_matrix"), matrices[i]};
-                ambient_commands << video::gl::send_uniform{video::gl::get_uniform_location(ambient_light_shader, "ambient_color"), materials[i].ka};
+                ambient_commands << vcs::uniform{ambient_light_shader, "model_matrix", matrices[i]};
+                ambient_commands << vcs::uniform{ambient_light_shader, "ambient_color", materials[i].ka};
 
-                ambient_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(ambient_light_shader, "ambient_map"), 0, materials[i].diffuse_tex.target, materials[i].diffuse_tex.id};
-                ambient_commands << video::gl::bind_sampler_op{0, texture_sampler.id};
+                ambient_commands << vcs::bind{ambient_light_shader, "ambient_map", 0, materials[i].diffuse_tex};
+                ambient_commands << vcs::bind{0, texture_sampler};
 
-                ambient_commands << video::gl::bind_vertex_array_op{sources[i].array.id};
-                ambient_commands << video::gl::draw_elements_op{draws[i].count};
+                ambient_commands << vcs::bind{sources[i]};
+                ambient_commands << vcs::draw_elements{draws[i]};
             }
         }
 
-        directional_commands << video::gl::bind_program_op{directional_light_shader.pid};
-        directional_commands << video::gl::send_uniform{video::gl::get_uniform_location(directional_light_shader, "projection_view_matrix"), projection_view};
+        directional_commands << vcs::bind{directional_light_shader};
+        directional_commands << vcs::uniform{directional_light_shader, "projection_view_matrix", projection_view};
 
         for (const auto &lt : directional_lights) {
-            directional_commands << video::gl::send_uniform{video::gl::get_uniform_location(directional_light_shader, "light_direction"), lt.direction};
-            directional_commands << video::gl::send_uniform{video::gl::get_uniform_location(directional_light_shader, "light.Ld"), lt.ld};
-            directional_commands << video::gl::send_uniform{video::gl::get_uniform_location(directional_light_shader, "light.Ls"), lt.ls};
+            directional_commands << vcs::uniform{directional_light_shader, "light_direction", lt.direction};
+            directional_commands << vcs::uniform{directional_light_shader, "light.Ld", lt.ld};
+            directional_commands << vcs::uniform{directional_light_shader, "light.Ls", lt.ls};
 
             for (size_t i = 0; i < draws.size(); i++) {
-                directional_commands << video::gl::send_uniform{video::gl::get_uniform_location(directional_light_shader, "model_matrix"), matrices[i]};
-                directional_commands << video::gl::send_uniform{video::gl::get_uniform_location(directional_light_shader, "material.Kd"), materials[i].kd};
-                directional_commands << video::gl::send_uniform{video::gl::get_uniform_location(directional_light_shader, "material.Ks"), materials[i].ks};
-                directional_commands << video::gl::send_uniform{video::gl::get_uniform_location(directional_light_shader, "material.shininess"), materials[i].ns};
-                directional_commands << video::gl::send_uniform{video::gl::get_uniform_location(directional_light_shader, "material.transparency"), 1.f};
+                directional_commands << vcs::uniform{directional_light_shader, "model_matrix", matrices[i]};
+                directional_commands << vcs::uniform{directional_light_shader, "material.Kd", materials[i].kd};
+                directional_commands << vcs::uniform{directional_light_shader, "material.Ks", materials[i].ks};
+                directional_commands << vcs::uniform{directional_light_shader, "material.shininess", materials[i].ns};
+                directional_commands << vcs::uniform{directional_light_shader, "material.transparency", 1.f};
 
-                directional_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(directional_light_shader, "diffuse_map"), 0, materials[i].diffuse_tex.target, materials[i].diffuse_tex.id};
-                directional_commands << video::gl::bind_sampler_op{0, texture_sampler.id};
+                directional_commands << vcs::bind{directional_light_shader, "diffuse_map", 0, materials[i].diffuse_tex};
+                directional_commands << vcs::bind{0, texture_sampler};
 
-                directional_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(directional_light_shader, "specular_map"), 1, materials[i].specular_tex.target, materials[i].specular_tex.id};
-                directional_commands << video::gl::bind_sampler_op{1, texture_sampler.id};
+                directional_commands << vcs::bind{directional_light_shader, "specular_map", 1, materials[i].specular_tex};
+                directional_commands << vcs::bind{1, texture_sampler};
 
-                directional_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(directional_light_shader, "gloss_map"), 2, materials[i].gloss_tex.target, materials[i].gloss_tex.id};
-                directional_commands << video::gl::bind_sampler_op{2, texture_sampler.id};
+                directional_commands << vcs::bind{directional_light_shader, "gloss_map", 2, materials[i].gloss_tex};
+                directional_commands << vcs::bind{2, texture_sampler};
 
-                directional_commands << video::gl::bind_vertex_array_op{sources[i].array.id};
-                directional_commands << video::gl::draw_elements_op{draws[i].count};
+                directional_commands << vcs::bind{sources[i]};
+                directional_commands << vcs::draw_elements{draws[i]};
             }
         }
 
-        glow_commands << video::gl::bind_framebuffer_op{glow_framebuffer.id};
-        glow_commands << video::gl::viewpor_op{0, 0, glow_framebuffer.width, glow_framebuffer.height};
-        glow_commands << video::gl::clear_op{};
+        glow_commands << vcs::bind{glow_framebuffer};
+        glow_commands << vcs::viewport{glow_framebuffer};
+        glow_commands << vcs::clear{};
 
-        glow_commands << video::gl::bind_program_op{emission_shader.pid};
-        glow_commands << video::gl::send_uniform{video::gl::get_uniform_location(emission_shader, "projection_view_matrix"), projection_view};
+        glow_commands << vcs::bind{emission_shader};
+        glow_commands << vcs::uniform{emission_shader, "projection_view_matrix", projection_view};
 
         for (size_t i = 0; i < draws.size(); i++) {
-            glow_commands << video::gl::send_uniform{video::gl::get_uniform_location(emission_shader, "model_matrix"), matrices[i]};
-            glow_commands << video::gl::send_uniform{video::gl::get_uniform_location(emission_shader, "emission_color"), materials[i].ke};
+            glow_commands << vcs::uniform{emission_shader, "model_matrix", matrices[i]};
+            glow_commands << vcs::uniform{emission_shader, "emission_color", materials[i].ke};
 
-            glow_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(emission_shader, "emission_map"), 1, video::default_check_texture().target, video::default_check_texture().id};
-            glow_commands << video::gl::bind_sampler_op{1, texture_sampler.id};
+            glow_commands << vcs::bind{emission_shader, "emission_map", 0, video::default_check_texture()};
+            glow_commands << vcs::bind{1, texture_sampler};
 
-            glow_commands << video::gl::bind_vertex_array_op{sources[i].array.id};
-            glow_commands << video::gl::draw_elements_op{draws[i].count};
+            glow_commands << vcs::bind{sources[i]};
+            glow_commands << vcs::draw_elements{draws[i]};
         }
 
         // vblur
-        post_commands << video::gl::bind_framebuffer_op{blur_framebuffer.id};
-        post_commands << video::gl::viewpor_op{0, 0, blur_framebuffer.width, blur_framebuffer.height};
-        post_commands << video::gl::clear_op{};
+        post_commands << vcs::bind{blur_framebuffer};
+        post_commands << vcs::viewport{blur_framebuffer};
+        post_commands << vcs::clear{};
 
-        post_commands << video::gl::bind_program_op{filter_vblur_shader.pid};
+        post_commands << vcs::bind{filter_vblur_shader};
 
         const glm::vec2 size = glm::vec2(1.f / blur_framebuffer.width, 1.f / blur_framebuffer.height);
-        post_commands << video::gl::send_uniform{video::gl::get_uniform_location(filter_vblur_shader, "size"), size};
-        post_commands << video::gl::send_uniform{video::gl::get_uniform_location(filter_vblur_shader, "scale"), 2.0f};
+        post_commands << vcs::uniform{filter_vblur_shader, "size", size};
+        post_commands << vcs::uniform{filter_vblur_shader, "scale", 2.0f};
 
-        post_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(filter_vblur_shader, "tex0"), 0, glow_map.target, glow_map.id};
-        post_commands << video::gl::bind_sampler_op{0, filter_sampler.id};
+        post_commands << vcs::bind{filter_vblur_shader, "tex0", 0, glow_map};
+        post_commands << vcs::bind{0, filter_sampler};
 
-        post_commands << video::gl::bind_vertex_array_op{fullscreen_quad.array.id};
-        post_commands << video::gl::draw_elements_op{fullscreen_draw.count};
+        post_commands << vcs::bind{fullscreen_quad};
+        post_commands << vcs::draw_elements{fullscreen_draw};
 
         // hblur
-        post_commands << video::gl::bind_framebuffer_op{glow_framebuffer.id};
-        post_commands << video::gl::viewpor_op{0, 0, glow_framebuffer.width, glow_framebuffer.height};
-        post_commands << video::gl::clear_op{};
+        post_commands << vcs::bind{glow_framebuffer};
+        post_commands << vcs::viewport{glow_framebuffer};
+        post_commands << vcs::clear{};
 
-        post_commands << video::gl::bind_program_op{filter_hblur_shader.pid};
+        post_commands << vcs::bind{filter_hblur_shader};
 
-        post_commands << video::gl::send_uniform{video::gl::get_uniform_location(filter_hblur_shader, "size"), size};
-        post_commands << video::gl::send_uniform{video::gl::get_uniform_location(filter_hblur_shader, "scale"), 2.0f};
+        post_commands << vcs::uniform{filter_hblur_shader, "size", size};
+        post_commands << vcs::uniform{filter_hblur_shader, "scale", 2.0f};
 
-        post_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(filter_hblur_shader, "tex0"), 0, blur_map.target, blur_map.id};
-        post_commands << video::gl::bind_sampler_op{0, filter_sampler.id};
+        post_commands << vcs::bind{filter_hblur_shader, "tex0", 0, blur_map};
+        post_commands << vcs::bind{0, filter_sampler};
 
-        post_commands << video::gl::bind_vertex_array_op{fullscreen_quad.array.id};
-        post_commands << video::gl::draw_elements_op{fullscreen_draw.count};
+        post_commands << vcs::bind{fullscreen_quad};
+        post_commands << vcs::draw_elements{fullscreen_draw};
 
         // postprocess
-        post_commands << video::gl::bind_framebuffer_op{def_framebuffer.id};
-        post_commands << video::gl::viewpor_op{0, 0, def_framebuffer.width, def_framebuffer.height};
-        post_commands << video::gl::clear_op{};
+        post_commands << vcs::bind{def_framebuffer};
+        post_commands << vcs::viewport{def_framebuffer};
+        post_commands << vcs::clear{};
 
-        post_commands << video::gl::bind_program_op{postprocess_shader.pid};
+        post_commands << vcs::bind{postprocess_shader};
 
-        post_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(postprocess_shader, "color_map"), 0, color_map.target, color_map.id};
-        post_commands << video::gl::bind_sampler_op{0, filter_sampler.id};
+        post_commands << vcs::bind{postprocess_shader, "color_map", 0, color_map};
+        post_commands << vcs::bind{0, filter_sampler};
 
-        post_commands << video::gl::bind_texture_op{video::gl::get_uniform_location(postprocess_shader, "glow_map"), 1, glow_map.target, glow_map.id};
-        post_commands << video::gl::bind_sampler_op{1, filter_sampler.id};
+        post_commands << vcs::bind{postprocess_shader, "glow_map", 1, glow_map};
+        post_commands << vcs::bind{1, filter_sampler};
 
-        post_commands << video::gl::bind_vertex_array_op{fullscreen_quad.array.id};
-        post_commands << video::gl::draw_elements_op{fullscreen_draw.count};
+        post_commands << vcs::bind{fullscreen_quad};
+        post_commands << vcs::draw_elements{fullscreen_draw};
 
         video::present({&prepare_commands, &skybox_commands, &ambient_commands, &directional_commands, &glow_commands, &post_commands});
         reset();

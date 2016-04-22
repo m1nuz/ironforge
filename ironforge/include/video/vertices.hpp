@@ -55,6 +55,7 @@ namespace video {
     };
 
     struct vertices_draw {
+        uint32_t    mode;
         uint32_t    vb_offset;
         uint32_t    ib_offset;
         uint32_t    count;
