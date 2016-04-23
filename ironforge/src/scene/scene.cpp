@@ -107,7 +107,7 @@ namespace scene {
                 bodies.push_back(info.body ? create_body(*info.body) : nullptr);
                 transforms.push_back(info.flags & static_cast<uint32_t>(entity_flags::renderable) ? create_transform(eid, info.parent) : nullptr);
                 cameras.push_back(info.camera ? create_camera(eid, *info.camera) : nullptr);
-                materials.push_back(info.material ? find_material(info.name) : nullptr);
+                materials.push_back(info.material ? find_material(info.material) : nullptr);
                 inputs.push_back(info.input ? create_input(eid, find_input_source(info.input)) : nullptr);
                 models.push_back(info.model ? find_model(info.model) : nullptr);
                 scripts.push_back(info.script ? create_script(eid, *info.script) : nullptr);
@@ -354,6 +354,9 @@ namespace scene {
                 auto diffuse = json_object_get(material, "diffuse");
                 auto specular = json_object_get(material, "specular");
                 auto emission = json_object_get(material, "emission");
+                auto shininess = json_object_get(material, "shininess");
+                auto transparency = json_object_get(material, "transparency");
+                auto reflectivity = json_object_get(material, "reflectivity");
 
                 auto diffuse_map = json_object_get(material, "diffuse_map");
                 auto specular_map = json_object_get(material, "specular_map");
@@ -375,6 +378,15 @@ namespace scene {
 
                 if (json_is_array(emission))
                     mi.emission = json_vec3_value(emission);
+
+                if (json_is_real(shininess))
+                    mi.shininess = json_real_value(shininess);
+
+                if (json_is_real(transparency))
+                    mi.transparency = json_real_value(transparency);
+
+                if (json_is_real(reflectivity))
+                    mi.reflectivity = json_real_value(reflectivity);
 
                 if (json_is_string(diffuse_map))
                     mi.diffuse_map = json_string_value(diffuse_map);

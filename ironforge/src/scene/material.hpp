@@ -14,6 +14,7 @@ namespace scene {
         glm::vec3       specular;
         float           shininess;
         float           transparency;
+        float           reflectivity;
 
         const char      *emission_map = nullptr;
         const char      *diffuse_map = nullptr;

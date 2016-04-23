@@ -14,6 +14,8 @@ namespace renderer {
             glm::vec3   ks;
             float       ns;
             float       tr;
+            float       reflectivity;
+            //float       refraction;
 
             video::texture emission_tex;
             video::texture diffuse_tex;

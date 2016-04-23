@@ -31,6 +31,7 @@ namespace scene {
         mi.m0.ke = info.emission;
         mi.m0.ns = info.shininess;
         mi.m0.tr = info.transparency;
+        mi.m0.reflectivity = info.reflectivity;
 
         mi.m0.diffuse_tex = info.diffuse_map ? video::get_texture(info.diffuse_map) : info.diffuse_tex.id != 0 ? info.diffuse_tex : video::default_check_texture();
         mi.m0.specular_tex = info.specular_map ? video::get_texture(info.specular_map) : info.specular_tex.id != 0 ? info.specular_tex : video::default_white_texture();

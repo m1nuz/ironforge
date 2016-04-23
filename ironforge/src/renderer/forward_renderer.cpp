@@ -243,6 +243,7 @@ namespace renderer {
                 directional_commands << vcs::uniform{directional_light_shader, "material.Ks", materials[i].ks};
                 directional_commands << vcs::uniform{directional_light_shader, "material.shininess", materials[i].ns};
                 directional_commands << vcs::uniform{directional_light_shader, "material.transparency", 1.f};
+                directional_commands << vcs::uniform{directional_light_shader, "material.reflectivity", materials[i].reflectivity};
 
                 directional_commands << vcs::bind{directional_light_shader, "diffuse_map", 0, materials[i].diffuse_tex};
                 directional_commands << vcs::bind{0, texture_sampler};
@@ -252,6 +253,9 @@ namespace renderer {
 
                 directional_commands << vcs::bind{directional_light_shader, "gloss_map", 2, materials[i].gloss_tex};
                 directional_commands << vcs::bind{2, texture_sampler};
+
+                directional_commands << vcs::bind{directional_light_shader, "environment_map", 3, skybox_map};
+                directional_commands << vcs::bind{3, filter_sampler};
 
                 directional_commands << vcs::bind{sources[i]};
                 directional_commands << vcs::draw_elements{draws[i]};
@@ -269,7 +273,7 @@ namespace renderer {
             glow_commands << vcs::uniform{emission_shader, "model_matrix", matrices[i]};
             glow_commands << vcs::uniform{emission_shader, "emission_color", materials[i].ke};
 
-            glow_commands << vcs::bind{emission_shader, "emission_map", 0, video::default_check_texture()};
+            glow_commands << vcs::bind{emission_shader, "emission_map", 0, video::default_white_texture()};
             glow_commands << vcs::bind{1, texture_sampler};
 
             glow_commands << vcs::bind{sources[i]};
