@@ -147,8 +147,8 @@ namespace renderer {
         ambient_commands.depth.depth_test = true;
         ambient_commands.depth.depth_write = true;
         ambient_commands.depth.depth_func = video::gl::depth_fn::less;
-        ambient_commands.rasterizer.cull_face = true;
-        ambient_commands.rasterizer.cull_mode = video::gl::cull_face_mode::front;
+        //ambient_commands.rasterizer.cull_face = true;
+        ambient_commands.rasterizer.cull_mode = video::gl::cull_face_mode::back;
 
         directional_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         directional_commands.memory_offset = 0;
@@ -159,16 +159,16 @@ namespace renderer {
         directional_commands.depth.depth_test = true;
         directional_commands.depth.depth_write = false;
         directional_commands.depth.depth_func = video::gl::depth_fn::equal;
-        directional_commands.rasterizer.cull_face = true;
-        directional_commands.rasterizer.cull_mode = video::gl::cull_face_mode::front;
+        //directional_commands.rasterizer.cull_face = true;
+        directional_commands.rasterizer.cull_mode = video::gl::cull_face_mode::back;
 
         glow_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         glow_commands.memory_offset = 0;
         glow_commands.commands.clear();
         glow_commands.depth.depth_test = true;
         glow_commands.depth.depth_write = true;
-        glow_commands.rasterizer.cull_face = true;
-        glow_commands.rasterizer.cull_mode = video::gl::cull_face_mode::front;
+        //glow_commands.rasterizer.cull_face = true;
+        glow_commands.rasterizer.cull_mode = video::gl::cull_face_mode::back;
 
         post_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         post_commands.memory_offset = 0;

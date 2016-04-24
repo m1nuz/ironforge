@@ -50,7 +50,7 @@ namespace game {
 
         // TODO: call startup script here
 
-        scenes.push_back(scene::load("scene02.scene", static_cast<uint32_t>(scene::state_flags::start) | static_cast<uint32_t>(scene::state_flags::current)));
+        scenes.push_back(scene::load("scene03.scene", static_cast<uint32_t>(scene::state_flags::start) | static_cast<uint32_t>(scene::state_flags::current)));
 
         if (!render)
             return result::error_empty_render;

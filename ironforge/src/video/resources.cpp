@@ -99,9 +99,14 @@ namespace video {
     }
 
     auto make_texture_2d(const image_data &data) -> texture {
+        return make_texture_2d({}, data);
+    }
+
+    auto make_texture_2d(const std::string &name, const image_data &data) -> texture {
         texture_desc desc;
         desc.tex = gl::create_texture_2d(data);
-        desc.name_hash = 0;
+        desc.name_hash = name.empty() ? 0 : utils::xxhash64(name);
+        desc.hash = 0; // TODO: calc it
         desc.usage = 0;
 
         textures.push_back(desc);
@@ -243,8 +248,10 @@ namespace video {
             return td.name_hash == hash;
         });
 
-        if (it != textures.end())
+        if (it != textures.end()) {
+            application::info(application::log_category::application, "Texture % found\n", name);
             return it->tex;
+        }
 
         auto imd = assets::get_image(name);
 
@@ -253,7 +260,7 @@ namespace video {
             return default_tex;
         }
 
-        return make_texture_2d(imd);
+        return make_texture_2d(name, imd);
     }
 
     auto default_white_texture() -> texture {

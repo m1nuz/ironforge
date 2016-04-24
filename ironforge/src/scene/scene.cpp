@@ -8,6 +8,7 @@
 #include <scene/scene.hpp>
 #include <renderer/renderer.hpp>
 
+#include "timer.hpp"
 #include "physics.hpp"
 #include "transform.hpp"
 #include "input.hpp"
@@ -254,6 +255,7 @@ namespace scene {
     }
 
     auto init_all() -> void {
+        init_all_timers();
         physics::init_all();
         init_all_transforms();
         init_all_materials();
@@ -263,6 +265,7 @@ namespace scene {
     }
 
     auto cleanup_all() -> void {
+        cleanup_all_timers();
         cleanup_all_scripts();
         cleanup_all_models();
         cleanup_all_cameras();
@@ -691,6 +694,7 @@ namespace scene {
     auto update(std::unique_ptr<instance>& s, float dt) -> void {
         UNUSED(s);
         physics::integrate_all(dt);
+        scene::update_all_timers(dt);
     }
 
     auto process_event(std::unique_ptr<instance> &s, const SDL_Event &event) -> void {

@@ -18,6 +18,7 @@ namespace scene {
     constexpr size_t max_scripts        = 20;
     constexpr size_t max_input_sources  = 20;
     constexpr size_t max_inputs         = 100;
+    constexpr size_t max_timers         = 100;
 
     enum class state_flags : uint32_t {
         start       = 0x00000001,
@@ -63,12 +64,15 @@ namespace scene {
         virtual auto get_entity(const std::string &_name) -> int32_t = 0;
         virtual auto get_entity_num() -> size_t = 0;
 
+        //virtual auto create_timer(const timer_info &info) -> int32_t = 0;
+
         // NOTE: return always valid and not null pointer
         virtual auto get_transform(int32_t id) -> transform_instance* = 0;
         virtual auto get_body(int32_t id) -> body_instance* = 0;
         virtual auto get_material(int32_t id) -> material_instance* = 0;
         virtual auto get_model(int32_t id) -> model_instance* = 0;
         virtual auto get_script(int32_t id) -> script_instance* = 0;
+        //virtual auto get_timer(int32_t id) -> timer_instance* = 0;
 
         virtual auto get_current_camera() -> camera_instance* = 0;
 
