@@ -222,7 +222,7 @@ namespace scene {
         std::vector<ambient_light_instance*>        ambient_lights;
         std::vector<directional_light_instance*>    directional_lights;
         std::vector<point_light_instance*>          point_lights;
-        //std::vector<> emitters;
+        //std::vector<emitter_instance>               emitters;
         std::vector<std::string>                    names;
         std::vector<uint64_t>                       name_hashes;
         std::vector<uint32_t>                       flags;
