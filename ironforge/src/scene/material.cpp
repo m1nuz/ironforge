@@ -65,4 +65,13 @@ namespace scene {
 
         return default_material();
     }
+
+    auto process_all_materials() -> void {
+        for (auto &m : materials) {
+            //printf("%s %p\n", m.name.c_str(), m.m0.diffuse_tex.desc);
+            m.m0.diffuse_tex = video::query_texture(m.m0.diffuse_tex, m.m0.diffuse_tex.desc);
+            m.m0.specular_tex = video::query_texture(m.m0.specular_tex, m.m0.specular_tex.desc);
+            m.m0.gloss_tex = video::query_texture(m.m0.gloss_tex, m.m0.gloss_tex.desc);
+        }
+    }
 } // namespace scene

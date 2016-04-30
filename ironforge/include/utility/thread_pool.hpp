@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <future>
 #include <functional>
+#include <chrono>
 
 namespace utils {
     class thread_pool {
@@ -50,6 +51,7 @@ namespace utils {
                 throw std::runtime_error("enqueue on stopped thread_pool");*/
 
                 tasks.emplace([task] {
+                    std::this_thread::sleep_for(std::chrono::seconds(2));
                     (*task)();
                 });
             }

@@ -45,6 +45,8 @@ namespace video {
         void        *pixels = nullptr;
     };
 
+    struct texture_desc;
+
     namespace gl330 {
         struct texture {
             /*texture() : texture{0, 0, 0, 0, 0, 0} {
@@ -63,6 +65,8 @@ namespace video {
             int32_t width;
             int32_t height;
             int32_t depth;
+
+            texture_desc *desc;
         };
 
         auto create_texture_2d(const texture_info &info) -> texture;

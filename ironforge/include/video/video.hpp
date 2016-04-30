@@ -107,9 +107,11 @@ namespace video {
     auto get_info() -> const char *;
     auto is_debugging() -> bool;
 
-    auto make_texture_2d(const video::texture_info &info) -> texture;
+    auto process() -> void;
+
+    /*auto make_texture_2d(const video::texture_info &info) -> texture;
     auto make_texture_2d(const image_data &data) -> texture;
-    auto make_texture_2d(const std::string &name, const image_data &data) -> texture;
+    auto make_texture_2d(const std::string &name, const image_data &data) -> texture;*/
     auto make_texture_cube(const std::string &name, const std::string (&names)[6]) -> texture;
     auto make_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc, std::vector<vertices_draw> &draws) -> vertices_source;
 
@@ -117,6 +119,8 @@ namespace video {
     auto default_black_texture() -> texture;
     auto default_check_texture() -> texture;
     auto get_texture(const char *name, const texture &default_tex = default_check_texture()) -> texture;
+
+    auto query_texture(texture &tex, const texture_desc *desc) -> texture;
 
     auto make_program(const gl::program_info &info) -> program;
     auto get_shader(const char *name) -> program;

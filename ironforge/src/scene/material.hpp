@@ -40,4 +40,6 @@ namespace scene {
     auto create_material(const material_info &info) -> material_instance*;
     auto default_material() -> material_instance*;
     auto find_material(const char *name) -> material_instance*;
+
+    auto process_all_materials() -> void;
 } // namespace scene

@@ -1,4 +1,5 @@
 #include <readers/targa.hpp>
+#include <SDL2/SDL.h>
 
 enum TARGA_DATA_TYPE
 {

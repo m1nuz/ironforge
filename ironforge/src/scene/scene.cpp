@@ -97,7 +97,7 @@ namespace scene {
                 materials.push_back(nullptr);
                 inputs.push_back(nullptr);
                 models.push_back(nullptr);
-                scripts.push_back(nullptr);                
+                scripts.push_back(nullptr);
                 ambient_lights.push_back(nullptr);
                 directional_lights.push_back(nullptr);
                 point_lights.push_back(nullptr);
@@ -329,7 +329,7 @@ namespace scene {
                         application::debug(application::log_category::game, "TEX % %\n", json_string_value(name), json_string_value(tex_name));
                     }
 
-                    // TODO: and add skybox effect to scene
+                    // TODO: and add skybox texture to textures
                     video::make_texture_cube(json_string_value(name), texs);
                 }
             }
@@ -705,6 +705,8 @@ namespace scene {
     auto present(std::unique_ptr<instance>& scn, std::unique_ptr<renderer::instance> &render, float interpolation) -> void {
         using namespace glm;
 
+        process_all_materials();
+
         //application::debug(application::log_category::scene, "Present %\n", s->name);
 
         physics::interpolate_all(interpolation);
@@ -713,7 +715,7 @@ namespace scene {
         scene::present_all_transforms(scn, [&scn, &render](int32_t e, const glm::mat4 &m) {
             for (const auto &msh : scn->get_model(e)->meshes)
                 for (const auto &dr : msh.draws) {
-                    render->append(scn->get_material(e)->m0);                    
+                    render->append(scn->get_material(e)->m0);
                     render->append(m); //render->append(scn->get_transform(e)->model);
                     render->append(msh.source, dr);
                 }

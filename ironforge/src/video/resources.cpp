@@ -5,6 +5,7 @@
 #include <core/assets.hpp>
 #include <video/video.hpp>
 #include <video/buffer.hpp>
+#include <utility/thread_pool.hpp>
 
 // this api depend from used general video api
 namespace video {
@@ -14,6 +15,8 @@ namespace video {
         uint32_t    usage;
         uint64_t    hash;
         uint64_t    name_hash;
+        bool        ready;
+        std::shared_future<image_data> imd_future;
     };
 
     struct buffer_desc {
@@ -33,10 +36,12 @@ namespace video {
         uint64_t    name_hash;
     };
 
-    std::vector<texture_desc> textures;
-    std::vector<buffer_desc> buffers;
-    std::vector<vertex_array_desc> vertex_arrays;
-    std::vector<program_desc> programs;
+    std::vector<texture_desc>       textures;
+    std::vector<buffer_desc>        buffers;
+    std::vector<vertex_array_desc>  vertex_arrays;
+    std::vector<program_desc>       programs;
+
+    utils::thread_pool              pool;
 
     auto init_resources() -> void {
         textures.reserve(100);
@@ -46,17 +51,17 @@ namespace video {
 
         auto white_name = "white-map";
         auto im = video::imgen::make_color(128, 128, {255, 255, 255}); // white
-        textures.push_back({white_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name))});
+        textures.push_back({white_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
         delete[] im.pixels;
 
         auto black_name = "black-map";
         im = video::imgen::make_color(128, 128, {0, 0, 0}); // black
-        textures.push_back({black_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(black_name, strlen(black_name))});
+        textures.push_back({black_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(black_name, strlen(black_name)), true});
         delete[] im.pixels;
 
         auto check_name = "check-map";
         im = video::imgen::make_check(128, 128, 0x10, {255, 255, 255}); // check
-        textures.push_back({check_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name))});
+        textures.push_back({check_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name)), true});
         delete[] im.pixels;
 
         make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
@@ -87,7 +92,20 @@ namespace video {
         programs.clear();
     }
 
-    auto make_texture_2d(const texture_info &info) -> texture {
+    auto process() -> void {
+        for (auto &t : textures) {
+            if (!t.ready)
+                if (t.imd_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+                {
+                    t.tex = gl::create_texture_2d(t.imd_future.get());
+                    t.ready = true;
+                    t.tex.desc = &t;
+                    application::debug(application::log_category::video, "%\n", "TEX LOADED");
+                }
+        }
+    }
+
+    /*auto make_texture_2d(const texture_info &info) -> texture {
         texture_desc desc;
         desc.tex = gl::create_texture_2d(info);
         desc.name_hash = 0;
@@ -112,7 +130,7 @@ namespace video {
         textures.push_back(desc);
 
         return desc.tex;
-    }
+    }*/
 
     auto make_texture_cube(const std::string &name, const std::string (&names)[6]) -> texture {
         image_data images[6];
@@ -128,6 +146,7 @@ namespace video {
         desc.name = name;
         desc.name_hash = utils::xxhash64(name);
         desc.usage = 0;
+        desc.ready = true;
 
         textures.push_back(desc);
 
@@ -242,7 +261,6 @@ namespace video {
     }
 
     auto get_texture(const char *name, const texture &default_tex) -> texture {
-
         auto hash = utils::xxhash64(name, strlen(name));
         auto it = std::find_if(textures.begin(), textures.end(), [hash](const texture_desc &td) {
             return td.name_hash == hash;
@@ -253,14 +271,38 @@ namespace video {
             return it->tex;
         }
 
-        auto imd = assets::get_image(name);
+        //auto imd = image_future.get();//assets::get_image(name);
 
-        if (!imd.pixels) {
+        /*if (!imd.pixels) {
             application::warning(application::log_category::application, "Texture % not found\n", name);
             return default_tex;
+        }*/
+
+        //return make_texture_2d(name, imd);
+
+        texture_desc desc;
+        desc.name = name;
+        desc.tex = default_check_texture();//gl::create_texture_2d(imd);
+        desc.name_hash = utils::xxhash64(name, strlen(name));//name.empty() ? 0 : utils::xxhash64(name);
+        desc.hash = 0; // TODO: calc it
+        desc.usage = 0;
+        desc.ready = false;
+        desc.imd_future = pool.enqueue(assets::get_image, name);
+
+        application::debug(application::log_category::application, "Texture % LOADING\n", name);
+
+        textures.push_back(desc);
+        textures.back().tex.desc = &textures.back();
+        return textures.back().tex;
+    }
+
+    auto query_texture(texture &tex, const texture_desc *desc) -> texture {
+        if (desc) {
+            if (desc->ready)
+                return tex = desc->tex;
         }
 
-        return make_texture_2d(name, imd);
+        return tex;
     }
 
     auto default_white_texture() -> texture {

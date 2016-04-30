@@ -83,6 +83,7 @@ namespace game {
 
     auto update(float dt) -> void {
         scene::update(get_current(), dt);
+        video::process();
     }
 
     auto present(float interpolation) -> void {
