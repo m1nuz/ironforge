@@ -99,7 +99,7 @@ namespace video {
         texture_filtering filtering;
     };
 
-    __must_ckeck auto init(const std::string &title, int32_t w, int32_t h, bool vsync) -> result;
+    __must_ckeck auto init(const std::string &title, int32_t w, int32_t h, bool fullscreen, bool vsync) -> result;
     auto cleanup() -> void;
     auto present(const std::vector<gl330::command_buffer *> &buffers) -> void;
     auto get_string(result r) -> const char *;

@@ -4,6 +4,7 @@
 
 #include <video/video.hpp>
 #include <core/application.hpp>
+#include <core/settings.hpp>
 #include <core/game.hpp>
 #include <renderer/renderer.hpp>
 #include <scene/scene.hpp>
@@ -34,8 +35,13 @@ namespace game {
     }
 
     __must_ckeck auto init(const std::string &title) -> result {
+        int w = application::int_value("video_width", 800);
+        int h = application::int_value("video_height", 600);
+        bool fullscreen = application::bool_value("video_fullscreen", false);
+        bool vsync = application::bool_value("video_vsync", false);
+
         auto video_result = video::result::failure;
-        if ((video_result = video::init(title, 1280, 768, false)) != video::result::success) {
+        if ((video_result = video::init(title, w, h, fullscreen, vsync)) != video::result::success) {
             application::error(application::log_category::video, "%\n", video::get_string(video_result));
 
             return game::result::error_init_video;

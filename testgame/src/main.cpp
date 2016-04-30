@@ -3,14 +3,19 @@
 
 #include <SDL2/SDL.h>
 
+#include <utility/thread_pool.hpp>
+
 extern int main(int argc, char* argv[]) {
     (void)argc;
     (void)argv;
 
+    //test();
+
     std::string base_path = SDL_GetBasePath();
-    base_path += "../../assets/forge";
 
     application::info(application::log_category::application, "BasePath %\n", base_path);
+
+    application::append_settings(base_path + "../../assets/test/video.conf");
 
     auto asset_result = assets::result::failure;
     if ((asset_result = assets::append(assets::default_readers)) != assets::result::success) {
@@ -18,7 +23,7 @@ extern int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    if ((asset_result = assets::open(base_path)) != assets::result::success) {
+    if ((asset_result = assets::open(base_path + "../../assets/forge")) != assets::result::success) {
         application::error(application::log_category::application, "%\n", "Can't open asset");
         return EXIT_FAILURE;
     }

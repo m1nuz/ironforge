@@ -65,8 +65,11 @@ namespace video {
         }
     }
 
-    auto init(const std::string &title, int32_t w, int32_t h, bool vsync) -> result {
+    auto init(const std::string &title, int32_t w, int32_t h, bool fullscreen, bool vsync) -> result {
         auto flags = static_cast<uint32_t>(SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+
+        if (fullscreen)
+            flags |= SDL_WINDOW_FULLSCREEN;
 
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);

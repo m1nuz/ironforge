@@ -101,6 +101,9 @@ namespace video {
                     t.ready = true;
                     t.tex.desc = &t;
                     application::debug(application::log_category::video, "%\n", "TEX LOADED");
+                    delete[] t.imd_future.get().pixels;
+                    // FIXME: ok, for now
+                    //t.imd_future.get().pixels = NULL;
                 }
         }
     }

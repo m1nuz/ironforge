@@ -87,3 +87,42 @@ namespace utils {
         bool                                stop;
     };
 } // namespace utils
+
+/*void test() {
+    utils::thread_pool pool;
+
+    std::vector<std::future<int>> results;
+
+    for(int i = 0; i < 8; ++i) {
+        results.emplace_back(pool.enqueue([i] {
+            std::cout << "hello " << i << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::cout << "world " << i << std::endl;
+            return i;
+        }));
+    }
+
+    auto ready = false;
+    auto waiting = true;
+    while (waiting) {
+        for (auto && result: results) {
+            ready = true;
+
+            if (result.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                ready = false;
+
+            if (ready) {
+                waiting = false;
+                break;
+            }
+        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+    }
+
+    for(auto && result: results)
+        std::cout << result.get() << ' ';
+    std::cout << std::endl;
+
+    exit(0);
+}*/
