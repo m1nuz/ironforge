@@ -49,24 +49,9 @@ namespace video {
 
     namespace gl330 {
         struct texture {
-            /*texture() : texture{0, 0, 0, 0, 0, 0} {
-
-            }
-
-            texture(uint32_t _id, uint32_t _target, uint32_t _flags, int32_t _width, int32_t _height, int32_t _depth)
-                : id{_id}, target{_target}, flags{_flags}, width(_width), height{_height}, depth{_depth} {
-
-            }*/
-
-            uint32_t id;
-            uint32_t target;
-            uint32_t flags;
-
-            int32_t width;
-            int32_t height;
-            int32_t depth;
-
-            texture_desc *desc;
+            uint32_t        id;
+            uint32_t        target;
+            texture_desc    *desc;
         };
 
         auto create_texture_2d(const texture_info &info) -> texture;

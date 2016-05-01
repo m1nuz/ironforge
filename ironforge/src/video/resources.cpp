@@ -4,7 +4,6 @@
 #include <core/application.hpp>
 #include <core/assets.hpp>
 #include <video/video.hpp>
-#include <video/buffer.hpp>
 #include <utility/thread_pool.hpp>
 
 // this api depend from used general video api
@@ -17,6 +16,13 @@ namespace video {
         uint64_t    name_hash;
         bool        ready;
         std::shared_future<image_data> imd_future;
+
+        // std::vector<gl::texture> lods;
+        // std::vector<std::string> names;
+        // std::vector<uint64_t> hashes;
+        // std::vector<uint64_t> name_hashes;
+        // std::vector<bool> ready;
+        // std::vector<std::shared_future<image_data>> futures;
     };
 
     struct buffer_desc {

@@ -211,6 +211,10 @@ namespace scene {
             return cameras[current_camera];
         }
 
+        size_t                                      size;
+        size_t                                      capacity;
+        size_t                                      current_camera;
+
         // TODO: use handle for this
         std::vector<body_instance*>                 bodies;
         std::vector<transform_instance*>            transforms;
@@ -228,11 +232,6 @@ namespace scene {
         std::vector<uint32_t>                       flags;
 
         script_instance                             *main_script;
-
-        size_t                                      current_camera;
-
-        size_t                                      size;
-        size_t                                      capacity;
     };
 
     inline glm::vec3 json_vec3_value(json_t *arr) {
