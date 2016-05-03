@@ -1,170 +1,258 @@
+#include <vector>
+#include <cstring>
+
 #include <glcore_330.h>
 #include <core/application.hpp>
 #include <video/vertices.hpp>
 #include <video/vertices_gen.hpp>
 
-#include "cube.hpp"
-#include "quad.hpp"
-
 namespace video {
     namespace vertgen {
-        auto make_cube(glm::mat4 transform) -> vertices_info {
-            UNUSED(transform);
+        struct shape {
+            std::vector<glm::vec4>  vertices;
+            std::vector<glm::vec3>  normals;
+            std::vector<glm::vec3>  tangents;
+            std::vector<glm::vec3>  bitangents;
+            std::vector<glm::vec2>  texcoords;
+            std::vector<uint16_t>   indices; // 16bit only for now
 
-            return {{cube_vertices_v3t2n3, cube_indices_v3t2n3, cube_vertices_num, cube_indices_num}, {GL_TRIANGLES, vertex_format::v3t2n3, index_format::ui16}};
-        }
+            void                    *attributes;
+            void                    *elements;
+            size_t                  attributes_num;
+            size_t                  elements_num;
 
-        auto make_sphere(const gen_sphere_info *info, glm::mat4 transform) -> vertices_info {
-            UNUSED(transform);
+            uint32_t                mode; // triangles or triangle_strip
+        };
 
-            const float R = 1. / (float)(info->rings - 1);
-            const float S = 1. / (float)(info->sectors - 1);
-            uint32_t r, s;
+        // TODO: make vertices_info unique
+        auto make_vi(vertex_format vf, index_format ef, shape &sh) -> vertices_info {
+            // TODO: calc bitangents
 
-            auto vertices = (v3t2n3*)malloc(info->rings * info->sectors * sizeof(v3t2n3));
+            auto stride = 0u;
 
-            auto v = vertices;
+            switch (vf) {
+            case vertex_format::v3t2n3:
+                sh.attributes_num = sh.vertices.size();
+                sh.attributes = (v3t2n3*)malloc(sizeof (v3t2n3) * sh.vertices.size());
+                stride = sizeof (v3t2n3);
+                for (size_t i = 0; i < sh.vertices.size(); i++) {
+                    memcpy((char*)sh.attributes + stride * i + offsetof(v3t2n3, position), &sh.vertices[i].x, sizeof (glm::vec3));
+                    memcpy((char*)sh.attributes + stride * i + offsetof(v3t2n3, texcoord), &sh.texcoords[i].x, sizeof (glm::vec2));
+                    memcpy((char*)sh.attributes + stride * i + offsetof(v3t2n3, normal), &sh.normals[i].x, sizeof (glm::vec3));
 
-            for (r = 0; r < info->rings; r++) {
-                for (s = 0; s < info->sectors; s++) {
-                    const float y = sin(-M_PI_2 + M_PI * r * R );
-                    const float x = cos(2 * M_PI * s * S) * sin(M_PI * r * R);
-                    const float z = sin(2 * M_PI * s * S) * sin(M_PI * r * R);
-
-                    (*v).texcoord[0] = s * S;
-                    (*v).texcoord[1] = r * R;
-
-                    (*v).position[0] = x * info->radius;
-                    (*v).position[1] = y * info->radius;
-                    (*v).position[2] = z * info->radius;
-
-                    (*v).normal[0] = x;
-                    (*v).normal[1] = y;
-                    (*v).normal[2] = z;
-
-                    v++;
+                    //printf("%f %f %f / %f %f / %f %f %f\n", v->position.x, v->position.y, v->position.z, v->texcoord.x, v->texcoord.y, v->normal.x, v->normal.y, v->normal.z);
                 }
+                break;
+            case vertex_format::v3t2n3t3:
+                sh.attributes_num = sh.vertices.size();
+                sh.attributes = (v3t2n3t3*)malloc(sizeof (v3t2n3t3) * sh.vertices.size());
+                stride = sizeof (v3t2n3t3);
+                for (size_t i = 0; i < sh.vertices.size(); i++) {
+                    memcpy((char*)sh.attributes + stride * i + offsetof(v3t2n3t3, position), &sh.vertices[i].x, sizeof (glm::vec3));
+                    memcpy((char*)sh.attributes + stride * i + offsetof(v3t2n3t3, texcoord), &sh.texcoords[i].x, sizeof (glm::vec2));
+                    memcpy((char*)sh.attributes + stride * i + offsetof(v3t2n3t3, normal), &sh.normals[i].x, sizeof (glm::vec3));
+                    memcpy((char*)sh.attributes + stride * i + offsetof(v3t2n3t3, tangent), &sh.tangents[i].x, sizeof (glm::vec3));
+                }
+                break;
+            default:
+                break;
             }
 
-            if ((info->rings * info->sectors * 6) > UINT16_MAX)
-                application::warning(application::log_category::video, "%\n", "indices is too mutch");
-
-            auto indices = (uint16_t*)malloc(info->rings * info->sectors * 6 * sizeof(uint16_t));
-
-            auto i = indices;
-
-            for (r = 0; r < info->rings; r++) {
-                for (s = 0; s < info->sectors; s++) {
-                    *i++ = r * info->sectors + s; // 0
-                    *i++ = r * info->sectors + (s + 1); // 1
-                    *i++ = (r + 1) * info->sectors + s; // 3
-                    *i++ = r * info->sectors + (s + 1); // 1
-                    *i++ = (r + 1) * info->sectors + (s + 1); // 2
-                    *i++ = (r + 1) * info->sectors + s; // 3
-                }
+            switch (ef) {
+            case index_format::ui16:
+                sh.elements_num = sh.indices.size();
+                sh.elements = (uint16_t*)malloc(sizeof (uint16_t) * sh.indices.size());
+                memcpy(sh.elements, &sh.indices[0], sizeof (uint16_t) * sh.indices.size());
+                break;
+            case index_format::ui32:
+                break;
+            default:
+                break;
             }
 
-            // TODO: mul to transform matrix
-
-            return {{vertices, indices, info->rings * info->sectors, info->rings * (info->sectors - 1) * 6}, {GL_TRIANGLES, vertex_format::v3t2n3, index_format::ui16}};
+            return {{sh.attributes, sh.elements, sh.attributes_num, sh.elements_num}, {sh.mode, vf, ef}};
         }
 
-        auto make_quad_plane(glm::mat4 transform) -> vertices_info {
+        auto make_plane(const glm::mat4 &transform) -> vertices_info {
             UNUSED(transform);
 
-            // TODO: mul with transform matri
-            return {{quad_vertices, quad_indices, quad_vertices_num, quad_indices_num}, {GL_TRIANGLES, vertex_format::v3t2n3, index_format::ui16}};
+            shape sh;
+
+            sh.attributes = nullptr;
+            sh.mode = GL_TRIANGLES;
+            sh.vertices = {{-1.0f, -1.0f, 0.0f, +1.0f},
+                           {+1.0f, -1.0f, 0.0f, +1.0f},
+                           {-1.0f, +1.0f, 0.0f, +1.0f},
+                           {+1.0f, +1.0f, 0.0f, +1.0f}};
+            sh.normals = {{0.0f, 0.0f, 1.0f},
+                          {0.0f, 0.0f, 1.0f},
+                          {0.0f, 0.0f, 1.0f},
+                          {0.0f, 0.0f, 1.0f}};
+            sh.tangents = {{1.0f, 0.0f, 0.0f},
+                           {1.0f, 0.0f, 0.0f},
+                           {1.0f, 0.0f, 0.0f},
+                           {1.0f, 0.0f, 0.0f}};
+            sh.texcoords = {{0.0f, 0.0f},
+                            {1.0f, 0.0f},
+                            {0.0f, 1.0f},
+                            {1.0f, 1.0f}};
+            sh.indices = {0, 1, 2, 1, 3, 2};
+
+            return make_vi(vertex_format::v3t2n3t3, index_format::ui16, sh);
         }
 
+        auto make_cube(const glm::mat4 &transform) -> vertices_info {
+            UNUSED(transform);
+
+            shape sh;
+            sh.attributes = nullptr;
+            sh.mode = GL_TRIANGLES;
+            sh.vertices = {{-1.0f, -1.0f, -1.0f, +1.0f}, {-1.0f, -1.0f, +1.0f, +1.0f}, {+1.0f, -1.0f, +1.0f, +1.0f}, {+1.0f, -1.0f, -1.0f, +1.0f},
+                           {-1.0f, +1.0f, -1.0f, +1.0f}, {-1.0f, +1.0f, +1.0f, +1.0f}, {+1.0f, +1.0f, +1.0f, +1.0f}, {+1.0f, +1.0f, -1.0f, +1.0f},
+                           {-1.0f, -1.0f, -1.0f, +1.0f}, {-1.0f, +1.0f, -1.0f, +1.0f}, {+1.0f, +1.0f, -1.0f, +1.0f}, {+1.0f, -1.0f, -1.0f, +1.0f},
+                           {-1.0f, -1.0f, +1.0f, +1.0f}, {-1.0f, +1.0f, +1.0f, +1.0f}, {+1.0f, +1.0f, +1.0f, +1.0f}, {+1.0f, -1.0f, +1.0f, +1.0f},
+                           {-1.0f, -1.0f, -1.0f, +1.0f}, {-1.0f, -1.0f, +1.0f, +1.0f}, {-1.0f, +1.0f, +1.0f, +1.0f}, {-1.0f, +1.0f, -1.0f, +1.0f},
+                           {+1.0f, -1.0f, -1.0f, +1.0f}, {+1.0f, -1.0f, +1.0f, +1.0f}, {+1.0f, +1.0f, +1.0f, +1.0f}, {+1.0f, +1.0f, -1.0f, +1.0f}};
+            sh.normals = {{ 0.0f, -1.0f,  0.0f}, { 0.0f, -1.0f,  0.0f}, { 0.0f, -1.0f,  0.0f}, { 0.0f, -1.0f,  0.0f},
+                          { 0.0f, +1.0f,  0.0f}, { 0.0f, +1.0f,  0.0f}, { 0.0f, +1.0f,  0.0f}, { 0.0f, +1.0f,  0.0f},
+                          { 0.0f,  0.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}, { 0.0f,  0.0f, -1.0f},
+                          { 0.0f,  0.0f, +1.0f}, { 0.0f,  0.0f, +1.0f}, { 0.0f,  0.0f, +1.0f}, { 0.0f,  0.0f, +1.0f},
+                          {-1.0f,  0.0f,  0.0f}, {-1.0f,  0.0f,  0.0f}, {-1.0f,  0.0f,  0.0f}, {-1.0f,  0.0f,  0.0f},
+                          {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f}};
+            sh.tangents = {{+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f},
+                           {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f},
+                           {-1.0f,  0.0f,  0.0f}, {-1.0f,  0.0f,  0.0f}, {-1.0f,  0.0f,  0.0f}, {-1.0f,  0.0f,  0.0f},
+                           {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f}, {+1.0f,  0.0f,  0.0f},
+                           { 0.0f,  0.0f, +1.0f}, { 0.0f,  0.0f, +1.0f}, { 0.0f,  0.0f, +1.0f}, { 0.0f,  0.0f, +1.0f},
+                           { 0.0f,  0.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}, { 0.0f,  0.0f, -1.0f}};
+            sh.texcoords = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f},
+                            {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f},
+                            {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f},
+                            {0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f},
+                            {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
+                            {1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}};
+            sh.indices = {0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 15, 14, 12, 14, 13, 16, 17, 18, 16, 18, 19, 20, 23, 22, 20, 22, 21};
+
+            return make_vi(vertex_format::v3t2n3t3, index_format::ui16, sh);
+        }
+
+        auto make_sphere(const gen_sphere_info *info, const glm::mat4 &transform) -> vertices_info {
+            UNUSED(transform);
+
+            shape sh;
+
+            size_t num_slices = info->sectors;
+            size_t num_parallels = info->sectors / 2;
+            size_t num_vertices = (num_parallels + 1) * (num_slices + 1);
+            size_t num_indices = num_parallels * num_slices * 6;
+
+            auto angle_step = (2.0f * M_PI) / ((float) num_slices);
+
+            sh.mode = GL_TRIANGLES;
+            sh.vertices.reserve(num_vertices);
+            sh.normals.reserve(num_vertices);
+            sh.tangents.reserve(num_vertices);
+            sh.texcoords.reserve(num_vertices);
+            sh.indices.reserve(num_indices);
+
+            for (size_t i = 0; i < num_parallels + 1; i++)
+                for (size_t j = 0; j < num_slices + 1; j++) {
+                    sh.vertices.emplace_back(info->radius * sinf(angle_step * (float)i) * sinf(angle_step * (float)j),
+                                             info->radius * cosf(angle_step * (float)i),
+                                             info->radius * sinf(angle_step * (float)i) * cosf(angle_step * (float)j),
+                                             1.f);
+                    sh.normals.emplace_back(sh.vertices.back().x / info->radius,
+                                            sh.vertices.back().y / info->radius,
+                                            sh.vertices.back().z / info->radius);
+                    sh.texcoords.emplace_back((float)j / (float)num_slices, 1.0f - (float)i / (float)num_parallels);
+
+                    glm::vec4 hv{1.0f, 0.0f, 0.0f, 1.f};
+                    glm::quat h{glm::vec3{sh.texcoords.back().x * 2.f * M_PI, 0, 0}};
+                    sh.tangents.emplace_back(glm::mat4_cast(h) * hv);
+                }
+
+            for (size_t i = 0; i < num_parallels; i++)
+                for (size_t j = 0; j < num_slices; j++) {
+                    sh.indices.push_back(i * (num_slices + 1) + j);
+                    sh.indices.push_back((i + 1) * (num_slices + 1) + j);
+                    sh.indices.push_back((i + 1) * (num_slices + 1) + (j + 1));
+
+                    sh.indices.push_back(i * (num_slices + 1) + j);
+                    sh.indices.push_back((i + 1) * (num_slices + 1) + (j + 1));
+                    sh.indices.push_back(i * (num_slices + 1) + (j + 1));
+                }
+
+            return make_vi(vertex_format::v3t2n3t3, index_format::ui16, sh);
+        }
+
+        //vertices_info make_disc(const float radius, const uint32_t num_sectors)
         //vertices_info make_torus(const gen_torus_info *info, glm::mat4 transform);
+        //vertices_info make_cylinder(const float half_extend, const float radius, const uint32_t num_slices);
+        //vertices_info make_cone(const float half_extend, const float radius, const uint32_t num_slices, const uint32_t num_stacks);
         //vertices_info make_ribbon(const gen_ribbon_info *info, glm::mat4 transform);
-        auto make_grid_plane(const gen_grid_plane_info *info, glm::mat4 transform) -> vertices_info {
+
+        auto make_grid_plane(const gen_grid_plane_info *info, const glm::mat4 &transform) -> vertices_info {
             UNUSED(transform);
 
-            uint32_t number_vertices = (info->rows + 1) * (info->columns + 1);
-            uint32_t number_indices = info->rows * 6 * info->columns;
+            size_t num_vertices = (info->rows + 1) * (info->columns + 1);
+            size_t num_indices = info->rows * 6 * info->columns;
             uint32_t mode = GL_TRIANGLES;
 
             if (info->triangle_strip) {
-                number_indices = info->rows * 2 * (info->columns + 1);
+                num_indices = info->rows * 2 * (info->columns + 1);
                 mode = GL_TRIANGLE_STRIP;
             }
 
-            float *vertices = (float *)malloc(4 * number_vertices * sizeof(float));
-            float *normals = (float *)malloc(3 * number_vertices * sizeof(float));
-            float *texCoords = (float *)malloc(2 * number_vertices * sizeof(float));
-            uint16_t *indices = (uint16_t *)malloc(number_indices * sizeof(uint16_t));
+            shape sh;
+            sh.mode = mode;
+            sh.vertices.reserve(num_vertices);
+            sh.normals.reserve(num_vertices);
+            sh.tangents.reserve(num_vertices);
+            sh.texcoords.reserve(num_vertices);
+            sh.indices.reserve(num_indices);
 
-            for (uint32_t i = 0; i < number_vertices; i++) {
+            for (size_t i = 0; i < num_vertices; i++) {
                 float x = (float) (i % (info->columns + 1)) / (float) info->columns;
                 float y = 1.0f - (float) (i / (info->columns + 1)) / (float) info->rows;
                 float s = x * info->columns;
                 float t = y * info->rows;
 
-                vertices[i * 4 + 0] = info->horizontal_extend * (x - 0.5f);
-                vertices[i * 4 + 1] = info->vertical_extend * (y - 0.5f);
-                vertices[i * 4 + 2] = 0.0f;
-                vertices[i * 4 + 3] = 1.0f;
-
-                normals[i * 3 + 0] = 0.0f;
-                normals[i * 3 + 1] = 0.0f;
-                normals[i * 3 + 2] = 1.0f;
-
-                texCoords[i * 2 + 0] = s;
-                texCoords[i * 2 + 1] = t;
+                sh.vertices.emplace_back(info->horizontal_extend * (x - 0.5f), info->vertical_extend * (y - 0.5f), 0.f, 1.f);
+                sh.normals.emplace_back(0.f, 0.f, 1.f);
+                sh.tangents.emplace_back(1.f, 0.f, 0.f);
+                sh.texcoords.emplace_back(s, t);
             }
 
             if (info->triangle_strip)
-                for (uint32_t i = 0; i < info->rows * (info->columns + 1); i++) {
-                    uint32_t currentColumn = i % (info->columns + 1);
-                    uint32_t currentRow = i / (info->columns + 1);
+                for (size_t i = 0; i < info->rows * (info->columns + 1); i++) {
+                    uint32_t current_column = i % (info->columns + 1);
+                    uint32_t current_row = i / (info->columns + 1);
 
-                    if (currentRow == 0) {
-                        // Left to right, top to bottom
-                        indices[i * 2] = currentColumn + currentRow * (info->columns + 1);
-                        indices[i * 2 + 1] = currentColumn + (currentRow + 1) * (info->columns + 1);
+                    if (current_row == 0) {
+                        // left to right, top to bottom
+                        sh.indices.push_back(current_column + current_row * (info->columns + 1));
+                        sh.indices.push_back(current_column + (current_row + 1) * (info->columns + 1));
                     } else {
-                        // Right to left, bottom to up
-                        indices[i * 2] = (info->columns - currentColumn) + (currentRow + 1) * (info->columns + 1);
-                        indices[i * 2 + 1] = (info->columns - currentColumn) + currentRow * (info->columns + 1);
+                        // right to left, bottom to up
+                        sh.indices.push_back((info->columns - current_column) + (current_row + 1) * (info->columns + 1));
+                        sh.indices.push_back((info->columns - current_column) + current_row * (info->columns + 1));
                     }
                 }
             else
-                for (uint32_t i = 0; i < info->rows * info->columns; i++) {
-                    uint32_t currentColumn = i % info->columns;
-                    uint32_t currentRow = i / info->columns;
+                for (size_t i = 0; i < info->rows * info->columns; i++) {
+                    uint32_t current_column = i % info->columns;
+                    uint32_t current_row = i / info->columns;
 
-                    indices[i * 6 + 0] = currentColumn + currentRow * (info->columns + 1);
-                    indices[i * 6 + 1] = currentColumn + (currentRow + 1) * (info->columns + 1);
-                    indices[i * 6 + 2] = (currentColumn + 1) + (currentRow + 1) * (info->columns + 1);
+                    sh.indices.push_back(current_column + current_row * (info->columns + 1));
+                    sh.indices.push_back(current_column + (current_row + 1) * (info->columns + 1));
+                    sh.indices.push_back((current_column + 1) + (current_row + 1) * (info->columns + 1));
 
-                    indices[i * 6 + 3] = (currentColumn + 1) + (currentRow + 1) * (info->columns + 1);
-                    indices[i * 6 + 4] = (currentColumn + 1) + currentRow * (info->columns + 1);
-                    indices[i * 6 + 5] = currentColumn + currentRow * (info->columns + 1);
+                    sh.indices.push_back((current_column + 1) + (current_row + 1) * (info->columns + 1));
+                    sh.indices.push_back((current_column + 1) + current_row * (info->columns + 1));
+                    sh.indices.push_back(current_column + current_row * (info->columns + 1));
                 }
 
-            v3t2n3 *vs = (v3t2n3*)malloc(number_vertices * sizeof(v3t2n3));
-
-            for (uint32_t i = 0; i < number_vertices; i++) {
-                vs[i].position[0] = vertices[i * 4 + 0];
-                vs[i].position[1] = vertices[i * 4 + 1];
-                vs[i].position[2] = vertices[i * 4 + 2];
-
-                vs[i].normal[0] = normals[i * 3 + 0];
-                vs[i].normal[1] = normals[i * 3 + 1];
-                vs[i].normal[2] = normals[i * 3 + 2];
-
-                vs[i].texcoord[0] = texCoords[i * 2 + 0];
-                vs[i].texcoord[1] = texCoords[i * 2 + 1];
-            }
-
-            // TODO: mul with transform matrix
-
-            free(vertices);
-            free(normals);
-            free(texCoords);
-
-            return {{vs, indices, number_vertices, number_indices}, {mode, vertex_format::v3t2n3, index_format::ui16}};
+            return make_vi(vertex_format::v3t2n3t3, index_format::ui16, sh);
         }
     } // namespace vertgen
 } // namespace video

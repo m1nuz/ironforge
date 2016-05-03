@@ -30,6 +30,9 @@ namespace scene {
             switch (msh.source) {
             case mesh_source::file:
                 break;
+            case mesh_source::gen_plane:
+                vi = video::vertgen::make_plane(glm::mat4{1.f});
+                break;
             case mesh_source::gen_cube:
                 vi = video::vertgen::make_cube(glm::mat4(1.f));
                 break;

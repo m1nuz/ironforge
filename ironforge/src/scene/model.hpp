@@ -8,6 +8,7 @@
 namespace scene {
     enum class mesh_source {
         file,
+        gen_plane,
         gen_sphere,
         gen_cube,
         gen_grid

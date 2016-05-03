@@ -5,6 +5,8 @@
 
 #include <iostream>
 #include <utility>
+#include <thread>
+#include <mutex>
 
 #include <ironforge_common.hpp>
 
@@ -52,6 +54,8 @@ namespace application {
     extern const char *category_names[static_cast<int>(log_category::max_category)];
 
     inline auto output(std::ostream& out, const std::string& format) -> void {
+        std::mutex out_mutex;
+        std::lock_guard<std::mutex> guard(out_mutex);
         out << format;
     }
 

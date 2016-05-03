@@ -23,11 +23,11 @@ namespace video {
     };
 
     namespace vertgen {
-        auto make_cube(glm::mat4 transform) -> vertices_info;
-        auto make_sphere(const gen_sphere_info *info, glm::mat4 transform) -> vertices_info;
-        auto make_quad_plane(glm::mat4 transform) -> vertices_info;
+        auto make_plane(const glm::mat4 &transform) -> vertices_info;
+        auto make_cube(const glm::mat4 &transform) -> vertices_info;
+        auto make_sphere(const gen_sphere_info *info, const glm::mat4 &transform) -> vertices_info;
         //vertices_info make_torus(const gen_torus_info *info, glm::mat4 transform);
         //vertices_info make_ribbon(const gen_ribbon_info *info, glm::mat4 transform);
-        auto make_grid_plane(const gen_grid_plane_info *info, glm::mat4 transform) -> vertices_info;
+        auto make_grid_plane(const gen_grid_plane_info *info, const glm::mat4 &transform) -> vertices_info;
     } // namespace vertgen
 } // namespace video

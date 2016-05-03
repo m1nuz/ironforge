@@ -189,6 +189,10 @@ namespace video {
                 vb_size = vd.vertices_num * sizeof(v3t2n3);
                 vertices_data_size += vb_size;
                 break;
+            case vertex_format::v3t2n3t3:
+                vb_size = vd.vertices_num * sizeof(v3t2n3t3);
+                vertices_data_size += vb_size;
+                break;
             default:
                 application::warning(application::log_category::video, "%\n", "Unknown vertex format");
                 break;
@@ -252,6 +256,13 @@ namespace video {
             gl::vertex_array_format(va, vertex_attributes::position, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3, position));
             gl::vertex_array_format(va, vertex_attributes::texcoord, 2, gl::attrib_type::float_value, false, offsetof(v3t2n3, texcoord));
             gl::vertex_array_format(va, vertex_attributes::normal, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3, normal));
+            break;
+        case vertex_format::v3t2n3t3:
+            gl::vertex_array_buffer(va, vb, 0, sizeof(v3t2n3t3));
+            gl::vertex_array_format(va, vertex_attributes::position, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3t3, position));
+            gl::vertex_array_format(va, vertex_attributes::texcoord, 2, gl::attrib_type::float_value, false, offsetof(v3t2n3t3, texcoord));
+            gl::vertex_array_format(va, vertex_attributes::normal, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3t3, normal));
+            gl::vertex_array_format(va, vertex_attributes::tangent, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3t3, tangent));
             break;
         default:
             application::warning(application::log_category::video, "%\n", "Unknown vertex format");

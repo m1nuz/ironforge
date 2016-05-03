@@ -61,7 +61,7 @@ namespace renderer {
 
         blur_framebuffer = gl::create_framebuffer({screen.width / ratio, screen.height / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, blur_map.id}}});
 
-        auto quad_vi = video::vertgen::make_quad_plane(glm::mat4{1.f});
+        auto quad_vi = video::vertgen::make_plane(glm::mat4{1.f});
         std::vector<vertices_draw> quad_vd;
         fullscreen_quad = video::make_vertices_source({quad_vi.data}, quad_vi.desc, quad_vd);
         fullscreen_draw = quad_vd[0];

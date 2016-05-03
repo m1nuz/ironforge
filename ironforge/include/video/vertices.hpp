@@ -15,7 +15,8 @@ namespace video {
     enum class vertex_format : uint32_t {
         unknown,
         v3t2n3,
-        v3t2c4
+        v3t2c4,
+        v3t2n3t3
     };
 
     enum class index_format : uint32_t {
@@ -36,6 +37,13 @@ namespace video {
         glm::vec4 color;     // 16
     }; // 36b
 
+    struct v3t2n3t3 {
+        glm::vec3 position;  // 12
+        glm::vec2 texcoord;  // 8
+        glm::vec3 normal;    // 12
+        glm::vec3 tangent;   // 12
+    }; // 44b
+
     struct vertices_desc {
         uint32_t        primitive;
         vertex_format   vf;
@@ -45,8 +53,8 @@ namespace video {
     struct vertices_data {
         void        *vertices;
         void        *indices;
-        uint32_t    vertices_num;
-        uint32_t    indices_num;
+        size_t      vertices_num;
+        size_t      indices_num;
     };
 
     struct vertices_info {

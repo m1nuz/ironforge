@@ -455,6 +455,10 @@ namespace scene {
                 }
 
                 if (strcmp(json_string_value(type), "gen_plane") == 0) {
+                    mi.meshes[j].source = mesh_source::gen_plane;
+                }
+
+                if (strcmp(json_string_value(type), "gen_grid") == 0) {
                     auto horizontal_extend = json_object_get(mesh, "horizontal_extend");
                     json_error_if(horizontal_extend, !json_is_number, -1, root, "%s\n", "horizontal_extend is not a number");
 
