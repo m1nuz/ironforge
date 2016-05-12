@@ -21,6 +21,7 @@ namespace renderer {
             video::texture diffuse_tex;
             video::texture specular_tex;
             video::texture gloss_tex;
+            video::texture normal_tex;
         };
 
         struct ambient_light {

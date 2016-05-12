@@ -70,6 +70,11 @@ namespace video {
         textures.push_back({check_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name)), true});
         delete[] im.pixels;
 
+        auto red_name = "red-map";
+        im = video::imgen::make_color(128, 128, {255, 0, 0}); // white
+        textures.push_back({red_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
+        delete[] im.pixels;
+
         make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
         make_program({"ambient-light-shader", {{"forward-ambient.vert", {}}, {"forward-ambient.frag", {}}}});
         make_program({"forward-directional-shader", {{"forward-directional.vert", {}}, {"forward-directional.frag", {}}}});
@@ -335,6 +340,10 @@ namespace video {
 
     auto default_check_texture() -> texture {
         return textures[2].tex;
+    }
+
+    auto default_red_texture() -> texture {
+        return textures[3].tex;
     }
 
     auto make_program(const gl330::program_info &info) -> program {

@@ -364,6 +364,7 @@ namespace scene {
                 auto specular_map = json_object_get(material, "specular_map");
                 auto gloss_map = json_object_get(material, "gloss_map");
                 auto emission_map = json_object_get(material, "emission_map");
+                auto normal_map = json_object_get(material, "normal_map");
 
                 material_info mi;
                 memset(&mi, 0, sizeof mi);
@@ -401,6 +402,9 @@ namespace scene {
 
                 if (json_is_string(emission_map))
                     mi.emission_map = json_string_value(emission_map);
+
+                if (json_is_string(normal_map))
+                    mi.normal_map = json_string_value(normal_map);
 
                 create_material(mi);
             }

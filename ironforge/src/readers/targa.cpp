@@ -86,6 +86,8 @@ auto read_targa(SDL_RWops *rw, assets::image_data& image) -> int32_t {
     case 32:
         image.pixelformat = video::pixel_format::bgra8;
         break;
+    default:
+        image.pixelformat = video::pixel_format::unknown;
     }
 
     image.width = header.width;

@@ -254,8 +254,11 @@ namespace renderer {
                 directional_commands << vcs::bind{directional_light_shader, "gloss_map", 2, materials[i].gloss_tex};
                 directional_commands << vcs::bind{2, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "environment_map", 3, skybox_map};
-                directional_commands << vcs::bind{3, filter_sampler};
+                directional_commands << vcs::bind{directional_light_shader, "normal_map", 3, materials[i].normal_tex};
+                directional_commands << vcs::bind{3, texture_sampler};
+
+                directional_commands << vcs::bind{directional_light_shader, "environment_map", 4, skybox_map};
+                directional_commands << vcs::bind{4, filter_sampler};
 
                 directional_commands << vcs::bind{sources[i]};
                 directional_commands << vcs::draw_elements{draws[i]};

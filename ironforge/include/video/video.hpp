@@ -118,6 +118,7 @@ namespace video {
     auto default_white_texture() -> texture;
     auto default_black_texture() -> texture;
     auto default_check_texture() -> texture;
+    auto default_red_texture() -> texture;
     auto get_texture(const char *name, const texture &default_tex = default_check_texture()) -> texture;
 
     auto query_texture(texture &tex, const texture_desc *desc) -> texture;
