@@ -98,4 +98,21 @@ namespace scene {
 
         return &scripts.back();
     }
+
+    auto do_script(const std::string &name) -> bool {
+        auto td = assets::get_text(name);
+
+        auto L = lua_state;
+
+        if (td.size != 0) {
+            if (luaL_dostring(L, td.text)) {
+                application::error(application::log_category::scene, "% %\n", "Could not load script", name);
+                lua_close(L);
+                return false;
+            }
+        } else
+            return false;
+
+        return true;
+    }
 } // namespace

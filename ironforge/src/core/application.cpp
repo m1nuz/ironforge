@@ -23,7 +23,7 @@ namespace application {
     _log_init_categories log_init_categories;
     static bool running = true;
 
-    auto init(const std::string &title) -> result {
+    auto init(const std::string &title, const std::string &startup_script) -> result {
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
             return result::error_init_sdl;
 
@@ -35,7 +35,7 @@ namespace application {
         atexit(TTF_Quit);        
 
         auto game_result = game::result::failure;
-        if ((game_result = game::init(title)) != game::result::success) {
+        if ((game_result = game::init(title, startup_script)) != game::result::success) {
             error(log_category::game, "%\n", game::get_string(game_result));
             return result::error_init_game;
         }

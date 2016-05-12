@@ -9,6 +9,11 @@
 #include <renderer/renderer.hpp>
 #include <scene/scene.hpp>
 
+// FIXME: remove this
+namespace scene {
+    auto do_script(const std::string &name) -> bool;
+} // namespace scene
+
 namespace game {
 
     std::vector<std::unique_ptr<scene::instance>>   scenes;
@@ -34,7 +39,12 @@ namespace game {
         return *s;
     }
 
-    __must_ckeck auto init(const std::string &title) -> result {
+    auto load_scene(const std::string &name) -> bool {
+        scenes.push_back(scene::load(name, static_cast<uint32_t>(scene::state_flags::start) | static_cast<uint32_t>(scene::state_flags::current)));
+        return true;
+    }
+
+    __must_ckeck auto init(const std::string &title, const std::string &startup_script) -> result {
         int w = application::int_value("video_width", 800);
         int h = application::int_value("video_height", 600);
         bool fullscreen = application::bool_value("video_fullscreen", false);
@@ -55,8 +65,9 @@ namespace game {
         scene::init_all(); // TODO: get result
 
         // TODO: call startup script here
+        scene::do_script(startup_script);
 
-        scenes.push_back(scene::load("scene03.scene", static_cast<uint32_t>(scene::state_flags::start) | static_cast<uint32_t>(scene::state_flags::current)));
+        //scenes.push_back(scene::load("scene02.scene", static_cast<uint32_t>(scene::state_flags::start) | static_cast<uint32_t>(scene::state_flags::current)));
 
         if (!render)
             return result::error_empty_render;

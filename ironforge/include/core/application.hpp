@@ -44,7 +44,7 @@ namespace application {
 
     constexpr auto timestep = 0.002f;
 
-    __must_ckeck auto init(const std::string& title) -> result;
+    __must_ckeck auto init(const std::string &title, const std::string &startup_script) -> result;
     __must_ckeck auto exec() -> result;
     auto quit() -> void;
     auto cleanup() -> void;

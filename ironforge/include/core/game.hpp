@@ -14,7 +14,8 @@ namespace game {
     };
 
     auto get_current() -> std::unique_ptr<scene::instance>&;
-    __must_ckeck auto init(const std::string &title) -> result;
+    auto load_scene(const std::string &name) -> bool;
+    __must_ckeck auto init(const std::string &title, const std::string &startup_script) -> result;
     auto cleanup() -> void;
     auto process_event(const SDL_Event &e) -> void;
     auto update(float dt) -> void;

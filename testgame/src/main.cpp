@@ -29,7 +29,7 @@ extern int main(int argc, char* argv[]) {
     }
 
     auto app_result = application::result::failure;
-    if ((app_result = application::init(GAME_NAME)) != application::result::success) {
+    if ((app_result = application::init(GAME_NAME, STARTUP_SCRIPT)) != application::result::success) {
         application::error(application::log_category::application, "%\n", application::get_string(app_result));
         return EXIT_FAILURE;
     }

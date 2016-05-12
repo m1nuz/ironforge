@@ -24,4 +24,6 @@ namespace scene {
     auto cleanup_all_scripts() -> void;
 
     auto create_script(int32_t entity, const script_info &info) -> script_instance*;
+
+    auto do_script(const std::string &name) -> bool;
 } // namespace scene
