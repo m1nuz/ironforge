@@ -25,7 +25,9 @@ namespace video {
             bind_buffer,
             bind_vertex_array,
 
-            send_uniform
+            send_uniform,
+
+            blit
         };
 
         struct command {
@@ -80,6 +82,21 @@ namespace video {
                     uint32_t count;
                     const void *ptr;
                 } _send_uniform;
+
+                struct {
+                    uint32_t src_id;
+                    uint32_t dst_id;
+                    uint32_t src_x0;
+                    uint32_t src_y0;
+                    uint32_t src_x1;
+                    uint32_t src_y1;
+                    uint32_t dst_x0;
+                    uint32_t dst_y0;
+                    uint32_t dst_x1;
+                    uint32_t dst_y1;
+                    uint32_t mask;
+                    uint32_t filter;
+                } _blit;
             };
 
             command() {

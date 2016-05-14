@@ -1,5 +1,6 @@
 #include <video/screen.hpp>
 #include <video/commands.hpp>
+#include <core/settings.hpp>
 #include "forward_renderer.hpp"
 
 namespace renderer {
@@ -39,6 +40,7 @@ namespace renderer {
         filter_sampler = video::gl::create_sampler(filter_info);
 
         const auto ratio = 2;
+        const auto samples = application::int_value("video_fsaa", 1);
 
         color_map = video::gl::create_texture_2d({video::pixel_format::rgba16f, 0, 0, video::screen.width, video::screen.height, 0, nullptr});
         depth_map = video::gl::create_texture_2d({video::pixel_format::depth, 0, 0, video::screen.width, video::screen.height, 0, nullptr});
@@ -46,6 +48,8 @@ namespace renderer {
         blur_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, video::screen.width / ratio, video::screen.height / ratio, 0, nullptr});
 
         blur_depth = video::gl::create_renderbuffer({video::pixel_format::depth, video::screen.width / ratio, video::screen.height / ratio, 0});
+        sample_color = video::gl::create_renderbuffer({video::pixel_format::rgb16f, video::screen.width, video::screen.height, samples});
+        sample_depth = video::gl::create_renderbuffer({video::pixel_format::depth, video::screen.width, video::screen.height, samples});
 
         memset(&skybox_map, 0, sizeof skybox_map);
 
@@ -60,6 +64,9 @@ namespace renderer {
                                                                                        {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, blur_depth.id}}});
 
         blur_framebuffer = gl::create_framebuffer({screen.width / ratio, screen.height / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, blur_map.id}}});
+
+        sample_framebuffer = gl::create_framebuffer({screen.width, screen.height, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::renderbuffer, sample_color.id},
+                                                                                         {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, sample_depth.id}}});
 
         auto quad_vi = video::vertgen::make_plane(glm::mat4{1.f});
         std::vector<vertices_draw> quad_vd;
@@ -86,6 +93,8 @@ namespace renderer {
         video::gl::destroy_texture(glow_map);
         video::gl::destroy_texture(blur_map);
         video::gl::destroy_renderbuffer(blur_depth);
+        video::gl::destroy_renderbuffer(sample_color);
+        video::gl::destroy_renderbuffer(sample_depth);
         video::gl::destroy_sampler(texture_sampler);
         video::gl::destroy_sampler(filter_sampler);
         application::debug(application::log_category::render, "%\n", "Destroy forward render");
@@ -197,8 +206,8 @@ namespace renderer {
 
         auto def_framebuffer = video::gl::default_framebuffer();
 
-        prepare_commands << vcs::bind{color_framebuffer};
-        prepare_commands << vcs::viewport{color_framebuffer};
+        prepare_commands << vcs::bind{sample_framebuffer};
+        prepare_commands << vcs::viewport{sample_framebuffer};
         prepare_commands << vcs::clear{};
 
         skybox_commands << vcs::bind{skybox_shader};
@@ -315,6 +324,9 @@ namespace renderer {
 
         post_commands << vcs::bind{fullscreen_quad};
         post_commands << vcs::draw_elements{fullscreen_draw};
+
+        // blit sample to color
+        post_commands << vcs::blit{sample_framebuffer, color_framebuffer};
 
         // postprocess
         post_commands << vcs::bind{def_framebuffer};

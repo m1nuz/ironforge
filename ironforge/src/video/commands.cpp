@@ -95,6 +95,24 @@ namespace video {
 
             return sz;
         }
+
+        blit::blit(const gl330::framebuffer &src, const gl330::framebuffer &dst) : command{gl::command_type::blit} {
+            _blit.src_id = src.id;
+            _blit.src_x0 = 0;
+            _blit.src_y0 = 0;
+            _blit.src_x1 = src.width;
+            _blit.src_y1 = src.height;
+
+            _blit.dst_id = dst.id;
+            _blit.dst_x0 = 0;
+            _blit.dst_y0 = 0;
+            _blit.dst_x1 = dst.width;
+            _blit.dst_y1 = dst.height;
+
+            _blit.mask = GL_COLOR_BUFFER_BIT;
+            _blit.filter = GL_LINEAR;
+        }
+
     } // namespace commands
 
     namespace gl330 {

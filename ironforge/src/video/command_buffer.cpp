@@ -120,6 +120,14 @@ namespace video {
             case command_type::send_uniform:
                 dispath_uniform(buf, c._send_uniform.offset, c._send_uniform.location, c._send_uniform.type, c._send_uniform.count);
                 break;
+            case command_type::blit:
+                //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, c._blit.src_id);
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, c._blit.dst_id);
+                glBlitFramebuffer(c._blit.src_x0, c._blit.src_y0, c._blit.src_x1, c._blit.src_y1,
+                                  c._blit.dst_x0, c._blit.dst_y0, c._blit.dst_x1, c._blit.dst_y1,
+                                  c._blit.mask, c._blit.filter);
+                break;
             default:
                 application::warning(application::log_category::video, "Unknown command %\n", static_cast<uint32_t>(c.type));
                 break;

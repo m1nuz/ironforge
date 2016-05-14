@@ -77,6 +77,10 @@ namespace video {
             uniform(const gl::program &p, const std::string &name, const glm::vec4 &value);
             uniform(const gl::program &p, const std::string &name, const int &value);
         };
+
+        struct blit : public gl::command {
+            blit(const gl::framebuffer &src, const gl::framebuffer &dst);
+        };
     } // namespace commands
 
     namespace gl330 {

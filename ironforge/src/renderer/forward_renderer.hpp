@@ -54,10 +54,13 @@ namespace renderer {
         video::gl::texture                      glow_map;
         video::gl::texture                      blur_map;
 
+        video::gl::renderbuffer                 sample_color;
+        video::gl::renderbuffer                 sample_depth;
         video::gl::renderbuffer                 blur_depth;
 
         video::texture                          skybox_map;
 
+        video::gl::framebuffer                  sample_framebuffer;
         video::gl::framebuffer                  color_framebuffer;
         video::gl::framebuffer                  glow_framebuffer;
         video::gl::framebuffer                  blur_framebuffer;
