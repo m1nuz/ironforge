@@ -31,6 +31,12 @@ namespace video {
         glm::vec3 normal;    // 12
     }; // 32b
 
+    struct v2t2c4 {
+        glm::vec2 position;  // 8
+        glm::vec2 texcoord;  // 8
+        glm::vec4 color;     // 16
+    }; // 32b
+
     struct v3t2c4 {
         glm::vec3 position;  // 12
         glm::vec2 texcoord;  // 8

@@ -82,6 +82,7 @@ namespace video {
         make_program({"hblur-shader", {{"screenspace.vert", {}}, {"filter-hblur.frag", {}}}});
         make_program({"vblur-shader", {{"screenspace.vert", {}}, {"filter-vblur.frag", {}}}});
         make_program({"skybox-shader", {{"skybox.vert", {}}, {"skybox.frag", {}}}});
+        make_program({"sprite-shader", {{"sprite.vert", {}}, {"sprite.frag", {}}}});
     }
 
     auto cleanup_resources() -> void {
@@ -194,6 +195,10 @@ namespace video {
                 vb_size = vd.vertices_num * sizeof(v3t2n3);
                 vertices_data_size += vb_size;
                 break;
+            case vertex_format::v3t2c4:
+                vb_size = vd.vertices_num * sizeof(v3t2c4);
+                vertices_data_size += vb_size;
+                break;
             case vertex_format::v3t2n3t3:
                 vb_size = vd.vertices_num * sizeof(v3t2n3t3);
                 vertices_data_size += vb_size;
@@ -228,16 +233,21 @@ namespace video {
             base_index += vd.indices_num;
         }
 
-        // allocate memory buffer
+        // allocate memory buffers
         void *vertex_data = malloc(vertices_data_size);
         void *index_data = malloc(indices_data_size);
+
+        memset(vertex_data, 0, vertices_data_size);
+        memset(index_data, 0, indices_data_size);
+
         ptrdiff_t vb_offset = 0;
         ptrdiff_t ib_offset = 0;
 
         // copy buffers to one buffer
         for (size_t i = 0; i < data.size(); i++) {
             draws[i].vb_offset = vb_offset;
-            memcpy((char*)vertex_data + vb_offset, data[i].vertices, buffers_info[i].vb_size);
+            if (data[i].vertices)
+                memcpy((char*)vertex_data + vb_offset, data[i].vertices, buffers_info[i].vb_size);
             vb_offset += buffers_info[i].vb_size;
 
             draws[i].ib_offset = ib_offset;
@@ -262,6 +272,12 @@ namespace video {
             gl::vertex_array_format(va, vertex_attributes::texcoord, 2, gl::attrib_type::float_value, false, offsetof(v3t2n3, texcoord));
             gl::vertex_array_format(va, vertex_attributes::normal, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3, normal));
             break;
+        case vertex_format::v3t2c4:
+            gl::vertex_array_buffer(va, vb, 0, sizeof(v3t2c4));
+            gl::vertex_array_format(va, vertex_attributes::position, 3, gl::attrib_type::float_value, false, offsetof(v3t2c4, position));
+            gl::vertex_array_format(va, vertex_attributes::texcoord, 2, gl::attrib_type::float_value, false, offsetof(v3t2c4, texcoord));
+            gl::vertex_array_format(va, vertex_attributes::color, 4, gl::attrib_type::float_value, false, offsetof(v3t2c4, color));
+            break;
         case vertex_format::v3t2n3t3:
             gl::vertex_array_buffer(va, vb, 0, sizeof(v3t2n3t3));
             gl::vertex_array_format(va, vertex_attributes::position, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3t3, position));
@@ -274,6 +290,7 @@ namespace video {
             break;
         }
 
+        // TODO : seaarch other buffer with same hash
         auto eb = gl::create_buffer(gl::buffer_target::element_array, indices_data_size, index_data, gl::buffer_usage::static_draw);
         buffers.push_back({eb, 0, utils::xxhash64(index_data, indices_data_size)});
 

@@ -20,7 +20,7 @@ namespace application {
         "Scene"
     };
 
-    _log_init_categories log_init_categories;
+    static _log_init_categories log_init_categories;
     static bool running = true;
 
     auto init(const std::string &title, const std::string &startup_script) -> result {
@@ -94,21 +94,15 @@ namespace application {
         switch (r) {
         case result::success:
             return "Success";
-            break;
         case result::failure:
             return "Failure";
-            break;
         case result::error_init_sdl:
+        case result::error_init_ttf:
             return SDL_GetError();
-            break;
         case result::error_init_game:
             return "Can't init game";
-            break;
-        default:
-            return "Unknown error";
-            break;
         }
 
-        return nullptr;
+        return "Unknown error";
     }
 } // namespace application

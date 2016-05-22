@@ -80,8 +80,6 @@ namespace video {
         }
 
         auto dispath_command(const command &c, command_buffer &buf) -> void {
-            float depth_value = 0.f;
-
             switch (c.type) {
             case command_type::clear:
                 glClearColor(buf.clear_color.x, buf.clear_color.y, buf.clear_color.z, buf.clear_color.w);
@@ -119,6 +117,10 @@ namespace video {
                 break;
             case command_type::send_uniform:
                 dispath_uniform(buf, c._send_uniform.offset, c._send_uniform.location, c._send_uniform.type, c._send_uniform.count);
+                break;
+            case command_type::update:
+                glBindBuffer(c._subdata.target, c._subdata.buf);
+                glBufferSubData(c._subdata.target, c._subdata.offset, c._subdata.size, c._subdata.data);
                 break;
             case command_type::blit:
                 //glBindFramebuffer(GL_FRAMEBUFFER, 0);

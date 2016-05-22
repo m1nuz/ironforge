@@ -78,6 +78,10 @@ namespace video {
             uniform(const gl::program &p, const std::string &name, const int &value);
         };
 
+        struct update : public gl::command {
+            update(gl::buffer &b, intptr_t offset, const void *data, size_t size);
+        };
+
         struct blit : public gl::command {
             blit(const gl::framebuffer &src, const gl::framebuffer &dst);
         };

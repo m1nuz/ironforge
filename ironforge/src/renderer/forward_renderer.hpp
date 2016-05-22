@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <video/video.hpp>
+#include <video/sprite_batch.hpp>
 #include <core/application.hpp>
 #include <renderer/renderer.hpp>
 
@@ -88,5 +89,8 @@ namespace renderer {
         video::gl::program                      filter_vblur_shader;
         video::gl::program                      filter_hblur_shader;
         video::program                          skybox_shader;
+
+        video::sprite_batch                     sprites;
+        video::program                          sprite_shader;
     };
 } // namespace renderer

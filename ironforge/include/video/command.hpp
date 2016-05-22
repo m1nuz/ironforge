@@ -27,6 +27,8 @@ namespace video {
 
             send_uniform,
 
+            update,
+
             blit
         };
 
@@ -82,6 +84,14 @@ namespace video {
                     uint32_t count;
                     const void *ptr;
                 } _send_uniform;
+
+                struct {
+                    uint32_t    buf;
+                    uint32_t    target;
+                    intptr_t    offset;
+                    size_t      size;
+                    const void* data;
+                } _subdata;
 
                 struct {
                     uint32_t src_id;

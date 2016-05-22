@@ -14,6 +14,7 @@ namespace renderer {
         filter_vblur_shader = video::get_shader("vblur-shader");
         filter_hblur_shader = video::get_shader("hblur-shader");
         skybox_shader = video::get_shader("skybox-shader");
+        sprite_shader = video::get_shader("sprite-shader");
 
         video::gl::sampler_info sam_info;
 
@@ -78,6 +79,11 @@ namespace renderer {
         skybox_cube = video::make_vertices_source({cube_vi.data}, cube_vi.desc, cube_vd);
         skybox_draw = cube_vd[0];
 
+        sprite_batch_info sb_info;
+        sb_info.max_sprites = 1000;
+        sb_info.tex = video::default_white_texture();
+        sprites = video::create_sprite_batch(sb_info);
+
         sources.reserve(max_sources);
         draws.reserve(max_draws);
         matrices.reserve(max_matrices);
@@ -87,6 +93,8 @@ namespace renderer {
     }
 
     forward_renderer::~forward_renderer() {
+        video::delete_sprite_batch(sprites);
+
         video::gl::destroy_framebuffer(color_framebuffer);
         video::gl::destroy_texture(color_map);
         video::gl::destroy_texture(depth_map);
@@ -333,6 +341,10 @@ namespace renderer {
         post_commands << vcs::viewport{def_framebuffer};
         post_commands << vcs::clear{};
 
+        video::append_sprite(sprites, glm::vec3{ 0.3, 0, 0}, glm::vec2{0.2}, glm::vec4{0, 0, 1, 1}, glm::vec4{1, 0, 0, 1});
+        video::append_sprite(sprites, glm::vec3{ 0, 0, 0}, glm::vec2{0.2}, glm::vec4{0, 0, 1, 1}, glm::vec4{0, 1, 0, 1});
+        video::append_sprite(sprites, glm::vec3{ -0.3, 0, 0}, glm::vec2{0.2}, glm::vec4{0, 0, 1, 1}, glm::vec4{0, 0, 1, 1});
+
         post_commands << vcs::bind{postprocess_shader};
 
         post_commands << vcs::bind{postprocess_shader, "color_map", 0, color_map};
@@ -343,6 +355,8 @@ namespace renderer {
 
         post_commands << vcs::bind{fullscreen_quad};
         post_commands << vcs::draw_elements{fullscreen_draw};
+
+        video::submit_sprite_batch(post_commands, sprites, sprite_shader, texture_sampler);
 
         video::present({&prepare_commands, &skybox_commands, &ambient_commands, &directional_commands, &glow_commands, &post_commands});
         reset();

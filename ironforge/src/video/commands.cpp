@@ -113,6 +113,14 @@ namespace video {
             _blit.filter = GL_LINEAR;
         }
 
+        update::update(gl330::buffer &b, intptr_t offset, const void *data, size_t size) : command{gl::command_type::update} {
+            _subdata.buf = b.id;
+            _subdata.target = b.target;
+            _subdata.offset = offset;
+            _subdata.data = data;
+            _subdata.size = size;
+        }
+
     } // namespace commands
 
     namespace gl330 {
