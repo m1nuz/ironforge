@@ -133,7 +133,7 @@ namespace video {
 
     auto make_texture_2d(const image_data &data) -> texture {
         return make_texture_2d({}, data);
-    }
+    }*/
 
     auto make_texture_2d(const std::string &name, const image_data &data) -> texture {
         texture_desc desc;
@@ -141,11 +141,12 @@ namespace video {
         desc.name_hash = name.empty() ? 0 : utils::xxhash64(name);
         desc.hash = 0; // TODO: calc it
         desc.usage = 0;
+        desc.ready = true;
 
         textures.push_back(desc);
 
         return desc.tex;
-    }*/
+    }
 
     auto make_texture_cube(const std::string &name, const std::string (&names)[6]) -> texture {
         image_data images[6];

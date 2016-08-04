@@ -14,7 +14,8 @@ namespace assets {
         text_readers.emplace_back(".lua", read_text);
         text_readers.emplace_back(".scene", read_text);
         image_readers.emplace_back(".tga", read_targa);
-        binary_readers.emplace_back(".*", read_binary);
+        binary_readers.emplace_back(".ttf", read_binary);
+        //binary_readers.emplace_back(".*", read_binary);
     }
 
     _default_readers default_readers;
@@ -189,6 +190,29 @@ namespace assets {
 
         if (bin != binaries.end())
             return bin->second;
+
+        auto f = files.find(name);
+
+        if (f != files.end()) {
+            fs::path p(f->second);
+
+            auto r = binary_readers.find(p.extension().string());
+
+            if (r != binary_readers.end()) {
+                auto dat = binary_data{nullptr, 0};
+
+                auto ret = r->second(SDL_RWFromFile(f->second.c_str(), "r"), dat);
+
+                if (ret != 0) {
+                    application::error(application::log_category::system, "Can't read file %\n", f->second);
+                    return {nullptr, 0};
+                }
+
+                application::debug(application::log_category::application, "Read file %\n", f->second);
+                binaries.insert({p.filename().string(), dat});
+                return dat;
+            }
+        }
 
         return {nullptr, 0};
     }

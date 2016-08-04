@@ -49,6 +49,10 @@ namespace renderer {
             UNUSED(cubemap), UNUSED(flags);
         }
 
+        virtual auto append(int32_t font, const std::string &text, const glm::vec2 &pos, const glm::vec4 &color) -> void {
+            UNUSED(font), UNUSED(text), UNUSED(pos), UNUSED(color);
+        }
+
         virtual auto reset() -> void {
             commands.clear_color = glm::vec4(1.f, 1.f, 1.f, 1.f);
         }

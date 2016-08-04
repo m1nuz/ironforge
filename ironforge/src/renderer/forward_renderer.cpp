@@ -1,11 +1,19 @@
 #include <video/screen.hpp>
 #include <video/commands.hpp>
+#include <video/glyphs.hpp>
+#include <video/screen.hpp>
 #include <core/settings.hpp>
 #include "forward_renderer.hpp"
 
 namespace renderer {
     forward_renderer::forward_renderer() {
         application::debug(application::log_category::render, "% % with % %\n", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);        
+
+        std::vector<video::font_info> fonts = {
+            {"Play.ttf", 60, video::default_charset()}
+        };
+
+        glyph_cache_build(fonts, 1024, 1024);
 
         emission_shader = video::get_shader("emission-shader");
         ambient_light_shader = video::get_shader("ambient-light-shader");
@@ -82,7 +90,8 @@ namespace renderer {
         sprite_batch_info sb_info;
         sb_info.max_sprites = 1000;
         sb_info.tex = video::default_white_texture();
-        sprites = video::create_sprite_batch(sb_info);
+        sb_info.tex = video::get_texture("glyphs-map");
+        sprites = video::create_sprite_batch(sb_info);        
 
         sources.reserve(max_sources);
         draws.reserve(max_draws);
@@ -141,6 +150,45 @@ namespace renderer {
         skybox_map = cubemap;
     }
 
+    auto forward_renderer::append(int32_t font, const std::string &text, const glm::vec2 &pos, const glm::vec4 &color) -> void {
+        using namespace glm;
+
+        const auto tw = 1024.f;
+        const auto th = 1024.f;
+
+        const int adv_y = video::glyph_cache_get_font_lineskip(font);
+        const int fh = video::glyph_cache_get_font_size(font);
+        const float spt = 2.f / video::screen.width;
+
+        vec2 p = pos;
+
+        for (const auto &c : text) {
+            if (c == '\n') {
+                p[0] = pos[0];
+                p[1] -= spt * adv_y * video::screen.aspect;
+                continue;
+            }
+
+            auto glyph = video::glyph_cache_find(c, font);
+            if (glyph.ch == 0)
+            {
+                application::warning(application::log_category::render, "%\n", "Glyph not found");
+                continue;
+            }
+
+            vec2 size = {glyph.advance * spt, fh * spt};
+            vec4 offset;
+            offset[0] = (float)glyph.rc.x / tw;
+            offset[1] = (float)glyph.rc.y / th;
+            offset[2] = (float)glyph.rc.w / tw;
+            offset[3] = (float)glyph.rc.h / th;
+
+            video::append_sprite(sprites, vec3{p, 0}, size, offset, color);
+
+            p[0] += glyph.advance * spt;
+        }
+    }
+
     auto forward_renderer::reset() -> void {
         sources.clear();
         materials.clear();
@@ -190,6 +238,10 @@ namespace renderer {
         post_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         post_commands.memory_offset = 0;
         post_commands.commands.clear();
+        post_commands.depth.depth_write = false;
+        post_commands.blend.enable = true;
+        post_commands.blend.sfactor = video::gl::blend_factor::src_alpha;
+        post_commands.blend.dfactor = video::gl::blend_factor::one_minus_src_alpha;
 
         skybox_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
         skybox_commands.memory_offset = 0;
@@ -341,9 +393,16 @@ namespace renderer {
         post_commands << vcs::viewport{def_framebuffer};
         post_commands << vcs::clear{};
 
-        video::append_sprite(sprites, glm::vec3{ 0.3, 0, 0}, glm::vec2{0.2}, glm::vec4{0, 0, 1, 1}, glm::vec4{1, 0, 0, 1});
-        video::append_sprite(sprites, glm::vec3{ 0, 0, 0}, glm::vec2{0.2}, glm::vec4{0, 0, 1, 1}, glm::vec4{0, 1, 0, 1});
-        video::append_sprite(sprites, glm::vec3{ -0.3, 0, 0}, glm::vec2{0.2}, glm::vec4{0, 0, 1, 1}, glm::vec4{0, 0, 1, 1});
+        //sprites.tex = video::query_texture(sprites.tex, sprites.tex.desc);
+        //sprites.tex = video::get_texture("glyphs-map");
+
+        //video::append_sprite(sprites, glm::vec3{  0.6, 0, 0}, glm::vec2{0.2}, glm::vec4{0.0, 0.0, 0.5, 0.5}, glm::vec4{1, 1, 1, 1});
+        //video::append_sprite(sprites, glm::vec3{  0.2, 0, 0}, glm::vec2{0.2}, glm::vec4{0.0, 0.5, 0.5, 0.5}, glm::vec4{1, 1, 1, 1});
+        //video::append_sprite(sprites, glm::vec3{ -0.2, 0, 0}, glm::vec2{0.2}, glm::vec4{0.5, 0.0, 0.5, 0.5}, glm::vec4{1, 1, 1, 1});
+        //video::append_sprite(sprites, glm::vec3{ -0.6, 0, 0}, glm::vec2{0.2}, glm::vec4{0.5, 0.5, 0.5, 0.5}, glm::vec4{1, 1, 1, 1});
+        video::append_sprite(sprites, glm::vec3{ -0.6, 0, 0}, glm::vec2{0.5}, glm::vec4{0.0, 0.0, 1.0, 1.0}, glm::vec4{1, 1, 1, 1});
+
+        append(0, "The quick brown fox jumps over the lazy dog", {-0.5, 0}, {1, 1, 0, 1});
 
         post_commands << vcs::bind{postprocess_shader};
 

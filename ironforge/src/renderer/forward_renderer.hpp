@@ -33,6 +33,7 @@ namespace renderer {
         virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw) -> void;
         virtual auto append(const glm::mat4 &model) -> void;
         virtual auto append(const video::texture &cubemap, uint32_t flags) -> void;
+        virtual auto append(int32_t font, const std::string &text, const glm::vec2 &pos, const glm::vec4 &color) -> void;
 
         virtual auto reset() -> void;
         virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void;

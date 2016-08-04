@@ -52,6 +52,7 @@ namespace renderer {
         virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw) -> void = 0;
         virtual auto append(const glm::mat4 &model) -> void = 0;
         virtual auto append(const video::texture &cubemap, uint32_t flags) -> void = 0;
+        virtual auto append(int32_t font, const std::string &text, const glm::vec2 &pos, const glm::vec4 &color) -> void = 0;
         // TODO: think about add/remove from ubo mechanism
 
         virtual auto reset() -> void = 0;

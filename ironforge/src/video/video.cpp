@@ -139,7 +139,7 @@ namespace video {
         // setup default config
         config.filtering = texture_filtering::trilinear;
 
-        init_resources();
+        init_resources();        
 
         return result::success;
     }
