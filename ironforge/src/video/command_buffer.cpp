@@ -90,6 +90,12 @@ namespace video {
             case command_type::viewport:
                 glViewport(c._viewport.x, c._viewport.y, c._viewport.w, c._viewport.h);
                 break;
+            case command_type::draw_arrays:
+                glDrawArrays(c._draw_arrays.mode, c._draw_arrays.first, c._draw_arrays.count);
+                break;
+            case command_type::draw_arrays_instanced:
+                glDrawArraysInstanced(c._draw_arrays.mode, c._draw_arrays.first, c._draw_arrays.count, c._draw_arrays.primcount);
+                break;
             case command_type::draw_elements:
                 // TODO: use glDrawElementsBaseVertex
                 glDrawElementsBaseVertex(c._draw_elements.mode, c._draw_elements.count, GL_UNSIGNED_SHORT, nullptr, c._draw_elements.base_vertex);

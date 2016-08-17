@@ -29,6 +29,7 @@ namespace application {
         render,
         input,
         scene,
+        ui,
         max_category
     };
 

@@ -7,6 +7,7 @@
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
 #include <renderer/renderer.hpp>
+#include <ui/ui.hpp>
 
 #include "timer.hpp"
 #include "physics.hpp"
@@ -727,6 +728,7 @@ namespace scene {
                     render->append(msh.source, dr);
                 }
         });
+
         render->present(scn->get_current_camera()->projection, scn->get_current_camera()->view);
     }
 } // namespace scene

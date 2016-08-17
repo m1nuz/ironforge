@@ -68,6 +68,22 @@ namespace video {
             }
         };
 
+        struct draw_arrays : public gl::command {
+            draw_arrays(const vertices_draw &dr) : command{gl::command_type::draw_arrays} {
+                _draw_arrays.count = dr.count;
+                _draw_arrays.mode = dr.mode;
+                _draw_arrays.first = 0;//dr.base_vertex;
+                _draw_arrays.primcount = 1;
+            }
+
+            draw_arrays(const vertices_draw &dr, uint32_t count) : command{gl::command_type::draw_arrays_instanced} {
+                _draw_arrays.count = dr.count;
+                _draw_arrays.mode = dr.mode;
+                _draw_arrays.first = 0;//dr.base_vertex;
+                _draw_arrays.primcount = count;
+            }
+        };
+
         struct uniform : public gl::command {
             uniform(const gl::program &p, const std::string &name, const glm::mat4 &m);
             uniform(const gl::program &p, const std::string &name, const glm::mat3 &m);

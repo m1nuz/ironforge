@@ -53,6 +53,10 @@ namespace renderer {
             UNUSED(font), UNUSED(text), UNUSED(pos), UNUSED(color);
         }
 
+        virtual auto dispath(const ui::command &c) -> void {
+            UNUSED(c);
+        }
+
         virtual auto reset() -> void {
             commands.clear_color = glm::vec4(1.f, 1.f, 1.f, 1.f);
         }

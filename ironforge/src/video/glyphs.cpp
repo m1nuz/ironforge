@@ -4,7 +4,6 @@
 #include <SDL2/SDL_ttf.h>
 #include <core/assets.hpp>
 #include <video/glyphs.hpp>
-#include <video/atlas.hpp>
 
 namespace video {
     struct glyph_group {
@@ -16,8 +15,6 @@ namespace video {
     std::vector<glyph>          glyphs;
     std::vector<glyph_group>    glyph_groups;
 
-    atlas                       glyphs_atlas;
-
     static bool glyph_compare(const glyph &a, const glyph &b) {
         if (a.ch == b.ch)
             return a.type < b.type;
@@ -25,7 +22,7 @@ namespace video {
         return a.ch < b.ch;
     }
 
-    static auto glyph_cache_append(const font_info &info) -> void {
+    static auto glyph_cache_append(const font_info &info, atlas &_atlas) -> void {
         const SDL_Color White = {255, 255, 255, 255};
         auto fb = assets::get_binary(info.name);
 
@@ -45,7 +42,7 @@ namespace video {
 
                 SDL_Surface *rgba_glyph = SDL_ConvertSurfaceFormat(glyph, SDL_PIXELFORMAT_RGBA8888, 0);
 
-                glyphs.push_back({static_cast<Uint16>(ch[0]), insert_surface(glyphs_atlas, rgba_glyph), advance, static_cast<int>(glyph_groups.size())});
+                glyphs.push_back({static_cast<Uint16>(ch[0]), insert_surface(_atlas, rgba_glyph), advance, static_cast<int>(glyph_groups.size())});
 
                 SDL_FreeSurface(glyph);
                 SDL_FreeSurface(rgba_glyph);
@@ -55,9 +52,7 @@ namespace video {
         glyph_groups.push_back({static_cast<int>(glyph_groups.size()), TTF_FontHeight(font), TTF_FontLineSkip(font)});
     }
 
-    auto glyph_cache_build(const std::vector<font_info> &fonts, int w, int h) -> bool {
-        glyphs_atlas = create_atlas(w, h, 1);
-
+    auto glyph_cache_build(const std::vector<font_info> &fonts, atlas &_atlas) -> bool {
         size_t glyph_cache_size = 0;
         int group_count = 0;
 
@@ -70,11 +65,9 @@ namespace video {
         glyph_groups.reserve(group_count);
 
         for (const auto &fn : fonts)
-            glyph_cache_append(fn);
+            glyph_cache_append(fn, _atlas);
 
         std::sort(glyphs.begin(), glyphs.end(), glyph_compare);
-
-        make_texture_2d("glyphs-map", get_atlas_texture(glyphs_atlas));
 
         return true;
     }

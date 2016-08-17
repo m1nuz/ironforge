@@ -4,6 +4,7 @@
 #include <ironforge_common.hpp>
 #include <video/video.hpp>
 #include <video/vertices.hpp>
+#include <ui/command.hpp>
 
 namespace renderer {
     namespace phong {
@@ -56,7 +57,9 @@ namespace renderer {
         // TODO: think about add/remove from ubo mechanism
 
         virtual auto reset() -> void = 0;
-        virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void = 0;        
+        virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void = 0;
+
+        virtual auto dispath(const ui::command &c) -> void = 0;
 
         virtual ~instance() = default;
     };

@@ -50,6 +50,17 @@ namespace video {
             return {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 0, pixel_format::rgb8, reinterpret_cast<uint8_t*>(pixels)};
         }
 
+        auto make_color(int32_t width, int32_t height, rgba_color color) -> image_data {
+            rgba_color *pixels = new rgba_color[width * height];
+
+            for (int j = 0; j < height; j++)
+                for (int i = 0; i < width; i++) {
+                    pixels[j * width + i] = color;
+                }
+
+            return {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 0, pixel_format::rgba8, reinterpret_cast<uint8_t*>(pixels)};
+        }
+
         auto make_check(int32_t width, int32_t height, uint8_t mask, rgb_color color) -> image_data {
             // TODO: check width and height
             rgb_color *pixels = new rgb_color[width * height];

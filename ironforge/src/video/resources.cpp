@@ -14,7 +14,7 @@ namespace video {
         uint32_t    usage;
         uint64_t    hash;
         uint64_t    name_hash;
-        bool        ready;
+        bool        ready; // TODO: make atomic
         std::shared_future<image_data> imd_future;
 
         // std::vector<gl::texture> lods;
@@ -235,11 +235,15 @@ namespace video {
         }
 
         // allocate memory buffers
-        void *vertex_data = malloc(vertices_data_size);
-        void *index_data = malloc(indices_data_size);
-
+        void *vertex_data = malloc(vertices_data_size); // TODO: check mem allocation
         memset(vertex_data, 0, vertices_data_size);
-        memset(index_data, 0, indices_data_size);
+
+        void *index_data = nullptr;
+        if (indices_data_size > 0)
+        {
+            index_data = malloc(indices_data_size);
+            memset(index_data, 0, indices_data_size);
+        }
 
         ptrdiff_t vb_offset = 0;
         ptrdiff_t ib_offset = 0;
@@ -251,9 +255,11 @@ namespace video {
                 memcpy((char*)vertex_data + vb_offset, data[i].vertices, buffers_info[i].vb_size);
             vb_offset += buffers_info[i].vb_size;
 
-            draws[i].ib_offset = ib_offset;
-            memcpy((char*)index_data + ib_offset, data[i].indices, buffers_info[i].ib_size);
-            ib_offset += buffers_info[i].ib_size;
+            if (index_data) {
+                draws[i].ib_offset = ib_offset;
+                memcpy((char*)index_data + ib_offset, data[i].indices, buffers_info[i].ib_size);
+                ib_offset += buffers_info[i].ib_size;
+            }
         }
 
         auto va = gl::create_vertex_array();
@@ -292,8 +298,13 @@ namespace video {
         }
 
         // TODO : seaarch other buffer with same hash
-        auto eb = gl::create_buffer(gl::buffer_target::element_array, indices_data_size, index_data, gl::buffer_usage::static_draw);
-        buffers.push_back({eb, 0, utils::xxhash64(index_data, indices_data_size)});
+        gl::buffer eb;
+        memset(&eb, 0, sizeof eb);
+        if (index_data)
+        {
+            auto eb = gl::create_buffer(gl::buffer_target::element_array, indices_data_size, index_data, gl::buffer_usage::static_draw);
+            buffers.push_back({eb, 0, utils::xxhash64(index_data, indices_data_size)});
+        }
 
         gl::unbind_vertex_array(va);
 
@@ -339,13 +350,18 @@ namespace video {
         return textures.back().tex;
     }
 
-    auto query_texture(texture &tex, const texture_desc *desc) -> texture {
+    auto query_texture(texture &tex, const texture_desc *desc) -> void {
         if (desc) {
             if (desc->ready)
-                return tex = desc->tex;
+                tex = desc->tex;
         }
+    }
 
-        return tex;
+    auto query_texture(texture &tex) -> void {
+        if (tex.desc) {
+            if (tex.desc->ready)
+                tex = tex.desc->tex;
+        }
     }
 
     auto default_white_texture() -> texture {

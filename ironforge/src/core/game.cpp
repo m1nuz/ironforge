@@ -1,6 +1,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <functional>
 
 #include <video/video.hpp>
 #include <core/application.hpp>
@@ -8,6 +9,7 @@
 #include <core/game.hpp>
 #include <renderer/renderer.hpp>
 #include <scene/scene.hpp>
+#include <ui/ui.hpp>
 
 // FIXME: remove this
 namespace scene {
@@ -18,6 +20,8 @@ namespace game {
 
     std::vector<std::unique_ptr<scene::instance>>   scenes;
     std::unique_ptr<renderer::instance>             render;
+    std::unique_ptr<ui::context>                    uis;
+    std::string some_text{"Lorem ipsum."};
 
     auto get_current() -> std::unique_ptr<scene::instance>& {
         // TODO: optimize this shit
@@ -75,6 +79,25 @@ namespace game {
         if (scenes.empty())
             application::warning(application::log_category::game, "%\n", "No scene loaded");
 
+        uis = ui::create_context();
+        ui::button_info bi;
+        bi.x = 0;
+        bi.y = 0;
+        bi.w = 0.4;
+        bi.h = 0.1;
+        bi.text = some_text.c_str();
+        bi.text_size = some_text.size();
+        bi.font = 0;
+        bi.align = ui::align_none;
+        bi.text_color = 0xffffffff;
+        bi.border_width = 0.002;
+        bi.background_color = 0x111111ff;
+        bi.border_color = 0x00ffffff;
+        bi.on_click = [](int32_t id) {
+            application::info(application::log_category::game, "Click %\n", id);
+        };
+        ui::create_button(bi);
+
         return result::success;
     }
 
@@ -95,6 +118,7 @@ namespace game {
                 application::quit();
             }
 
+        ui::process_event(uis, e);
         scene::process_event(get_current(), e);
     }
 
@@ -104,6 +128,19 @@ namespace game {
     }
 
     auto present(float interpolation) -> void {
+        /*ui::command c;
+        c.type = ui::command_type::line;
+        c.line.color = 0xff0000ff;
+        c.line.w = 0.01;
+        c.line.x0 = 0;
+        c.line.y0 = 0;
+        c.line.x1 = 0.5;
+        c.line.y1 = 0.5;
+
+        ui::append(uis, c);*/
+
+        using std::placeholders::_1;
+        ui::present(uis, std::bind(&renderer::instance::dispath, render.get(), _1));
         scene::present(get_current(), render, interpolation);
     }
 

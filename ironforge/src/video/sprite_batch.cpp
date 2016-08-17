@@ -67,8 +67,10 @@ namespace video {
     auto submit_sprite_batch(gl::command_buffer &cb, sprite_batch &sb, const gl::program &pm, const gl::sampler &sr) -> void {
         cb << vcs::update{sb.source.vertices, 0, &sb.vertices[0], sb.vertices.size() * sizeof (sb.vertices[0])};
 
+        video::query_texture(sb.tex);
+
         cb << vcs::bind{pm};
-        cb << vcs::bind{pm, "sprite_map", 0, sb.tex};
+        cb << vcs::bind{pm, "color_map", 0, sb.tex};
         cb << vcs::bind{0, sr};
         cb << vcs::bind{sb.source};
 

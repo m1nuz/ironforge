@@ -113,6 +113,33 @@ namespace video {
         return rect;
     }
 
+    auto insert_image(atlas &_atlas, const image_data &_image) -> SDL_Rect {
+        uint32_t rmask, gmask, bmask, amask;
+    #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+        rmask = 0xff000000;
+        gmask = 0x00ff0000;
+        bmask = 0x0000ff00;
+        amask = 0x000000ff;
+    #else
+        rmask = 0x000000ff;
+        gmask = 0x0000ff00;
+        bmask = 0x00ff0000;
+        amask = 0xff000000;
+    #endif
+
+        auto surface = SDL_CreateRGBSurfaceFrom(_image.pixels, _image.width, _image.height, 32, _image.width, rmask, gmask, bmask, amask);
+
+        if (!surface)
+            return {0, 0, 0, 0};
+
+        //SDL_Surface *rgba = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888, 0);
+
+        auto rc = insert_surface(_atlas, surface);
+        SDL_FreeSurface(surface);
+
+        return rc;
+    }
+
     auto get_atlas_texture(atlas &_atlas) -> image_data {
         return image_data{_atlas.surface->w, _atlas.surface->h, 0, pixel_format::rgba8, static_cast<uint8_t*>(_atlas.surface->pixels)};
     }

@@ -5,6 +5,7 @@
 
 #include <SDL2/SDL_rect.h>
 #include <video/video.hpp>
+#include <video/atlas.hpp>
 
 namespace video {
     struct font_info {
@@ -20,7 +21,7 @@ namespace video {
         int         type;
     };
 
-    auto glyph_cache_build(const std::vector<font_info> &fonts, int w, int h) -> bool;
+    auto glyph_cache_build(const std::vector<font_info> &fonts, atlas &_atlas) -> bool;
     auto glyph_cache_find(uint16_t ch, int type) -> glyph;
 
     auto glyph_cache_get_font_lineskip(int type) -> int;

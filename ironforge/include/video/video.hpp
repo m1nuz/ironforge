@@ -121,7 +121,8 @@ namespace video {
     auto default_red_texture() -> texture;
     auto get_texture(const char *name, const texture &default_tex = default_check_texture()) -> texture;
 
-    auto query_texture(texture &tex, const texture_desc *desc) -> texture;
+    auto query_texture(texture &tex, const texture_desc *desc) -> void;
+    auto query_texture(texture &tex) -> void;
 
     auto make_program(const gl::program_info &info) -> program;
     auto get_shader(const char *name) -> program;

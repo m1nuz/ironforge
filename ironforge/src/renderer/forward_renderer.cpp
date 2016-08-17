@@ -9,11 +9,7 @@ namespace renderer {
     forward_renderer::forward_renderer() {
         application::debug(application::log_category::render, "% % with % %\n", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);        
 
-        std::vector<video::font_info> fonts = {
-            {"Play.ttf", 60, video::default_charset()}
-        };
-
-        glyph_cache_build(fonts, 1024, 1024);
+        init_ui();
 
         emission_shader = video::get_shader("emission-shader");
         ambient_light_shader = video::get_shader("ambient-light-shader");
@@ -91,7 +87,13 @@ namespace renderer {
         sb_info.max_sprites = 1000;
         sb_info.tex = video::default_white_texture();
         sb_info.tex = video::get_texture("glyphs-map");
-        sprites = video::create_sprite_batch(sb_info);        
+        sprites = video::create_sprite_batch(sb_info);
+
+        triangles_batch_info tb_info;
+        tb_info.max_triangles = 1000;
+        tb_info.tex = video::get_texture("glyphs-map");
+
+        triangles = video::create_triangles_batch(tb_info);
 
         sources.reserve(max_sources);
         draws.reserve(max_draws);
@@ -153,8 +155,8 @@ namespace renderer {
     auto forward_renderer::append(int32_t font, const std::string &text, const glm::vec2 &pos, const glm::vec4 &color) -> void {
         using namespace glm;
 
-        const auto tw = 1024.f;
-        const auto th = 1024.f;
+        const auto tw = 512.f;
+        const auto th = 512.f;
 
         const int adv_y = video::glyph_cache_get_font_lineskip(font);
         const int fh = video::glyph_cache_get_font_size(font);
@@ -183,9 +185,44 @@ namespace renderer {
             offset[2] = (float)glyph.rc.w / tw;
             offset[3] = (float)glyph.rc.h / th;
 
-            video::append_sprite(sprites, vec3{p, 0}, size, offset, color);
+            //video::append_sprite(sprites, vec3{p, 0}, size, offset, color);
+
+            const float correction = video::screen.aspect;
+
+            const video::v3t2c4 vertices[6] = {
+                {{p[0], p[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0] + size[0], p[1] + size[1] * correction, 0}, {offset[0] + offset[2], offset[1]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0] + size[0], p[1], 0}, {offset[0] + offset[2], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0] + size[0], p[1], 0}, {offset[0] + offset[2], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0], p[1], 0}, {offset[0], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0], p[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
+            };
+
+            video::append_triangles_vertices(triangles, vertices, 6);
 
             p[0] += glyph.advance * spt;
+        }
+    }
+
+    auto forward_renderer::dispath(const ui::command &c) -> void {
+        using namespace ui;
+
+        switch (c.type) {
+        case command_type::line:
+            draw_line(c.line);
+            break;
+        case command_type::rect:
+            draw_rect(c.rect);
+            break;
+        case command_type::rounded_rect:
+            draw_roundrect(c.roundrect);
+            break;
+        case command_type::text:
+            draw_text(c.text);
+            break;
+        case command_type::icon:
+            draw_icon(c.icon);
+            break;
         }
     }
 
@@ -240,6 +277,7 @@ namespace renderer {
         post_commands.commands.clear();
         post_commands.depth.depth_write = false;
         post_commands.blend.enable = true;
+        post_commands.blend.sfactor = video::gl::blend_factor::one;
         post_commands.blend.sfactor = video::gl::blend_factor::src_alpha;
         post_commands.blend.dfactor = video::gl::blend_factor::one_minus_src_alpha;
 
@@ -393,17 +431,6 @@ namespace renderer {
         post_commands << vcs::viewport{def_framebuffer};
         post_commands << vcs::clear{};
 
-        //sprites.tex = video::query_texture(sprites.tex, sprites.tex.desc);
-        //sprites.tex = video::get_texture("glyphs-map");
-
-        //video::append_sprite(sprites, glm::vec3{  0.6, 0, 0}, glm::vec2{0.2}, glm::vec4{0.0, 0.0, 0.5, 0.5}, glm::vec4{1, 1, 1, 1});
-        //video::append_sprite(sprites, glm::vec3{  0.2, 0, 0}, glm::vec2{0.2}, glm::vec4{0.0, 0.5, 0.5, 0.5}, glm::vec4{1, 1, 1, 1});
-        //video::append_sprite(sprites, glm::vec3{ -0.2, 0, 0}, glm::vec2{0.2}, glm::vec4{0.5, 0.0, 0.5, 0.5}, glm::vec4{1, 1, 1, 1});
-        //video::append_sprite(sprites, glm::vec3{ -0.6, 0, 0}, glm::vec2{0.2}, glm::vec4{0.5, 0.5, 0.5, 0.5}, glm::vec4{1, 1, 1, 1});
-        video::append_sprite(sprites, glm::vec3{ -0.6, 0, 0}, glm::vec2{0.5}, glm::vec4{0.0, 0.0, 1.0, 1.0}, glm::vec4{1, 1, 1, 1});
-
-        append(0, "The quick brown fox jumps over the lazy dog", {-0.5, 0}, {1, 1, 0, 1});
-
         post_commands << vcs::bind{postprocess_shader};
 
         post_commands << vcs::bind{postprocess_shader, "color_map", 0, color_map};
@@ -415,9 +442,149 @@ namespace renderer {
         post_commands << vcs::bind{fullscreen_quad};
         post_commands << vcs::draw_elements{fullscreen_draw};
 
+        video::submit_triangles_batch(post_commands, triangles, sprite_shader, texture_sampler);
         video::submit_sprite_batch(post_commands, sprites, sprite_shader, texture_sampler);
 
         video::present({&prepare_commands, &skybox_commands, &ambient_commands, &directional_commands, &glow_commands, &post_commands});
         reset();
+    }
+
+    auto forward_renderer::init_ui() -> void {
+        std::vector<video::font_info> fonts = {
+            {"Play.ttf", 22, video::default_charset()}
+        };
+
+        const int asz = 512;
+
+        auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
+        ui_atlas = video::create_atlas(asz, asz, 1);
+        auto rc = video::insert_image(ui_atlas, white_im);
+        delete[] white_im.pixels;
+        video::glyph_cache_build(fonts, ui_atlas);
+        video::make_texture_2d("glyphs-map", get_atlas_texture(ui_atlas));
+        ui_rc = glm::vec4{rc.x / (float)asz, rc.y / (float)asz, rc.w / (float)asz, rc.h / (float)asz};
+    }
+
+    inline auto color_to_vec4(uint32_t color) -> glm::vec4 {
+        constexpr auto max_component = 255.0f;
+        float x = static_cast<float>((color & 0xff000000) >> 24) / max_component;
+        float y = static_cast<float>((color & 0x00ff0000) >> 16) / max_component;
+        float z = static_cast<float>((color & 0x0000ff00) >> 8) / max_component;
+        float w = static_cast<float>(color & 0x000000ff) / max_component;
+
+        return glm::vec4(x, y, z, w);
+    }
+
+    auto forward_renderer::draw_text(const ui::draw_text_command &c) -> void {
+        using namespace glm;
+
+        // FIXME: use real texture size
+        const auto tw = 512.f;
+        const auto th = 512.f;
+
+        const int adv_y = video::glyph_cache_get_font_lineskip(c.font);
+        const int fh = video::glyph_cache_get_font_size(c.font);
+        const float spt = 2.f / video::screen.width;
+        const float correction = video::screen.aspect;
+        const auto color = color_to_vec4(c.color);
+
+        vec2 p = vec2(c.x, c.y);
+
+        for (size_t i = 0; i < c.size; i++) {
+            auto ch = c.text[i];
+            if (ch == '\n') {
+                p[0] = c.x;
+                p[1] -= spt * adv_y * video::screen.aspect;
+                continue;
+            }
+
+            auto glyph = video::glyph_cache_find(ch, c.font);
+            if (glyph.ch == 0) {
+                application::warning(application::log_category::render, "%\n", "Glyph not found");
+                continue;
+            }
+
+            vec2 size = {glyph.advance * spt, fh * spt};
+            vec4 offset;
+            offset[0] = (float)glyph.rc.x / tw;
+            offset[1] = (float)glyph.rc.y / th;
+            offset[2] = (float)glyph.rc.w / tw;
+            offset[3] = (float)glyph.rc.h / th;
+
+            const video::v3t2c4 vertices[6] = {
+                {{p[0], p[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0] + size[0], p[1] + size[1] * correction, 0}, {offset[0] + offset[2], offset[1]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0] + size[0], p[1], 0}, {offset[0] + offset[2], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0] + size[0], p[1], 0}, {offset[0] + offset[2], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0], p[1], 0}, {offset[0], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
+                {{p[0], p[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
+            };
+
+            video::append_triangles_vertices(triangles, vertices, 6);
+
+            p[0] += glyph.advance * spt;
+        }
+    }
+
+    auto forward_renderer::draw_line(const ui::draw_line_command &c) -> void {
+        using namespace glm;
+
+        const auto color = color_to_vec4(c.color);
+
+        const auto p = normalize(vec2{c.x1 - c.x0, c.y1 - c.y0});
+        const auto n = normalize(vec2{c.y1 - c.y0, -(c.x1 - c.x0)});
+        const auto e = vec2{c.w * n.x, c.w * n.y * video::screen.aspect};
+        const auto z = vec2{c.w * p.x, c.w * p.y * video::screen.aspect};
+
+        const auto coords = vec4{0.f, 0, 63.f / 512.f, 63.f / 512.f};
+        const auto offset = vec2{1.f / 64.f, 1.f / 64.f};
+
+        const auto x0 = c.x0;
+        const auto x1 = c.x1;
+        const auto y0 = c.y0 * video::screen.aspect;
+        const auto y1 = c.y1 * video::screen.aspect;
+
+        const video::v3t2c4 vertices[6] = {
+            {{x0 - e.x - z.x, y0 - e.y - z.y, 0.f}, {coords.x            + offset.x, coords.y            + offset.y}, color}, // 0
+            {{x1 - e.x + z.x, y1 - e.y + z.y, 0.f}, {coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
+            {{x0 + e.x - z.x, y0 + e.y - z.y, 0.f}, {coords.x            + offset.x, coords.y + coords.w - offset.y}, color}, // 2
+            {{x1 - e.x + z.x, y1 - e.y + z.y, 0.f}, {coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
+            {{x1 + e.x + z.x, y1 + e.y + z.y, 0.f}, {coords.x + coords.z - offset.x, coords.y + coords.w - offset.y}, color}, // 3
+            {{x0 + e.x - z.x, y0 + e.y - z.y, 0.f}, {coords.x            + offset.x, coords.y + coords.w - offset.y}, color}  // 2
+        };
+
+        video::append_triangles_vertices(triangles, vertices, 6);
+    }
+
+    auto forward_renderer::draw_rect(const ui::draw_rect_command &c) -> void {
+        using namespace glm;
+
+        const auto color = color_to_vec4(c. color);
+        const auto x = c.x;
+        const auto w = c.w;
+        const auto y = c.y;
+        const auto h = c.h * video::screen.aspect;
+
+        const auto coords = vec4{0.f, 0, 63.f / 512.f, 63.f / 512.f};
+        const auto offset = vec2{1.f / 64.f, 1.f / 64.f};
+
+        const video::v3t2c4 vertices[6] = {
+            {{x    , y    , 0.f}, {coords.x            + offset.x, coords.y            + offset.y}, color}, // 0
+            {{x + w, y    , 0.f}, {coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
+            {{x    , y + h, 0.f}, {coords.x            + offset.x, coords.y + coords.w - offset.y}, color}, // 2
+            {{x + w, y    , 0.f}, {coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
+            {{x + w, y + h, 0.f}, {coords.x + coords.z - offset.x, coords.y + coords.w - offset.y}, color}, // 3
+            {{x    , y + h, 0.f}, {coords.x            + offset.x, coords.y + coords.w - offset.y}, color}  // 2
+        };
+
+        video::append_triangles_vertices(triangles, vertices, 6);
+    }
+
+    auto forward_renderer::draw_roundrect(const ui::draw_round_rect_command &c) -> void {
+
+    }
+
+    auto forward_renderer::draw_icon(const ui::draw_icon_command &c) -> void {
+
     }
 } // namespace renderer
