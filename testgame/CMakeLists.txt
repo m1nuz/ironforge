@@ -10,7 +10,16 @@ include_directories(../lib/xxhash/include)
 
 set(cpp_flags "-pedantic -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -Wunused-result")
 
+set(libs
+    ironforge-core
+    ironforge-video-gl330
+    ironforge-readers
+    ironforge-null-renderer
+    ironforge-scene
+    ironforge-ui
+    )
+
 add_executable(simple-game-test src/config.hpp src/main.cpp)
 set_property(TARGET simple-game-test PROPERTY CXX_STANDARD 14)
 set_property(TARGET simple-game-test APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
-target_link_libraries(simple-game-test ironforge-core ironforge-video-gl330 ironforge-readers ironforge-null-renderer ironforge-scene)
+target_link_libraries(simple-game-test ${libs})

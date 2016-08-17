@@ -1,9 +1,8 @@
 #include <ironforge.hpp>
+#include <ui/ui.hpp>
 #include "config.hpp"
 
 #include <SDL2/SDL.h>
-
-#include <utility/thread_pool.hpp>
 
 extern int main(int argc, char* argv[]) {
     (void)argc;
