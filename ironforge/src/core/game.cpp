@@ -21,7 +21,10 @@ namespace game {
     std::vector<std::unique_ptr<scene::instance>>   scenes;
     std::unique_ptr<renderer::instance>             render;
     std::unique_ptr<ui::context>                    uis;
-    std::string some_text{"Lorem ipsum."};
+    std::string some_text{"Lorem ipsum"};
+    std::string some_text1{"AAA"};
+    std::string some_text2{"BBB"};
+    std::string some_text3{"CCC"};
 
     auto get_current() -> std::unique_ptr<scene::instance>& {
         // TODO: optimize this shit
@@ -80,23 +83,55 @@ namespace game {
             application::warning(application::log_category::game, "%\n", "No scene loaded");
 
         uis = ui::create_context();
+        uis->commands.size();
         ui::button_info bi;
-        bi.x = 0;
-        bi.y = 0;
-        bi.w = 0.4;
-        bi.h = 0.1;
-        bi.text = some_text.c_str();
-        bi.text_size = some_text.size();
+        bi.w = 1.0;
+        bi.h = 1.0;
+        bi.x = 0.0;
+        //bi.translate_x = -0.5;
+        bi.y = 0.0;
+        //bi.translate_y = -0.5;
+        bi.text = some_text1.c_str();
+        bi.text_size = some_text1.size();
         bi.font = 0;
-        bi.align = ui::align_none;
+        bi.align = ui::align_horizontal_center | ui::align_vertical_center;
         bi.text_color = 0xffffffff;
         bi.border_width = 0.002;
         bi.background_color = 0x111111ff;
         bi.border_color = 0x00ffffff;
+        bi.level = 0;
         bi.on_click = [](int32_t id) {
             application::info(application::log_category::game, "Click %\n", id);
         };
-        ui::create_button(bi);
+        int btn1 = ui::create_button(bi);
+
+        bi.y = 0.1;
+        bi.text = some_text2.c_str();
+        bi.text_size = some_text2.size();
+        bi.level = 0;
+        int btn2 = ui::create_button(bi);
+
+        bi.y = 0.0;
+        bi.text = some_text3.c_str();
+        bi.text_size = some_text3.size();
+        bi.level = 0;
+        int btn3 = ui::create_button(bi);
+
+        ui::window_info wi;
+        wi.x = 0.0;
+        wi.y = 0.0;
+        wi.w = 0.4;
+        wi.h = 0.4;
+        wi.border_width = 0.002;
+        wi.background_color = 0x333333ff;
+        wi.border_color = 0x00ffffff;
+        wi.level = 1;
+        wi.flags = ui::wf_visible | ui::wf_movable | ui::wf_flexible | ui::wf_column;
+        wi.padding = {0.1, 0.1, 0.1, 0.1};
+        auto wnd = ui::create_window(wi);
+        ui::window_append(wnd, btn1);
+        ui::window_append(wnd, btn2);
+        ui::window_append(wnd, btn3);
 
         return result::success;
     }

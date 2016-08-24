@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <ironforge_common.hpp>
 #include <ui/ui.hpp>
 #include <ui/context.hpp>
@@ -6,6 +8,8 @@
 #include <core/application.hpp>
 
 #include "button.hpp"
+#include "label.hpp"
+#include "window.hpp"
 
 #define set_normal_state(s) ((s) |= ui::ws_normal), clr_hovered_state(s), clr_pressed_state(s)
 #define set_hovered_state(s) ((s) |= ui::ws_hovered), clr_normal_state(s), clr_pressed_state(s)
@@ -26,7 +30,7 @@ namespace ui {
         c.rect = dr;
         c.level = level;
 
-        ctx->commands.push(c);
+        ctx->commands.push_back(c);
     }
 
     auto push(std::unique_ptr<context> &ctx, const draw_line_command &dl, int32_t level) -> void {
@@ -35,7 +39,7 @@ namespace ui {
         c.line = dl;
         c.level = level;
 
-        ctx->commands.push(c);
+        ctx->commands.push_back(c);
     }
 
     auto push(std::unique_ptr<context> &ctx, const draw_text_command &dt, int32_t level) -> void {
@@ -44,24 +48,54 @@ namespace ui {
         c.text = dt;
         c.level = level;
 
-        ctx->commands.push(c);
+        ctx->commands.push_back(c);
     }
 
     auto append(std::unique_ptr<context> &ctx, const command &com) -> void {
-        ctx->commands.push(com);
+        ctx->commands.push_back(com);
     }
 
     std::vector<button> buttons;
+    std::vector<window> windows;
 
     static int32_t button_id = 1;
+    static int32_t window_id = 1;
 
-    auto create_button(button_info &info) -> int32_t {
+    static auto find_widget(const int32_t id) -> button* {
+        auto w = std::find_if(buttons.begin(), buttons.end(), [id](const button &b) {
+            return b.id == id;
+        });
+
+        if (w != buttons.end())
+            return &(*w);
+
+        return nullptr;
+    }
+
+    static auto find_window(const int32_t id) -> window* {
+        auto win = std::find_if(windows.begin(), windows.end(), [id](const window &w) {
+            return w.id == id;
+        });
+
+        if (win != windows.end())
+            return &(*win);
+
+        return nullptr;
+    }
+
+    auto create_button(const button_info &info) -> int32_t {
         button b;
         b.id = button_id++;
         b.x = info.x;
         b.y = info.y;
         b.w = info.w;
         b.h = info.h;
+        b.initial_x = info.x;
+        b.initial_y = info.y;
+        b.initial_w = info.w;
+        b.initial_h = info.h;
+        b.tx = info.translate_x;
+        b.ty = info.translate_y;
         b.border_width = info.border_width;
         b.background_color = info.background_color;
         b.border_color = info.border_color;
@@ -70,8 +104,12 @@ namespace ui {
         b.text_color = info.text_color;
         b.font = info.font;
         b.align = info.align;
+        b.level = info.level;
         b.flags = info.flags;
         b.on_click = info.on_click;
+
+        if (buttons.capacity() == 0)
+            buttons.reserve(100);
 
         buttons.push_back(b);
 
@@ -80,7 +118,7 @@ namespace ui {
 
     static auto push_widget(std::unique_ptr<context> &ctx, const button &b) -> void {
         if (!(b.flags & wf_visible))
-            return;
+            return;        
 
         draw_rect_command dr;
         dr.color = b.background_color;
@@ -145,34 +183,120 @@ namespace ui {
             draw_text_command dt;
             dt.color = text_color; // b.text_color;
             dt.align = b.align;
-            dt.w = 0;
-            dt.h = 0;
-            dt.x = b.x;
-            dt.y = b.y;
+            dt.w = b.w;
+            dt.h = b.h;
+            dt.x = b.x * 2;
+            dt.y = b.y * 2;
             dt.text = b.text;
             dt.size = b.text_size;
             dt.font = b.font;
 
-            push(ctx, dt, b.level);
+            push(ctx, dt, b.level - 1);
         }
     }
 
-    auto create_label(label_info &info) -> int32_t {
+    static auto push_widget(std::unique_ptr<context> &ctx, const window &w) -> void {
+        if (!(w.flags & wf_visible))
+            return;
+
+        draw_rect_command dr;
+        dr.color = w.background_color;
+        dr.x = w.x;
+        dr.y = w.y;
+        dr.w = w.w;
+        dr.h = w.h;
+
+        push(ctx, dr, w.level);
+
+        draw_line_command dl;
+        dl.color = w.border_color;
+        dl.w = w.border_width;
+
+        dl.x0 = w.x;
+        dl.x1 = w.x + w.w;
+        dl.y0 = w.y;
+        dl.y1 = w.y;
+
+        push(ctx, dl, w.level);
+
+        dl.x0 = w.x;
+        dl.x1 = w.x;
+        dl.y0 = w.y + w.h;
+        dl.y1 = w.y;
+
+        push(ctx, dl, w.level);
+
+        dl.x0 = w.x;
+        dl.x1 = w.x + w.w;
+        dl.y0 = w.y + w.h;
+        dl.y1 = w.y + w.h;
+
+        push(ctx, dl, w.level);
+
+        dl.x0 = w.x + w.w;
+        dl.x1 = w.x + w.w;
+        dl.y0 = w.y + w.h;
+        dl.y1 = w.y;
+
+        push(ctx, dl, w.level);
+    }
+
+    auto create_label(const label_info &info) -> int32_t {
         return 0;
     }
 
-    auto create_window(window_info &info) -> int32_t {
-        return 0;
+    auto create_window(const window_info &info) -> int32_t {
+        window w;
+        w.id = window_id++;
+        w.x = info.x;
+        w.y = info.y;
+        w.w = info.w;
+        w.h = info.h;
+        w.background_color = info.background_color;
+        w.border_color = info.border_color;
+        w.border_width = info.border_width;
+        w.flags = info.flags;
+        w.level = info.level;
+        w.padding = info.padding;
+
+        if (windows.capacity() == 0)
+            windows.reserve(100);
+
+        windows.push_back(w);
+
+        return w.id;
+    }
+
+    auto window_append(const int32_t win_id, const int32_t id) -> bool {
+        auto w = find_widget(id);
+        if (!w)
+            return false;
+
+        auto win = find_window(win_id);
+        if (!win)
+            return false;
+
+        //w->level = win->level - 1;
+        w->parent = win_id;
+        win->grows.push_back(1);
+        win->wflags.push_back(0);
+        win->widgets.push_back(w);
+
+        return false;
     }
 
     auto create_context() -> std::unique_ptr<context> {
         return make_unique<context>();
     }
 
+    window *current_window = nullptr;
+
     auto process_event(std::unique_ptr<context> &ctx, const SDL_Event &event) -> void {
+        UNUSED(ctx);
+
         if (event.type == SDL_MOUSEBUTTONDOWN) {
-            float px = - 0.5f + (float)event.button.x / video::screen.width;
-            float py =   0.5f - (float)event.button.y / video::screen.height;
+            const float px = - 0.5f + (float)event.button.x / video::screen.width;
+            const float py =   0.5f - (float)event.button.y / video::screen.height;
 
             //application::info(application::log_category::ui, "% %\n", px, py);
 
@@ -183,11 +307,16 @@ namespace ui {
 
                     set_pressed_state(b.state);
                 }
+
+            current_window = nullptr;
+            for (auto &w : windows)
+                if ((w.flags & wf_movable) && in_rect(w.x, w.y, w.w, w.h, px, py))
+                    current_window = &w;
         }
 
         if (event.type == SDL_MOUSEBUTTONUP) {
-            float px = - 0.5f + (float)event.button.x / video::screen.width;
-            float py =   0.5f - (float)event.button.y / video::screen.height;
+            const float px = - 0.5f + (float)event.button.x / video::screen.width;
+            const float py =   0.5f - (float)event.button.y / video::screen.height;
 
             for (auto &b : buttons)
                 if (b.state & ws_pressed) {
@@ -196,11 +325,13 @@ namespace ui {
                     else
                         set_normal_state(b.state);
                 }
+
+            current_window = nullptr;
         }
 
         if (event.type == SDL_MOUSEMOTION) {
-            float px = -0.5f + (float)event.motion.x / video::screen.width;
-            float py =  0.5f - (float)event.motion.y / video::screen.height;
+            const float px = -0.5f + (float)event.motion.x / video::screen.width;
+            const float py =  0.5f - (float)event.motion.y / video::screen.height;
 
             for (auto &b : buttons)
                 if (in_rect(b.x, b.y, b.w, b.h, px, py))
@@ -210,20 +341,91 @@ namespace ui {
                 } else {
                     set_normal_state(b.state);
                 }
+
+            if (current_window) {
+                const float w = current_window->w;
+                const float h = current_window->h;
+                const float dx = -w * 0.5f;
+                const float dy = -h * 0.5f;
+                const float lx = px + dx;
+                const float ly = py + dy;
+
+                current_window->x = lx;
+                current_window->y = ly;
+            }
         }
     }
 
     auto present(std::unique_ptr<context> &ctx, const std::function<void (const command &)> &dispath) -> void {
+        for (const auto &wnd : windows) {
+            for (size_t i = 0; i < wnd.widgets.size(); i++) {
+                auto w = reinterpret_cast<button *>(wnd.widgets[i]);
+                const auto coeff = wnd.grows[i] / wnd.widgets.size();
+                const auto coeff2 = (i == 0 ? 0 : wnd.grows[i - 1] / wnd.widgets.size());
+
+                const auto padding_left = wnd.padding[3] * wnd.w;
+                const auto padding_bottom = wnd.padding[2] * wnd.w * video::screen.aspect;
+                const auto padding_right = wnd.padding[1] * wnd.w;
+                const auto padding_top = wnd.padding[0] * wnd.h * video::screen.aspect;
+                const auto base_x = wnd.x + padding_left;
+                const auto base_y = wnd.y + padding_bottom;
+                const auto base_w = wnd.w - padding_left - padding_right;
+                const auto base_h = wnd.h - padding_top - padding_bottom;
+
+                if (wnd.flags & wf_row) {
+                    w->w = base_w * coeff * w->initial_w;
+                    w->h = base_h * w->initial_h;
+                    w->x = base_x + coeff2 * base_w * i + w->tx * w->initial_w;
+                    w->y = base_y;
+                } else if (wnd.flags & wf_column) {
+                    w->w = base_w * w->initial_w;
+                    w->h = base_h * coeff * w->initial_h;
+                    w->x = base_x;
+                    w->y = base_y + coeff2 * base_h * i + w->ty * w->initial_h;
+                }
+            }
+        }
+
+        for (auto &b : buttons) {
+            auto w = find_window(b.parent);
+
+            if (w) {
+                if (!(w->flags & wf_flexible)) {
+                    const auto padding_left = w->padding[3] * w->w;
+                    const auto padding_bottom = w->padding[2] * w->w * video::screen.aspect;
+                    const auto padding_right = w->padding[1] * w->w;
+                    const auto padding_top = w->padding[0] * w->h * video::screen.aspect;
+                    const auto base_x = w->x + padding_left;
+                    const auto base_y = w->y + padding_bottom;
+                    const auto base_w = w->w - padding_left - padding_right;
+                    const auto base_h = w->h - padding_top - padding_bottom;
+                    b.x = base_x + b.initial_x * base_w + b.tx * b.w;
+                    b.y = base_y + b.initial_y * base_h + b.ty * b.h;
+                    b.w = base_w * b.initial_w;
+                    b.h = base_h * b.initial_h;
+                }
+            }
+        }
+
         for (const auto &b : buttons)
             push_widget(ctx, b);
 
+        for (const auto &w : windows)
+            push_widget(ctx, w);
+
         // TODO: sort commands by level
         while (!ctx->commands.empty()) {
-            auto c = ctx->commands.top();
+            ctx->commands.sort([](command &a, command &b) {
+                return a.level < b.level;
+            });
+
+            const auto c = ctx->commands.back();
+
+            //application::debug(application::log_category::ui, "% %\n", static_cast<int>(c.type), c.level);
 
             dispath(c);
 
-            ctx->commands.pop();
+            ctx->commands.pop_back();
         }
     }
 } // namespace ui

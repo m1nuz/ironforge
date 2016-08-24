@@ -475,6 +475,34 @@ namespace renderer {
         return glm::vec4(x, y, z, w);
     }
 
+    auto forward_renderer::text_box_size(const char *text, size_t size, int font) -> glm::vec2 {
+        using namespace glm;
+
+        const int adv_y = video::glyph_cache_get_font_lineskip(font);
+        const float spt = 2.f / video::screen.width;
+
+        vec2 p{0};
+
+        for (size_t i = 0; i < size; i++) {
+            auto ch = text[i];
+            if (ch == '\n') {
+                p[0] = 0;
+                p[1] += spt * adv_y * video::screen.aspect;
+                continue;
+            }
+
+            auto glyph = video::glyph_cache_find(ch, font);
+            if (glyph.ch == 0) {
+                application::warning(application::log_category::render, "%\n", "Glyph not found");
+                continue;
+            }
+
+            p[0] += glyph.advance * spt;
+        }
+
+        return vec2{p.x, p.y == 0 ? (float)adv_y / video::screen.height * 2.f : p.y};
+    }
+
     auto forward_renderer::draw_text(const ui::draw_text_command &c) -> void {
         using namespace glm;
 
@@ -488,7 +516,22 @@ namespace renderer {
         const float correction = video::screen.aspect;
         const auto color = color_to_vec4(c.color);
 
+        vec2 bs = text_box_size(c.text, c.size, c.font);
         vec2 p = vec2(c.x, c.y);
+
+        if (c.align & ui::align_horizontal_right)
+             p.x += c.w * 2.f - bs.x * 2.f;
+        else if (c.align & ui::align_horizontal_center)
+            p.x += c.w - bs.x * 0.5;
+        else
+            p.x += 0;
+
+        if (c.align & ui::align_vertical_top)
+            p.y += c.h * 2.f - bs.y;
+        else if (c.align & ui::align_vertical_center)
+            p.y += c.h - bs.y * 0.5;
+        else
+            p.y += 0;
 
         for (size_t i = 0; i < c.size; i++) {
             auto ch = c.text[i];
@@ -539,10 +582,10 @@ namespace renderer {
         const auto coords = vec4{0.f, 0, 63.f / 512.f, 63.f / 512.f};
         const auto offset = vec2{1.f / 64.f, 1.f / 64.f};
 
-        const auto x0 = c.x0;
-        const auto x1 = c.x1;
-        const auto y0 = c.y0 * video::screen.aspect;
-        const auto y1 = c.y1 * video::screen.aspect;
+        const auto x0 = c.x0 * 2.f;
+        const auto x1 = c.x1 * 2.f;
+        const auto y0 = c.y0 * 2.f/* video::screen.aspect*/;
+        const auto y1 = c.y1 * 2.f/* video::screen.aspect*/;
 
         const video::v3t2c4 vertices[6] = {
             {{x0 - e.x - z.x, y0 - e.y - z.y, 0.f}, {coords.x            + offset.x, coords.y            + offset.y}, color}, // 0
@@ -560,10 +603,10 @@ namespace renderer {
         using namespace glm;
 
         const auto color = color_to_vec4(c. color);
-        const auto x = c.x;
-        const auto w = c.w;
-        const auto y = c.y;
-        const auto h = c.h * video::screen.aspect;
+        const auto x = c.x * 2;
+        const auto w = c.w * 2;
+        const auto y = c.y * 2;
+        const auto h = c.h * 2/* video::screen.aspect*/;
 
         const auto coords = vec4{0.f, 0, 63.f / 512.f, 63.f / 512.f};
         const auto offset = vec2{1.f / 64.f, 1.f / 64.f};

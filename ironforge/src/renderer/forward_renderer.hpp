@@ -43,6 +43,7 @@ namespace renderer {
         virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void;
 
         auto init_ui() -> void;
+        auto text_box_size(const char *text, size_t size, int font) -> glm::vec2;
         auto draw_text(const ui::draw_text_command &c) -> void;
         auto draw_line(const ui::draw_line_command &c) -> void;
         auto draw_rect(const ui::draw_rect_command &c) -> void;
