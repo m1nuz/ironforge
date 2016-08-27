@@ -4,14 +4,10 @@
 #include <cstdint>
 #include <functional>
 
+#include "widget.hpp"
+
 namespace ui {
-    struct button {
-        int32_t                 id = 0;
-        int32_t                 parent = 0;
-        float                   x = 0, y = 0, w = 0, h = 0;
-        float                   initial_x = 0, initial_y = 0;
-        float                   initial_w = 0, initial_h = 0;
-        float                   tx = 0, ty = 0;
+    struct button : public widget {
         //float                   r;
         float                   border_width = 0;
         uint32_t                align = 0;
@@ -21,7 +17,6 @@ namespace ui {
         uint32_t                text_color = 0;
         uint32_t                background_color = 0;
         uint32_t                border_color = 0;
-        uint32_t                flags = wf_visible;
         uint32_t                state = 0;
         int32_t                 level = 0;
         int32_t                 style = 0;

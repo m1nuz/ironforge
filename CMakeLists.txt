@@ -4,8 +4,9 @@ project("ironforge projects")
 
 include(SubdirList.cmake)
 
-set(LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/)
-set(TOOLS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools/)
+set(INCLUDE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/ironforge/include)
+set(LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+set(TOOLS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools)
 
 SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
 

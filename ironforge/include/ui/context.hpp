@@ -7,7 +7,7 @@
 
 namespace ui {
     struct context {
-        //std::priority_queue<command> commands;
         std::list<command> commands;
+        //std::priority_queue<command> commands;
     };
 } // namespace ui

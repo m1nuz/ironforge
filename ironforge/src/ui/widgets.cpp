@@ -30,7 +30,7 @@ namespace ui {
         c.rect = dr;
         c.level = level;
 
-        ctx->commands.push_back(c);
+        append(ctx, c);
     }
 
     auto push(std::unique_ptr<context> &ctx, const draw_line_command &dl, int32_t level) -> void {
@@ -39,7 +39,7 @@ namespace ui {
         c.line = dl;
         c.level = level;
 
-        ctx->commands.push_back(c);
+        append(ctx, c);
     }
 
     auto push(std::unique_ptr<context> &ctx, const draw_text_command &dt, int32_t level) -> void {
@@ -48,7 +48,7 @@ namespace ui {
         c.text = dt;
         c.level = level;
 
-        ctx->commands.push_back(c);
+        append(ctx, c);
     }
 
     auto append(std::unique_ptr<context> &ctx, const command &com) -> void {
@@ -61,7 +61,7 @@ namespace ui {
     static int32_t button_id = 1;
     static int32_t window_id = 1;
 
-    static auto find_widget(const int32_t id) -> button* {
+    static auto find_button(const int32_t id) -> button* {
         auto w = std::find_if(buttons.begin(), buttons.end(), [id](const button &b) {
             return b.id == id;
         });
@@ -73,12 +73,26 @@ namespace ui {
     }
 
     static auto find_window(const int32_t id) -> window* {
-        auto win = std::find_if(windows.begin(), windows.end(), [id](const window &w) {
+        auto w = std::find_if(windows.begin(), windows.end(), [id](const window &w) {
             return w.id == id;
         });
 
-        if (win != windows.end())
-            return &(*win);
+        if (w != windows.end())
+            return &(*w);
+
+        return nullptr;
+    }
+
+    static auto find_widget(const int32_t id) -> widget* {
+        widget *w = find_button(id);
+
+        if (w)
+            return w;
+
+        w = find_window(id);
+
+        if (w)
+            return w;
 
         return nullptr;
     }
@@ -94,8 +108,8 @@ namespace ui {
         b.initial_y = info.y;
         b.initial_w = info.w;
         b.initial_h = info.h;
-        b.tx = info.translate_x;
-        b.ty = info.translate_y;
+        b.translate_x = info.translate_x;
+        b.translate_y = info.translate_y;
         b.border_width = info.border_width;
         b.background_color = info.background_color;
         b.border_color = info.border_color;
@@ -106,6 +120,7 @@ namespace ui {
         b.align = info.align;
         b.level = info.level;
         b.flags = info.flags;
+        b.margins = info.margins;
         b.on_click = info.on_click;
 
         if (buttons.capacity() == 0)
@@ -120,64 +135,68 @@ namespace ui {
         if (!(b.flags & wf_visible))
             return;        
 
-        draw_rect_command dr;
-        dr.color = b.background_color;
-
         uint32_t text_color = 0;
-        if (b.state & ws_pressed)
-        {
-            dr.color = 0xffff00ff;
-            text_color = 0x808080ff;
+        if (!(b.flags & wf_nobackground)) {
+            draw_rect_command dr;
+            dr.color = b.background_color;
+
+            if (b.state & ws_pressed)
+            {
+                dr.color = 0xffff00ff;
+                text_color = 0x808080ff;
+            }
+            else if (b.state & ws_hovered)
+            {
+                dr.color = 0xff0000ff;
+                text_color = 0x222222ff;
+            }
+            else
+            {
+                dr.color = 0x111111ff;
+                text_color = 0xff00ffff;
+            }
+
+            dr.x = b.x;
+            dr.y = b.y;
+            dr.w = b.w;
+            dr.h = b.h;
+
+            push(ctx, dr, b.level);
         }
-        else if (b.state & ws_hovered)
-        {
-            dr.color = 0xff0000ff;
-            text_color = 0x2222222ff;
+
+        if (!(b.flags & wf_noborder)) {
+            draw_line_command dl;
+            dl.color = b.border_color;
+            dl.w = b.border_width;
+
+            dl.x0 = b.x;
+            dl.x1 = b.x + b.w;
+            dl.y0 = b.y;
+            dl.y1 = b.y;
+
+            push(ctx, dl, b.level);
+
+            dl.x0 = b.x;
+            dl.x1 = b.x;
+            dl.y0 = b.y + b.h;
+            dl.y1 = b.y;
+
+            push(ctx, dl, b.level);
+
+            dl.x0 = b.x;
+            dl.x1 = b.x + b.w;
+            dl.y0 = b.y + b.h;
+            dl.y1 = b.y + b.h;
+
+            push(ctx, dl, b.level);
+
+            dl.x0 = b.x + b.w;
+            dl.x1 = b.x + b.w;
+            dl.y0 = b.y + b.h;
+            dl.y1 = b.y;
+
+            push(ctx, dl, b.level);
         }
-        else
-        {
-            dr.color = 0x111111ff;
-            text_color = 0xff00ffff;
-        }
-
-        dr.x = b.x;
-        dr.y = b.y;
-        dr.w = b.w;
-        dr.h = b.h;
-
-        push(ctx, dr, b.level);
-
-        draw_line_command dl;
-        dl.color = b.border_color;
-        dl.w = b.border_width;
-
-        dl.x0 = b.x;
-        dl.x1 = b.x + b.w;
-        dl.y0 = b.y;
-        dl.y1 = b.y;
-
-        push(ctx, dl, b.level);
-
-        dl.x0 = b.x;
-        dl.x1 = b.x;
-        dl.y0 = b.y + b.h;
-        dl.y1 = b.y;
-
-        push(ctx, dl, b.level);
-
-        dl.x0 = b.x;
-        dl.x1 = b.x + b.w;
-        dl.y0 = b.y + b.h;
-        dl.y1 = b.y + b.h;
-
-        push(ctx, dl, b.level);
-
-        dl.x0 = b.x + b.w;
-        dl.x1 = b.x + b.w;
-        dl.y0 = b.y + b.h;
-        dl.y1 = b.y;
-
-        push(ctx, dl, b.level);
 
         if (b.text_size > 0) {
             draw_text_command dt;
@@ -199,46 +218,50 @@ namespace ui {
         if (!(w.flags & wf_visible))
             return;
 
-        draw_rect_command dr;
-        dr.color = w.background_color;
-        dr.x = w.x;
-        dr.y = w.y;
-        dr.w = w.w;
-        dr.h = w.h;
+        if (!(w.flags & wf_nobackground)) {
+            draw_rect_command dr;
+            dr.color = w.background_color;
+            dr.x = w.x;
+            dr.y = w.y;
+            dr.w = w.w;
+            dr.h = w.h;
 
-        push(ctx, dr, w.level);
+            push(ctx, dr, w.level);
+        }
 
-        draw_line_command dl;
-        dl.color = w.border_color;
-        dl.w = w.border_width;
+        if (!(w.flags & wf_noborder)) {
+            draw_line_command dl;
+            dl.color = w.border_color;
+            dl.w = w.border_width;
 
-        dl.x0 = w.x;
-        dl.x1 = w.x + w.w;
-        dl.y0 = w.y;
-        dl.y1 = w.y;
+            dl.x0 = w.x;
+            dl.x1 = w.x + w.w;
+            dl.y0 = w.y;
+            dl.y1 = w.y;
 
-        push(ctx, dl, w.level);
+            push(ctx, dl, w.level);
 
-        dl.x0 = w.x;
-        dl.x1 = w.x;
-        dl.y0 = w.y + w.h;
-        dl.y1 = w.y;
+            dl.x0 = w.x;
+            dl.x1 = w.x;
+            dl.y0 = w.y + w.h;
+            dl.y1 = w.y;
 
-        push(ctx, dl, w.level);
+            push(ctx, dl, w.level);
 
-        dl.x0 = w.x;
-        dl.x1 = w.x + w.w;
-        dl.y0 = w.y + w.h;
-        dl.y1 = w.y + w.h;
+            dl.x0 = w.x;
+            dl.x1 = w.x + w.w;
+            dl.y0 = w.y + w.h;
+            dl.y1 = w.y + w.h;
 
-        push(ctx, dl, w.level);
+            push(ctx, dl, w.level);
 
-        dl.x0 = w.x + w.w;
-        dl.x1 = w.x + w.w;
-        dl.y0 = w.y + w.h;
-        dl.y1 = w.y;
+            dl.x0 = w.x + w.w;
+            dl.x1 = w.x + w.w;
+            dl.y0 = w.y + w.h;
+            dl.y1 = w.y;
 
-        push(ctx, dl, w.level);
+            push(ctx, dl, w.level);
+        }
     }
 
     auto create_label(const label_info &info) -> int32_t {
@@ -359,29 +382,34 @@ namespace ui {
     auto present(std::unique_ptr<context> &ctx, const std::function<void (const command &)> &dispath) -> void {
         for (const auto &wnd : windows) {
             for (size_t i = 0; i < wnd.widgets.size(); i++) {
-                auto w = reinterpret_cast<button *>(wnd.widgets[i]);
+                auto pv = i == 0 ? nullptr : wnd.widgets[i - 1];
+                auto w = wnd.widgets[i];
                 const auto coeff = wnd.grows[i] / wnd.widgets.size();
                 const auto coeff2 = (i == 0 ? 0 : wnd.grows[i - 1] / wnd.widgets.size());
 
                 const auto padding_left = wnd.padding[3] * wnd.w;
-                const auto padding_bottom = wnd.padding[2] * wnd.w * video::screen.aspect;
+                const auto padding_bottom = wnd.padding[2] * wnd.h * video::screen.aspect;
                 const auto padding_right = wnd.padding[1] * wnd.w;
                 const auto padding_top = wnd.padding[0] * wnd.h * video::screen.aspect;
+                const auto margin_left = wnd.w * w->margins[3];
+                const auto margin_bottom = wnd.h * w->margins[2] * video::screen.aspect;
+                const auto margin_right = wnd.w * w->margins[1];
+                const auto margin_top = wnd.h * w->margins[0] * video::screen.aspect;
                 const auto base_x = wnd.x + padding_left;
                 const auto base_y = wnd.y + padding_bottom;
                 const auto base_w = wnd.w - padding_left - padding_right;
                 const auto base_h = wnd.h - padding_top - padding_bottom;
 
                 if (wnd.flags & wf_row) {
-                    w->w = base_w * coeff * w->initial_w;
-                    w->h = base_h * w->initial_h;
-                    w->x = base_x + coeff2 * base_w * i + w->tx * w->initial_w;
-                    w->y = base_y;
+                    w->w = base_w * coeff * w->initial_w - margin_left - margin_right;
+                    w->h = base_h * w->initial_h - margin_bottom - margin_top;
+                    w->x = base_x + coeff2 * base_w * i + w->translate_x * w->initial_w + margin_left;
+                    w->y = base_y + margin_bottom;
                 } else if (wnd.flags & wf_column) {
-                    w->w = base_w * w->initial_w;
-                    w->h = base_h * coeff * w->initial_h;
-                    w->x = base_x;
-                    w->y = base_y + coeff2 * base_h * i + w->ty * w->initial_h;
+                    w->w = base_w * w->initial_w - margin_left - margin_right;
+                    w->h = base_h * coeff * w->initial_h - margin_bottom - margin_top;
+                    w->x = base_x + margin_left;
+                    w->y = base_y + coeff2 * base_h * i + w->translate_y * w->initial_h + margin_bottom;
                 }
             }
         }
@@ -399,8 +427,8 @@ namespace ui {
                     const auto base_y = w->y + padding_bottom;
                     const auto base_w = w->w - padding_left - padding_right;
                     const auto base_h = w->h - padding_top - padding_bottom;
-                    b.x = base_x + b.initial_x * base_w + b.tx * b.w;
-                    b.y = base_y + b.initial_y * base_h + b.ty * b.h;
+                    b.x = base_x + b.initial_x * base_w + b.translate_x * b.w;
+                    b.y = base_y + b.initial_y * base_h + b.translate_y * b.h;
                     b.w = base_w * b.initial_w;
                     b.h = base_h * b.initial_h;
                 }
@@ -413,12 +441,9 @@ namespace ui {
         for (const auto &w : windows)
             push_widget(ctx, w);
 
-        // TODO: sort commands by level
-        while (!ctx->commands.empty()) {
-            ctx->commands.sort([](command &a, command &b) {
-                return a.level < b.level;
-            });
+        ctx->commands.sort();
 
+        while (!ctx->commands.empty()) {
             const auto c = ctx->commands.back();
 
             //application::debug(application::log_category::ui, "% %\n", static_cast<int>(c.type), c.level);

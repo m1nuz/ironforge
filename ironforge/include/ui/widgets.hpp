@@ -61,6 +61,8 @@ namespace ui {
         int32_t                 level = 0;
         int32_t                 style;
 
+        std::array<float, 4>    margins = {{0, 0, 0, 0}};
+
         std::function<void (int32_t)> on_click;
     };
 
@@ -96,7 +98,7 @@ namespace ui {
         int32_t                 level = 0;
         int32_t                 style;
 
-        std::array<float, 4>    padding;
+        std::array<float, 4>    padding = {{0, 0, 0, 0}};
 
         std::function<void (int32_t)> on_click;
         std::function<void (int32_t)> on_hover;

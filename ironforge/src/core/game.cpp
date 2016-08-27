@@ -100,6 +100,7 @@ namespace game {
         bi.background_color = 0x111111ff;
         bi.border_color = 0x00ffffff;
         bi.level = 0;
+        bi.margins = {0.025, 0.025, 0.025, 0.025};
         bi.on_click = [](int32_t id) {
             application::info(application::log_category::game, "Click %\n", id);
         };
@@ -127,7 +128,7 @@ namespace game {
         wi.border_color = 0x00ffffff;
         wi.level = 1;
         wi.flags = ui::wf_visible | ui::wf_movable | ui::wf_flexible | ui::wf_column;
-        wi.padding = {0.1, 0.1, 0.1, 0.1};
+        wi.padding = {0.025, 0.025, 0.025, 0.025};
         auto wnd = ui::create_window(wi);
         ui::window_append(wnd, btn1);
         ui::window_append(wnd, btn2);
