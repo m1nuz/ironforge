@@ -6,6 +6,7 @@
 #include <video/video.hpp>
 #include <core/application.hpp>
 #include <core/settings.hpp>
+#include <core/assets.hpp>
 #include <core/game.hpp>
 #include <renderer/renderer.hpp>
 #include <scene/scene.hpp>
@@ -82,9 +83,15 @@ namespace game {
         if (scenes.empty())
             application::warning(application::log_category::game, "%\n", "No scene loaded");
 
+
+        auto controller_db = assets::get_text("gamecontrollerdb.txt");
+        auto rw = SDL_RWFromMem(controller_db.text, controller_db.size);
+
+        if (SDL_GameControllerAddMappingsFromRW(rw, 1) == -1)
+            application::error(application::log_category::input, "%\n", SDL_GetError());
+
         uis = ui::create_context();
-        uis->commands.size();
-        ui::button_info bi;
+        /*ui::button_info bi;
         bi.w = 1.0;
         bi.h = 1.0;
         bi.x = 0.0;
@@ -132,7 +139,7 @@ namespace game {
         auto wnd = ui::create_window(wi);
         ui::window_append(wnd, btn1);
         ui::window_append(wnd, btn2);
-        ui::window_append(wnd, btn3);
+        ui::window_append(wnd, btn3);*/
 
         return result::success;
     }
@@ -148,11 +155,74 @@ namespace game {
         video::cleanup();
     }
 
+    static auto joystick_info(SDL_Joystick *joystick) -> void {
+        char guid[64];
+        SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guid, sizeof (guid));
+        application::info(application::log_category::input, "          name: %\n", SDL_JoystickName(joystick));
+        application::info(application::log_category::input, "          axes: %\n", SDL_JoystickNumAxes(joystick));
+        application::info(application::log_category::input, "         balls: %\n", SDL_JoystickNumBalls(joystick));
+        application::info(application::log_category::input, "          hats: %\n", SDL_JoystickNumHats(joystick));
+        application::info(application::log_category::input, "       buttons: %\n", SDL_JoystickNumButtons(joystick));
+        application::info(application::log_category::input, "   instance id: %\n", SDL_JoystickInstanceID(joystick));
+        application::info(application::log_category::input, "          guid: %\n", guid);
+        application::info(application::log_category::input, "gamecontroller: %\n", SDL_IsGameController(SDL_JoystickInstanceID(joystick)) ? "yes" : "no");
+    }
+
+    static auto controller_append(int dev) -> bool {
+        if (SDL_IsGameController(dev)) {
+
+            auto controller = SDL_GameControllerOpen(dev);
+            if (!controller) {
+                application::error(application::log_category::input, "Couldn't open controller %: %\n", dev, SDL_GetError());
+                return false;
+            }
+
+            application::info(application::log_category::input, "Controller % opened\n", dev);
+
+            joystick_info(SDL_GameControllerGetJoystick(controller));
+
+            return true;
+        }
+
+        const char *name = SDL_JoystickNameForIndex(dev);
+        application::warning(application::log_category::input, "Unknown controller %s\n", name ? name : "Unknown joystick");
+
+        SDL_Joystick *joystick = SDL_JoystickOpen(dev);
+        if (!joystick) {
+            fprintf(stderr, "SDL_JoystickOpen(%d) failed: %s\n", dev, SDL_GetError());
+            return false;
+        }
+
+        joystick_info(joystick);
+        SDL_JoystickClose(joystick);
+
+        return true;
+    }
+
     auto process_event(const SDL_Event &e) -> void {
         if (e.type == SDL_KEYDOWN)
             if (e.key.keysym.sym == SDLK_ESCAPE) {
                 application::quit();
             }
+
+        switch (e.type) {
+        case SDL_JOYDEVICEADDED:
+            if (controller_append(e.jdevice.which))
+                application::info(application::log_category::input, "Joystick device % added.\n", e.jdevice.which);
+            break;
+        case SDL_JOYDEVICEREMOVED:
+            application::info(application::log_category::input, "Joystick device % removed.\n", e.jdevice.which);
+            break;
+        case SDL_CONTROLLERDEVICEADDED:
+            application::info(application::log_category::input, "Controller device % added.\n", e.cdevice.which);
+            break;
+        case SDL_CONTROLLERDEVICEREMOVED:
+            application::info(application::log_category::input, "Controller device % added.\n", e.cdevice.which);
+            break;
+        case SDL_CONTROLLERDEVICEREMAPPED:
+            application::info(application::log_category::input, "Controller device % mapped.\n", e.cdevice.which);
+            break;
+        }
 
         ui::process_event(uis, e);
         scene::process_event(get_current(), e);
@@ -161,20 +231,12 @@ namespace game {
     auto update(float dt) -> void {
         scene::update(get_current(), dt);
         video::process();
+
+        SDL_JoystickUpdate();
+        SDL_GameControllerUpdate();
     }
 
     auto present(float interpolation) -> void {
-        /*ui::command c;
-        c.type = ui::command_type::line;
-        c.line.color = 0xff0000ff;
-        c.line.w = 0.01;
-        c.line.x0 = 0;
-        c.line.y0 = 0;
-        c.line.x1 = 0.5;
-        c.line.y1 = 0.5;
-
-        ui::append(uis, c);*/
-
         using std::placeholders::_1;
         ui::present(uis, std::bind(&renderer::instance::dispath, render.get(), _1));
         scene::present(get_current(), render, interpolation);

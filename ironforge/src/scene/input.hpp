@@ -11,8 +11,11 @@ namespace scene {
     struct input_action {
         std::string                 key_down;
         std::string                 key_up;
+        std::string                 caxis_motion;
 
         SDL_Keycode                 key;
+        SDL_GameControllerButton    cbutton;
+        SDL_GameControllerAxis      caxis;
     };
 
     struct input_source {

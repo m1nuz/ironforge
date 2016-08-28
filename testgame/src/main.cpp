@@ -2,15 +2,11 @@
 #include <ui/ui.hpp>
 #include "config.hpp"
 
-#include <SDL2/SDL.h>
-
 extern int main(int argc, char* argv[]) {
     (void)argc;
     (void)argv;
 
-    //test();
-
-    std::string base_path = SDL_GetBasePath();
+    std::string base_path = application::get_base_path();
 
     application::info(application::log_category::application, "BasePath %\n", base_path);
 
@@ -23,6 +19,11 @@ extern int main(int argc, char* argv[]) {
     }
 
     if ((asset_result = assets::open(base_path + "../../assets/forge")) != assets::result::success) {
+        application::error(application::log_category::application, "%\n", "Can't open asset");
+        return EXIT_FAILURE;
+    }
+
+    if ((asset_result = assets::open(base_path + "../../assets/test")) != assets::result::success) {
         application::error(application::log_category::application, "%\n", "Can't open asset");
         return EXIT_FAILURE;
     }

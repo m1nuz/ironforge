@@ -50,6 +50,7 @@ namespace application {
     auto quit() -> void;
     auto cleanup() -> void;
     auto get_string(result r) -> const char *;
+    auto get_base_path() -> const std::string&;
 
     extern log_priority categories[static_cast<int>(log_category::max_category)];
     extern const char *category_names[static_cast<int>(log_category::max_category)];

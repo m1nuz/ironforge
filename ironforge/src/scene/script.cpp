@@ -8,7 +8,58 @@
 
 namespace scene {
     static std::vector<script_instance> scripts;
-    static lua_State *lua_state;
+    lua_State *lua_state;
+
+    inline void push() {
+    }
+
+    inline void push(const int value) {
+        lua_pushinteger(lua_state, value);
+    }
+
+    inline void push(const double value) {
+        lua_pushnumber(lua_state, value);
+    }
+
+    inline void push(const float value) {
+        lua_pushnumber(lua_state, value);
+    }
+
+    template <typename T, typename... Ts>
+    inline void push(const T&& value, const Ts&&... values) {
+        push(value);
+        push(values...);
+    }
+
+    template<typename Arg, typename... Args>
+    auto call_with_args(const script_instance *sc, const char *fn_name,  Arg&& arg, Args&&... args) -> int32_t {
+        const int num_args = sizeof...(Args);
+
+        lua_State *L = lua_state;
+
+        lua_getglobal(L, sc->table.c_str());
+
+        if (lua_type(L, -1) != LUA_TTABLE) {
+            application::error(application::log_category::scene, "% not found\n", sc->table.c_str());
+            return -1;
+        }
+
+        lua_getfield(L, -1, fn_name);
+
+        if (lua_type(L, -1) == LUA_TFUNCTION) {
+            lua_pushvalue(L, -2);
+            lua_pushinteger(L, sc->entity);
+
+            push(arg, std::forward<Args>(args)...);
+
+            if (lua_pcall(L, num_args + 3, 0, 0) != 0) {
+                application::error(application::log_category::scene, "call function '%' : %\n", "_init", lua_tostring(L, -1));
+                return -1;
+            }
+        }
+
+        return 0;
+    }
 
     auto call_fn(const script_instance *sc, const char *fn_name) -> int32_t {
         lua_State *L = lua_state;
@@ -115,4 +166,7 @@ namespace scene {
 
         return true;
     }
+
+    template auto call_with_args<int>(const script_instance *, const char *, int&&) -> int32_t;
+    template auto call_with_args<float>(const script_instance *, const char *, float&&) -> int32_t;
 } // namespace

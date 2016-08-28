@@ -514,6 +514,20 @@ namespace scene {
                 auto key = json_object_get(action, "key");
                 if (json_is_string(key))
                     input_actions[i].key = SDL_GetKeyFromName(json_string_value(key));
+                else
+                    input_actions[i].key = SDLK_UNKNOWN;
+
+                auto cbutton = json_object_get(action, "cbutton");
+                if (json_is_string(cbutton))
+                    input_actions[i].cbutton = SDL_GameControllerGetButtonFromString(json_string_value(cbutton));
+                else
+                    input_actions[i].cbutton = SDL_CONTROLLER_BUTTON_INVALID;
+
+                auto caxis = json_object_get(action, "caxis");
+                if (json_is_string(caxis))
+                    input_actions[i].caxis = SDL_GameControllerGetAxisFromString(json_string_value(caxis));
+                else
+                    input_actions[i].caxis = SDL_CONTROLLER_AXIS_INVALID;
 
                 auto on_keydown = json_object_get(action, "on_keydown");
                 if (json_is_string(on_keydown))
@@ -522,6 +536,10 @@ namespace scene {
                 auto on_keyup = json_object_get(action, "on_keyup");
                 if (json_is_string(on_keyup))
                     input_actions[i].key_up = json_string_value(on_keyup);
+
+                auto on_cmotion = json_object_get(action, "cmotion");
+                if (json_is_string(on_cmotion))
+                    input_actions[i].caxis_motion = json_string_value(on_cmotion);
 
                 application::debug(application::log_category::game, "Input '%' % %\n", json_string_value(name), json_string_value(on_keydown), json_string_value(on_keyup));
             }

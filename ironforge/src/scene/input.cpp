@@ -63,8 +63,25 @@ namespace scene {
                             call_fn(s->get_script(input.entity), action.key_up.c_str());
             break;
         case SDL_CONTROLLERBUTTONDOWN:
+            for (const auto &input : inputs)
+                for(const auto &action : input.source->actions)
+                    if (e.cbutton.button == action.cbutton)
+                        if (!action.key_down.empty())
+                            call_fn(s->get_script(input.entity), action.key_down.c_str());
             break;
         case SDL_CONTROLLERBUTTONUP:
+            for (const auto &input : inputs)
+                for(const auto &action : input.source->actions)
+                    if (e.cbutton.button == action.cbutton)
+                        if (!action.key_up.empty())
+                            call_fn(s->get_script(input.entity), action.key_up.c_str());
+            break;
+        case SDL_CONTROLLERAXISMOTION:
+            for (const auto &input : inputs)
+                for(const auto &action : input.source->actions)
+                    if (e.caxis.axis == action.caxis)
+                        if (!action.caxis_motion.empty())
+                            call_with_args(s->get_script(input.entity), action.caxis_motion.c_str(), (float)e.caxis.value / INT16_MAX);
             break;
         }
     }

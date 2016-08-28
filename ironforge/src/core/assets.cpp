@@ -13,6 +13,7 @@ namespace assets {
         text_readers.emplace_back(".glsl", read_shader_text);
         text_readers.emplace_back(".lua", read_text);
         text_readers.emplace_back(".scene", read_text);
+        text_readers.emplace_back(".txt", read_text);
         image_readers.emplace_back(".tga", read_targa);
         binary_readers.emplace_back(".ttf", read_binary);
         //binary_readers.emplace_back(".*", read_binary);
