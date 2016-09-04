@@ -59,7 +59,7 @@ namespace game {
         bool vsync = application::bool_value("video_vsync", false);
 
         auto video_result = video::result::failure;
-        if ((video_result = video::init(title, w, h, fullscreen, vsync)) != video::result::success) {
+        if ((video_result = video::init(title, w, h, fullscreen, vsync, true)) != video::result::success) {
             application::error(application::log_category::video, "%\n", video::get_string(video_result));
 
             return game::result::error_init_video;

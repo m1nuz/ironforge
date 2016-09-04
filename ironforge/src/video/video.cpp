@@ -1,6 +1,5 @@
 #include <SDL2/SDL_video.h>
 #include <glcore_330.h>
-#include <sstream>
 #include <core/application.hpp>
 #include <video/video.hpp>
 
@@ -14,58 +13,10 @@ namespace video {
 
     static SDL_Window *window;
     static SDL_GLContext context;
-    static bool debug = true;
 
-    static void APIENTRY debug_output(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
-        (void)source, (void)type, (void)id, (void)severity, (void)length, (void)userParam;
-        /*auto type_name = static_cast<const char*>(nullptr);
-        switch (type) {
-        case GL_DEBUG_TYPE_ERROR:
-            type_name = "ERROR";
-            break;
-        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-            type_name = "DEPRECATED_BEHAVIOR";
-            break;
-        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-            type_name = "UNDEFINED_BEHAVIOR";
-            break;
-        case GL_DEBUG_TYPE_PORTABILITY:
-            type_name = "PORTABILITY";
-            break;
-        case GL_DEBUG_TYPE_PERFORMANCE:
-            type_name = "PERFORMANCE";
-            break;
-        case GL_DEBUG_TYPE_OTHER:
-            type_name = "OTHER";
-            break;
-        }*/
+    auto setup_debug() -> void;
 
-        application::error(application::log_category::video, "%\n", message);
-    }
-
-    static auto enable_debug() -> void {
-        auto glDebugMessageCallback = static_cast<PFNGLDEBUGMESSAGECALLBACKPROC>(nullptr);
-
-        auto ARB_debug_output = is_extension_supported("GL_ARB_debug_output");
-        auto KHR_debug = is_extension_supported("GL_KHR_debug");
-        auto debug_output_synchronous = static_cast<GLenum>(0);
-
-        if (ARB_debug_output) {
-            glDebugMessageCallback = reinterpret_cast<PFNGLDEBUGMESSAGECALLBACKPROC>(nativeGetProcAddress("glDebugMessageCallbackARB"));
-            debug_output_synchronous = GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB;
-        } else if (KHR_debug) {
-            glDebugMessageCallback = reinterpret_cast<PFNGLDEBUGMESSAGECALLBACKPROC>(nativeGetProcAddress("glDebugMessageCallback"));
-            debug_output_synchronous = GL_DEBUG_OUTPUT_SYNCHRONOUS;
-        }
-
-        if (glDebugMessageCallback) {
-            glDebugMessageCallback(debug_output, nullptr);
-            glEnable(GL_DEBUG_OUTPUT);
-            glEnable(debug_output_synchronous);
-        }
-    }
-
-    auto init(const std::string &title, int32_t w, int32_t h, bool fullscreen, bool vsync) -> result {
+    auto init(const std::string &title, int32_t w, int32_t h, bool fullscreen, bool vsync, bool debug) -> result {
         auto flags = static_cast<uint32_t>(SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
         if (fullscreen)
@@ -121,7 +72,7 @@ namespace video {
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
         if (debug)
-            enable_debug();
+            setup_debug();
 
         // get constants
         glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &max_uniform_components);
@@ -189,57 +140,5 @@ namespace video {
         }
 
         return nullptr;
-    }
-
-    auto is_extension_supported(const char *extension) -> bool {
-#ifdef GL_VERSION_3_0
-        if (glGetStringi == NULL) {
-            if (strstr((const char *)glGetString(GL_EXTENSIONS), extension) != NULL)
-                return true;
-
-            return false;
-        }
-
-        auto num_extensions = 0;
-        glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-
-        for (auto i = 0; i < num_extensions; i++)
-            if (strcmp((const char *)glGetStringi(GL_EXTENSIONS, i), extension) == 0)
-                return true;
-#else
-        if (strstr((const char *)glGetString(GL_EXTENSIONS), extension) != NULL)
-            return true;
-#endif
-        return false;
-    }
-
-    auto get_info() -> const char * {
-        static auto vendor = static_cast<const GLubyte *>(nullptr);
-        static auto renderer = static_cast<const GLubyte *>(nullptr);
-        static auto version = static_cast<const GLubyte *>(nullptr);
-        static auto shading_language_version = static_cast<const GLubyte *>(nullptr);
-        static std::string info;
-
-        if (!vendor || !renderer || !version || !shading_language_version) {
-            vendor = glGetString(GL_VENDOR);
-            renderer = glGetString(GL_RENDERER);
-            version = glGetString(GL_VERSION);
-            shading_language_version = glGetString(GL_SHADING_LANGUAGE_VERSION);
-
-            std::stringstream s;
-            s << std::endl
-              << "\tVendor: " << vendor << std::endl
-              << "\tRender: " << renderer << std::endl
-              << "\tVersion: " << version << std::endl
-              << "\tShading language version: " << shading_language_version;
-
-            info = s.str();
-        }
-
-        return info.c_str();
-    }
-
-    auto is_debugging() -> bool {
-        return debug;
     }
 } // namespace video

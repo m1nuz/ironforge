@@ -31,7 +31,7 @@ namespace video {
             GLint status = 0;
             glGetShaderiv(sh.id, GL_COMPILE_STATUS, &status);
 
-            if (!status && !video::is_debugging()) {
+            if (!status) {
                 GLint lenght = 0;
                 glGetShaderiv(sh.id, GL_INFO_LOG_LENGTH, &lenght);
 
