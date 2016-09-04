@@ -62,6 +62,9 @@ namespace scene {
     }
 
     auto call_fn(const script_instance *sc, const char *fn_name) -> int32_t {
+        if (!sc)
+            return -1;
+
         lua_State *L = lua_state;
 
         lua_getglobal(L, sc->table.c_str());
@@ -113,13 +116,19 @@ namespace scene {
             lua_close(lua_state);
     }
 
+    auto update_all_scripts(const float dt) -> void {
+        for (const auto &s : scripts)
+            if (s.flags & static_cast<uint32_t>(entity_flags::call_update))
+                call_with_args(&s, "_update", dt);
+    }
+
     static void
     lua_clear_stack(lua_State *L) {
         int n = lua_gettop(L);
         lua_pop(L, n);
     }
 
-    auto create_script(int32_t entity, const script_info &info) -> script_instance* {
+    auto create_script(int32_t entity, const script_info &info, uint32_t flags) -> script_instance* {
         application::debug(application::log_category::scene, "Create script %\n", info.name);
 
         auto td = assets::get_text(info.name);
@@ -145,7 +154,10 @@ namespace scene {
 
         lua_clear_stack(L);
 
-        scripts.push_back({info.name, info.source, info.table_name, entity});
+        scripts.push_back({info.name, info.source, info.table_name, entity, flags});
+
+        if (flags & static_cast<uint32_t>(entity_flags::call_init))
+            call_fn(&scripts.back(), "_init");
 
         return &scripts.back();
     }

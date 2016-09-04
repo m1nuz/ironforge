@@ -36,7 +36,7 @@ namespace game {
         });
 
         if (s == scenes.end() && scenes.empty()) {
-            scenes.push_back(scene::empty());
+            scenes.push_back(scene::empty(static_cast<uint32_t>(scene::state_flags::current)));
             return scenes.back();
         }
 

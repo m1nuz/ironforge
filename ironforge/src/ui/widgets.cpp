@@ -73,12 +73,12 @@ namespace ui {
     }
 
     static auto find_window(const int32_t id) -> window* {
-        auto w = std::find_if(windows.begin(), windows.end(), [id](const window &w) {
+        auto ws = std::find_if(windows.begin(), windows.end(), [id](const window &w) {
             return w.id == id;
         });
 
-        if (w != windows.end())
-            return &(*w);
+        if (ws != windows.end())
+            return &(*ws);
 
         return nullptr;
     }

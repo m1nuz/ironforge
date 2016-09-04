@@ -98,21 +98,20 @@ namespace scene {
                 materials.push_back(nullptr);
                 inputs.push_back(nullptr);
                 models.push_back(nullptr);
-                scripts.push_back(nullptr);
                 ambient_lights.push_back(nullptr);
                 directional_lights.push_back(nullptr);
                 point_lights.push_back(nullptr);
                 names.push_back(info.name);
                 name_hashes.push_back(hash);
                 flags.push_back(info.flags);
+                scripts.push_back(info.script ? create_script(eid, *info.script, info.flags) : nullptr);
             } else {
                 bodies.push_back(info.body ? create_body(*info.body) : nullptr);
                 transforms.push_back(info.flags & static_cast<uint32_t>(entity_flags::renderable) ? create_transform(eid, info.parent) : nullptr);
                 cameras.push_back(info.camera ? create_camera(eid, *info.camera) : nullptr);
                 materials.push_back(info.material ? find_material(info.material) : nullptr);
                 inputs.push_back(info.input ? create_input(eid, find_input_source(info.input)) : nullptr);
-                models.push_back(info.model ? find_model(info.model) : nullptr);
-                scripts.push_back(info.script ? create_script(eid, *info.script) : nullptr);
+                models.push_back(info.model ? find_model(info.model) : nullptr);                
 
                 auto any_light = info.light ? create_light(eid, *info.light) : std::make_pair(light_type::unknown, nullptr);
                 switch (any_light.first) {
@@ -141,14 +140,18 @@ namespace scene {
                 names.push_back(info.name);
                 name_hashes.push_back(hash);
                 flags.push_back(info.flags);
-            }
-
-            if (scripts[eid])
-                call_fn(scripts[eid], "_init");
+                scripts.push_back(info.script ? create_script(eid, *info.script, info.flags) : nullptr);
+            }            
 
             // TODO: check if all vectors is same size
 
-            return 0;
+            return eid;
+        }
+
+        virtual auto remove_entity(const int32_t id) -> bool {
+            UNUSED(id);
+            // TODO: implement
+            return false;
         }
 
         virtual auto get_entity(const std::string &_name) -> int32_t {
@@ -282,11 +285,6 @@ namespace scene {
         auto t = assets::get_text(_name);
 
         std::unique_ptr<instance> this_scene{new simple_instance(_name, flags)};
-        entity_info root_info;
-        root_info.flags = static_cast<uint32_t>(entity_flags::root);
-        root_info.name = "root";
-        root_info.parent = 0;
-        this_scene->create_entity(root_info);
 
         // TODO: make error when t.text == null
 
@@ -299,6 +297,35 @@ namespace scene {
 
         auto scene_version = json_object_get(root, "version");
         json_error_if(scene_version, !json_is_string, -1, root, "%\n", "scene version is not a string");
+
+        // main script
+        std::unique_ptr<script_info> main_si;
+        auto main_script = json_object_get(root, "main_script");
+        if (json_is_object(main_script)) {
+            main_si.reset(new script_info);
+
+            auto script_name = json_object_get(main_script, "name");
+            json_error_if(script_name, !json_is_string, -1, root, "%s\n", "name is not string");
+
+            auto source = json_object_get(main_script, "source");
+            json_error_if(source, !json_is_string, -1, root, "%s\n", "source is not string");
+
+            auto class_name = json_object_get(main_script, "class");
+            json_error_if(class_name, !json_is_string, -1, root, "%s\n", "class is not string");
+
+            main_si->name = json_string_value(script_name);
+            main_si->source = json_string_value(source);
+            main_si->table_name = json_string_value(class_name);
+        }
+
+        // create root object
+        entity_info root_info;
+        root_info.flags |= static_cast<uint32_t>(entity_flags::root);
+        root_info.name = "root";
+        root_info.parent = 0;
+        if (main_si)
+            root_info.script = main_si.get();
+        this_scene->create_entity(root_info);
 
         // read effects
         auto effects = json_object_get(root, "effects");
@@ -540,9 +567,9 @@ namespace scene {
                 auto on_cmotion = json_object_get(action, "cmotion");
                 if (json_is_string(on_cmotion))
                     input_actions[i].caxis_motion = json_string_value(on_cmotion);
-
-                application::debug(application::log_category::game, "Input '%' % %\n", json_string_value(name), json_string_value(on_keydown), json_string_value(on_keyup));
             }
+
+            application::debug(application::log_category::game, "Input '%'\n", json_string_value(name));
 
             create_input_source(json_string_value(name), input_actions);
         }
@@ -721,6 +748,7 @@ namespace scene {
         UNUSED(s);
         physics::integrate_all(dt);
         scene::update_all_timers(dt);
+        scene::update_all_scripts(dt);
     }
 
     auto process_event(std::unique_ptr<instance> &s, const SDL_Event &event) -> void {

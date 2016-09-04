@@ -61,6 +61,7 @@ namespace scene {
         virtual ~instance();
 
         virtual auto create_entity(const entity_info &info) -> int32_t = 0;
+        virtual auto remove_entity(const int32_t id) -> bool = 0;
         virtual auto get_entity(const std::string &_name) -> int32_t = 0;
         virtual auto get_entity_num() -> size_t = 0;
 
@@ -82,12 +83,30 @@ namespace scene {
     };
 
     enum class entity_flags : uint32_t {
+        none            = 0x00000000,
         root            = 0x00000001,
         camera          = 0x00000002,
         current_camera  = 0x00000004,
         renderable      = 0x00000008,
-        visible         = 0x00000010
+        visible         = 0x00000010,
+        call_init       = 0x00001000,
+        call_done       = 0x00002000,
+        call_update     = 0x00004000
     };
+
+    inline entity_flags operator |(entity_flags a, entity_flags b) {
+        return static_cast<entity_flags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    }
+
+    /*inline entity_flags operator &(entity_flags a, entity_flags b)
+    {
+        return static_cast<entity_flags>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+    }
+
+    inline entity_flags& operator |=(entity_flags& a, entity_flags b)
+    {
+        return a= a |b;
+    }*/
 
     struct entity_info {
         const char          *name = nullptr;
@@ -100,7 +119,7 @@ namespace scene {
         emitter_info        *emitter = nullptr;
         camera_info         *camera = nullptr;
         int32_t             parent = 0;
-        uint32_t            flags = 0;
+        uint32_t            flags = static_cast<uint32_t>(entity_flags::call_init | entity_flags::call_done);
     };
 
     auto init_all() -> void;
