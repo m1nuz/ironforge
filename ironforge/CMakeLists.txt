@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project("ironforge")
 
+find_package(Lua REQUIRED)
+
 set(cpp_flags "-pedantic -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -Wunused-result")
 
 subdirlist(subdirs ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -11,6 +13,3 @@ foreach(subdir ${subdirs})
 endforeach()
 
 set(audio_lib "ironforge-audio-al")
-
-add_library(lua STATIC IMPORTED)
-set_property(TARGET lua PROPERTY IMPORTED_LOCATION -usr/local/lib/liblua.a)
