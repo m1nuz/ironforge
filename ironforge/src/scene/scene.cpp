@@ -775,7 +775,25 @@ namespace scene {
                 }
         });
 
+        static video::frame_stats stats;
+
+        ui::command dt;
+        dt.level = 0;
+        dt.type = ui::command_type::text;
+        dt.text.align = 0;
+        dt.text.w = video::screen.width;
+        dt.text.h = video::screen.height;
+        dt.text.color = 0xffff00ff;
+        dt.text.font = 0;
+        dt.text.x = -0.98;
+        dt.text.y = 0.92;
+        dt.text.text = stats.info;
+        dt.text.size = strlen(stats.info);
+
+        video::begin(stats);
+        render->dispath(dt);
         render->present(scn->get_current_camera()->projection, scn->get_current_camera()->view);
+        video::end(stats);
     }
 } // namespace scene
 
