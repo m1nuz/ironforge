@@ -2,6 +2,7 @@
 #include <core/application.hpp>
 #include <video/video.hpp>
 #include <video/command_buffer.hpp>
+#include <video/stats.hpp>
 
 namespace video {
     namespace gl330 {
@@ -91,25 +92,37 @@ namespace video {
                 glViewport(c._viewport.x, c._viewport.y, c._viewport.w, c._viewport.h);
                 break;
             case command_type::draw_arrays:
+                stats_inc_dips();
+                stats_add_tris(c._draw_arrays.count);
                 glDrawArrays(c._draw_arrays.mode, c._draw_arrays.first, c._draw_arrays.count);
                 break;
             case command_type::draw_arrays_instanced:
+                stats_inc_dips();
+                stats_add_tris(c._draw_arrays.count * c._draw_arrays.primcount);
                 glDrawArraysInstanced(c._draw_arrays.mode, c._draw_arrays.first, c._draw_arrays.count, c._draw_arrays.primcount);
                 break;
             case command_type::draw_elements:
                 // TODO: use glDrawElementsBaseVertex
+                stats_inc_dips();
+                stats_add_tris(c._draw_elements.count);
                 glDrawElementsBaseVertex(c._draw_elements.mode, c._draw_elements.count, GL_UNSIGNED_SHORT, nullptr, c._draw_elements.base_vertex);
                 break;
             case command_type::draw_elements_instanced:
+                stats_inc_dips();
+                stats_add_tris(c._draw_elements.count * c._draw_elements.primcount);
                 glDrawElementsInstancedBaseVertex(c._draw_elements.mode, c._draw_elements.count, GL_UNSIGNED_SHORT, nullptr, c._draw_elements.primcount, c._draw_elements.base_vertex);
                 break;
             case command_type::bind_framebuffer:
                 glBindFramebuffer(GL_FRAMEBUFFER, c._bind_framebuffer.id);
                 break;
             case command_type::bind_program:
+                stats_inc_prg_bindings();
+
                 glUseProgram(c._bind_program.pid);
                 break;
             case command_type::bind_texture:
+                stats_inc_tex_bindings();
+
                 glActiveTexture(GL_TEXTURE0 + c._bind_texture.unit);
                 glBindTexture(c._bind_texture.target, c._bind_texture.texture);
 

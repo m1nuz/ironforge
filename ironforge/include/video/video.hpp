@@ -23,6 +23,7 @@
 #include <video/framebuffer.hpp>
 #include <video/state.hpp>
 #include <video/framerate.hpp>
+#include <video/stats.hpp>
 
 namespace video {
     /* specific gl APIs */

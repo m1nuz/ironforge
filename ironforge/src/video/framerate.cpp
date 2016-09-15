@@ -9,6 +9,7 @@ namespace video {
         stats.min_framerate = 0;
         stats.time_value = 0;
         stats.counter = 0;
+        stats.info_size = 0;
     }
 
     auto begin(frame_stats& stats) -> void {
@@ -33,9 +34,9 @@ namespace video {
             stats.accumulator = 0;
             stats.counter = 0;
 
-            snprintf(stats.info, sizeof(stats.info), "fps %d\nmin %d\nmax %d\navg %d\ntm %lfms",
-                     stats.framerate, stats.min_framerate, stats.max_framerate,
-                     (stats.min_framerate + stats.max_framerate) / 2, stats.time_value * 1000.0);
+            stats.info_size = snprintf(stats.info, sizeof(stats.info), "fps %d\nmin %d\nmax %d\navg %d\ntm %lfms",
+                                       stats.framerate, stats.min_framerate, stats.max_framerate,
+                                       (stats.min_framerate + stats.max_framerate) / 2, stats.time_value * 1000.0);
         }
     }
 } // namespace video

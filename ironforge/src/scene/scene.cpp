@@ -749,6 +749,8 @@ namespace scene {
         physics::integrate_all(dt);
         scene::update_all_timers(dt);
         scene::update_all_scripts(dt);
+
+        video::stats_update(dt);
     }
 
     auto process_event(std::unique_ptr<instance> &s, const SDL_Event &event) -> void {
@@ -783,15 +785,22 @@ namespace scene {
         dt.text.align = 0;
         dt.text.w = video::screen.width;
         dt.text.h = video::screen.height;
-        dt.text.color = 0xffff00ff;
+        dt.text.color = 0x1f1f1fff;
         dt.text.font = 0;
         dt.text.x = -0.98;
         dt.text.y = 0.92;
         dt.text.text = stats.info;
-        dt.text.size = strlen(stats.info);
+        dt.text.size = stats.info_size;
 
+        ui::command dt2 = dt;
+        dt2.text.y = 0.4;
+        dt2.text.text = video::video_stats.info;
+        dt2.text.size = video::video_stats.info_size;
+
+        video::stats_clear();
         video::begin(stats);
         render->dispath(dt);
+        render->dispath(dt2);
         render->present(scn->get_current_camera()->projection, scn->get_current_camera()->view);
         video::end(stats);
     }

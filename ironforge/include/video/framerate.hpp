@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 namespace video {
     struct frame_stats {
@@ -13,6 +14,7 @@ namespace video {
         int      max_framerate;
         int      min_framerate;
         char     info[80];
+        size_t   info_size;
     };
 
     auto reset(frame_stats& stats) -> void;
