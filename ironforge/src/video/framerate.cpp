@@ -34,7 +34,7 @@ namespace video {
             stats.accumulator = 0;
             stats.counter = 0;
 
-            stats.info_size = snprintf(stats.info, sizeof(stats.info), "fps %d\nmin %d\nmax %d\navg %d\ntm %lfms",
+            stats.info_size = snprintf(stats.info, sizeof(stats.info), "fps %d\nmin %d\nmax %d\navg %d\nftm %lfms",
                                        stats.framerate, stats.min_framerate, stats.max_framerate,
                                        (stats.min_framerate + stats.max_framerate) / 2, stats.time_value * 1000.0);
         }

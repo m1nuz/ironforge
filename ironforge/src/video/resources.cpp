@@ -302,7 +302,7 @@ namespace video {
         memset(&eb, 0, sizeof eb);
         if (index_data)
         {
-            auto eb = gl::create_buffer(gl::buffer_target::element_array, indices_data_size, index_data, gl::buffer_usage::static_draw);
+            eb = gl::create_buffer(gl::buffer_target::element_array, indices_data_size, index_data, gl::buffer_usage::static_draw);
             buffers.push_back({eb, 0, utils::xxhash64(index_data, indices_data_size)});
         }
 

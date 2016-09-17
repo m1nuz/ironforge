@@ -1,6 +1,7 @@
 #include <ironforge_common.hpp>
 #include <core/application.hpp>
 #include <scene/scene.hpp>
+#include <scene/instance.hpp>
 
 #include "transform.hpp"
 #include "physics.hpp"

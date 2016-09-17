@@ -10,6 +10,7 @@
 #include <core/game.hpp>
 #include <renderer/renderer.hpp>
 #include <scene/scene.hpp>
+#include <scene/instance.hpp>
 #include <ui/ui.hpp>
 
 // FIXME: remove this

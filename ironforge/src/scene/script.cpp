@@ -1,6 +1,7 @@
 #include <core/application.hpp>
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
+#include <scene/entity.hpp>
 #include <lua.hpp>
 
 #include "script.hpp"

@@ -1,6 +1,7 @@
 #include <core/application.hpp>
 #include <video/video.hpp>
 #include <scene/scene.hpp>
+#include <scene/instance.hpp>
 #include "camera.hpp"
 #include "physics.hpp"
 

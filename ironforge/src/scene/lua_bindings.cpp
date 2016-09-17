@@ -1,4 +1,5 @@
 #include <scene/scene.hpp>
+#include <scene/instance.hpp>
 #include <core/game.hpp>
 #include "physics.hpp"
 #include "lua_bindings.hpp"

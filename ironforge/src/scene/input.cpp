@@ -2,6 +2,7 @@
 #include <core/application.hpp>
 
 #include <scene/scene.hpp>
+#include <scene/instance.hpp>
 #include "input.hpp"
 #include "script.hpp"
 
