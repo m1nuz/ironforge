@@ -51,14 +51,14 @@ namespace video {
             int         stride        = 0;
         };
 
-        auto create_buffer(buffer_target target, size_t size, const void *ptr, buffer_usage usage) -> buffer;
+        auto create_buffer(const buffer_target target, const size_t size, const void *ptr, const buffer_usage usage) -> buffer;
         auto destroy_buffer(buffer &buf) -> void;
         auto bind_buffer(buffer &buf) -> void;
         auto unbind_buffer(buffer &buf) -> void;
         // auto bind_buffer_range() -> void;
         // auto bind_buffer_base() -> void;
-        auto update_buffer(buffer &buf, size_t offset, const void *data, size_t size) -> void;
-        auto map_buffer(buffer &buf, buffer_access access) -> void*;
+        auto update_buffer(buffer &buf, const size_t offset, const void *data, const size_t size) -> void;
+        auto map_buffer(buffer &buf, const buffer_access access) -> void*;
         auto unmap_buffer(buffer &buf) -> bool;
         // copy_buffer
     } // namespace gl330

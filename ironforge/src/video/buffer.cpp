@@ -14,7 +14,7 @@ namespace video {
             {buffer_target::uniform, "uniform"},
         };
 
-        inline auto get_buffer_target(buffer_target target) -> uint32_t {
+        constexpr inline auto get_buffer_target(const buffer_target target) -> uint32_t {
             switch (target) {
             case buffer_target::array:
                 return GL_ARRAY_BUFFER;
@@ -29,7 +29,7 @@ namespace video {
             return GL_NONE;
         }
 
-        inline auto get_buffer_target_name(uint32_t target) -> const char * {
+        inline auto get_buffer_target_name(const uint32_t target) -> const char * {
             switch (target) {
             case GL_ARRAY_BUFFER:
                 return buffer_target_names.at(buffer_target::array);
@@ -44,7 +44,7 @@ namespace video {
             return "unknown";
         }
 
-        inline uint32_t get_buffer_usage(buffer_usage usage) {
+        constexpr inline uint32_t get_buffer_usage(const buffer_usage usage) {
             switch (usage) {
             case buffer_usage::stream_draw:
                 return GL_STREAM_DRAW;
@@ -69,12 +69,12 @@ namespace video {
             return GL_NONE;
         }
 
-        auto create_buffer(buffer_target target, size_t size, const void *ptr, buffer_usage usage) -> buffer {
+        auto create_buffer(const buffer_target target, const size_t size, const void *ptr, const buffer_usage usage) -> buffer {
             GLuint buf;
             glGenBuffers(1, &buf);
 
-            uint32_t bt = get_buffer_target(target);
-            uint32_t bu = get_buffer_usage(usage);
+            const uint32_t bt = get_buffer_target(target);
+            const uint32_t bu = get_buffer_usage(usage);
 
             glBindBuffer(bt, buf);
             glBufferData(bt, size, ptr, bu);
@@ -102,12 +102,12 @@ namespace video {
             glBindBuffer(buf.target, 0);
         }
 
-        auto update_buffer(buffer &buf, size_t offset, const void *data, size_t size) -> void {
+        auto update_buffer(buffer &buf, const size_t offset, const void *data, const size_t size) -> void {
             glBindBuffer(buf.target, buf.id);
             glBufferSubData(buf.target, offset, size, data);
         }
 
-        inline auto get_buffer_access(buffer_access access) -> uint32_t {
+        constexpr inline auto get_buffer_access(buffer_access access) -> uint32_t {
             switch (access) {
             case buffer_access::read_only:
                 return GL_READ_ONLY;
@@ -120,7 +120,7 @@ namespace video {
             return GL_NONE;
         }
 
-        auto map_buffer(buffer &buf, buffer_access access) -> void* {
+        auto map_buffer(buffer &buf, const buffer_access access) -> void* {
             glBindBuffer(buf.target, buf.id);
             return glMapBuffer(buf.target, get_buffer_access(access));
         }

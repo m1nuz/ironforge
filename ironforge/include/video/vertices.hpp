@@ -54,6 +54,8 @@ namespace video {
         uint32_t        primitive;
         vertex_format   vf;
         index_format    ef;
+        uint32_t        vb_usage = 3;
+        uint32_t        eb_usage = 3;
     };
 
     struct vertices_data {

@@ -30,6 +30,7 @@ namespace video {
         desc.primitive = GL_TRIANGLES;
         desc.vf = vertex_format::v3t2c4;
         desc.ef = index_format::ui16;
+        desc.vb_usage = static_cast<uint32_t>(gl::buffer_usage::dynamic_draw);
         data.push_back({nullptr, &sb.indices[0], info.max_sprites * 6, info.max_sprites * 4});
 
         sb.source = make_vertices_source(data, desc, draws);

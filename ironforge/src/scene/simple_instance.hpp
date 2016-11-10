@@ -10,6 +10,7 @@
 #include "input.hpp"
 #include "script.hpp"
 #include "light.hpp"
+#include "sprite.hpp"
 
 namespace scene {
     struct simple_instance : public instance {
@@ -203,6 +204,7 @@ namespace scene {
         std::vector<directional_light_instance*>    directional_lights;
         std::vector<point_light_instance*>          point_lights;
         //std::vector<emitter_instance>               emitters;
+        std::vector<sprite_instance*>               sprites;
         std::vector<std::string>                    names;
         std::vector<uint64_t>                       name_hashes;
         std::vector<uint32_t>                       flags;

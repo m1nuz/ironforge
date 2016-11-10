@@ -17,6 +17,7 @@ namespace video {
         desc.primitive = GL_TRIANGLES;
         desc.vf = vertex_format::v3t2c4;
         desc.ef = index_format::ui16;
+        desc.vb_usage = static_cast<uint32_t>(gl::buffer_usage::dynamic_draw);
         data.push_back({nullptr, nullptr, info.max_triangles * 3, 0});
 
         // TODO: check creation

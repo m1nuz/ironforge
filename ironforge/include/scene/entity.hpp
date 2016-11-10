@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace scene {
     enum class entity_flags : uint32_t {
         none            = 0x00000000,
@@ -35,6 +37,7 @@ namespace scene {
     struct body_info;
     struct light_info;
     struct emitter_info;
+    struct sprite_info;
 
     struct entity_info {
         const char          *name = nullptr;
@@ -46,6 +49,7 @@ namespace scene {
         script_info         *script = nullptr;
         emitter_info        *emitter = nullptr;
         camera_info         *camera = nullptr;
+        sprite_info         *sprite = nullptr;
         int32_t             parent = 0;
         uint32_t            flags = static_cast<uint32_t>(entity_flags::call_init | entity_flags::call_done);
     };

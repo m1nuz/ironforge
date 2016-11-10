@@ -268,7 +268,7 @@ namespace video {
         gl::bind_vertex_array(va);
 
         // TODO : seaarch other buffer with same hash
-        auto vb = gl::create_buffer(gl::buffer_target::array, vertices_data_size, vertex_data, gl::buffer_usage::static_draw);
+        auto vb = gl::create_buffer(gl::buffer_target::array, vertices_data_size, vertex_data, static_cast<gl::buffer_usage>(desc.vb_usage));
         buffers.push_back({vb, 0, utils::xxhash64(vertex_data, vertices_data_size)});
 
         // transfer to video memory
@@ -302,7 +302,7 @@ namespace video {
         memset(&eb, 0, sizeof eb);
         if (index_data)
         {
-            eb = gl::create_buffer(gl::buffer_target::element_array, indices_data_size, index_data, gl::buffer_usage::static_draw);
+            eb = gl::create_buffer(gl::buffer_target::element_array, indices_data_size, index_data, static_cast<gl::buffer_usage>(desc.eb_usage));
             buffers.push_back({eb, 0, utils::xxhash64(index_data, indices_data_size)});
         }
 
