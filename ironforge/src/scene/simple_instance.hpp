@@ -1,5 +1,7 @@
 #pragma once
 
+#include <core/application.hpp>
+
 #include "timer.hpp"
 #include "physics.hpp"
 #include "transform.hpp"
@@ -14,12 +16,12 @@
 
 namespace scene {
     struct simple_instance : public instance {
-        simple_instance() : simple_instance("", 0) {
+        simple_instance() {
 
         }
 
         simple_instance(const std::string& _name, uint32_t _state)
-            : instance{_name, _state}, size{0}, capacity{max_entities}, current_camera(0) {
+            : name{_name}, states{_state}, size{0}, capacity{max_entities}, current_camera(0) {
             bodies.reserve(capacity);
             transforms.reserve(capacity);
             cameras.reserve(capacity);
@@ -33,10 +35,16 @@ namespace scene {
             names.reserve(capacity);
             name_hashes.reserve(capacity);
             flags.reserve(capacity);
+
+            application::debug(application::log_category::game, "Create '%' scene %\n", name);
         }
 
         ~simple_instance() {
+            application::debug(application::log_category::game, "Destroy '%' scene\n", name);
+        }
 
+        virtual auto state() -> uint32_t {
+            return states;
         }
 
         virtual auto create_entity(const entity_info &info) -> int32_t {
@@ -188,6 +196,8 @@ namespace scene {
             return cameras[current_camera];
         }
 
+        std::string                                 name;
+        uint32_t                                    states;
         size_t                                      size;
         size_t                                      capacity;
         size_t                                      current_camera;

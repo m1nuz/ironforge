@@ -54,6 +54,12 @@ namespace video {
             texture_desc    *desc;
         };
 
+        inline bool operator==(const texture& lhs, const texture& rhs) {
+            return lhs.id == rhs.id;
+        }
+
+        constexpr texture empty_texture = {0, 0, nullptr};
+
         auto create_texture_2d(const texture_info &info) -> texture;
         auto create_texture_2d(const image_data &data) -> texture;
         auto create_texture_array() -> texture;

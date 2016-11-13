@@ -26,9 +26,9 @@ namespace scene {
     struct entity_info;
 
     struct instance {
-        instance();
-        instance(const std::string& _name, uint32_t _state);
-        virtual ~instance();
+        virtual ~instance() = default;
+
+        virtual auto state() -> uint32_t = 0;
 
         virtual auto create_entity(const entity_info &info) -> int32_t = 0;
         virtual auto remove_entity(const int32_t id) -> bool = 0;
@@ -46,9 +46,5 @@ namespace scene {
         //virtual auto get_timer(int32_t id) -> timer_instance* = 0;
 
         virtual auto get_current_camera() -> camera_instance* = 0;
-
-        std::string     name;
-        uint64_t        name_hash;
-        uint32_t        state;
     };
 } // namespace scene

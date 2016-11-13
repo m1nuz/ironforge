@@ -31,7 +31,7 @@ namespace game {
     auto get_current() -> std::unique_ptr<scene::instance>& {
         // TODO: optimize this shit
         auto s = std::find_if(scenes.begin(), scenes.end(), [](std::unique_ptr<scene::instance>& sc) {
-            if (sc->state & static_cast<uint32_t>(scene::state_flags::current))
+            if (sc->state() & static_cast<uint32_t>(scene::state_flags::current))
                 return true;
             return false;
         });
