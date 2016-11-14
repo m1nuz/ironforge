@@ -164,7 +164,7 @@ namespace scene {
     }
 
     auto do_script(const std::string &name) -> bool {
-        auto td = assets::get_text(name);
+        auto td = assets::get_text_absolute(name);
 
         auto L = lua_state;
 

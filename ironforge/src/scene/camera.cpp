@@ -25,7 +25,7 @@ namespace scene {
         ci.entity = entity;
         ci.parent = info.parent;
         ci.fov = info.fov;
-        ci.aspect = video::screen.aspect;
+        ci.type = info.type;
         ci.znear = info.znear;
         ci.zfar = info.zfar;
 
@@ -34,7 +34,7 @@ namespace scene {
             ci.projection = glm::mat4{1.f};
             break;
         case camera_type::perspective:
-            ci.projection = perspective(ci.fov, ci.aspect, ci.znear, ci.zfar);
+            ci.projection = perspective(ci.fov, video::screen.aspect, ci.znear, ci.zfar);
             break;
         }
 
@@ -48,8 +48,16 @@ namespace scene {
     auto present_all_cameras(std::unique_ptr<instance>& s) -> void {
         using namespace glm;
 
-        for (auto i = static_cast<size_t>(1); i < cameras.size(); i++) {
-            auto& c = cameras[i];
+        for (auto& c : cameras) {
+            switch (c.type) {
+            case camera_type::root:
+                c.projection = glm::mat4{1.f};
+                break;
+            case camera_type::perspective:
+                c.projection = perspective(c.fov, video::screen.aspect, c.znear, c.zfar);
+                break;
+            }
+
             auto b = s->get_body(c.entity);
 
             mat4 view = translate(mat4(1.f), -b->position());

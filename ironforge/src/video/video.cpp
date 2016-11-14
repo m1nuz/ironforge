@@ -4,9 +4,6 @@
 #include <video/video.hpp>
 
 namespace video {
-    auto init_resources() -> void;
-    auto cleanup_resources() -> void;
-
     int32_t max_uniform_components = 0;
     _screen screen;
     _config config;
@@ -79,7 +76,7 @@ namespace video {
 
 
         // get real window size
-        SDL_GetWindowSize(window, &w, &h);
+        SDL_GL_GetDrawableSize(window, &w, &h);
 
         // setup default screen
         screen.width = w;
@@ -88,9 +85,28 @@ namespace video {
         screen.aspect = (float)screen.width / (float)screen.height;
 
         // setup default config
-        config.filtering = texture_filtering::trilinear;
+        config.filtering = texture_filtering::trilinear;                
 
-        init_resources();        
+        return result::success;
+    }
+
+    auto reset(int32_t w, int32_t h, bool fullscreen, bool vsync, bool debug) -> result {
+        SDL_SetWindowSize(window, w, h);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+
+        if (fullscreen)
+            SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+
+        if (vsync)
+            SDL_GL_SetSwapInterval(1);
+
+        // get real window size
+        SDL_GL_GetDrawableSize(window, &w, &h);
+
+        screen.width = w;
+        screen.height = h;
+        screen.vsync = vsync;
+        screen.aspect = (float)screen.width / (float)screen.height;
 
         return result::success;
     }

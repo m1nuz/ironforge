@@ -13,8 +13,12 @@ namespace game {
         error_empty_render,
     };
 
+    struct instance;
+
     auto get_current() -> std::unique_ptr<scene::instance>&;
-    auto load_scene(const std::string &name) -> bool;
+    __must_ckeck auto load_scene(const std::string &path) -> bool;
+    __must_ckeck auto load_asset(const std::string &path) -> bool;
+    __must_ckeck auto load_settings(const std::string &path) -> bool;
     __must_ckeck auto init(const std::string &title, const std::string &startup_script) -> result;
     auto cleanup() -> void;
     auto process_event(const SDL_Event &e) -> void;

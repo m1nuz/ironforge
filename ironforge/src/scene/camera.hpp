@@ -9,19 +9,18 @@ namespace scene {
     };
 
     struct camera_info {
-        camera_type type = camera_type::root;
-        float   fov    = 0.f;
-        //float   aspect = 1.f;
-        float   znear  = 1.f;
-        float   zfar   = 1000.f;
-        int32_t parent = 0;
+        camera_type type    = camera_type::root;
+        float   fov         = 0.f;
+        float   znear       = 1.f;
+        float   zfar        = 1000.f;
+        int32_t parent      = 0;
     };
 
     struct camera_instance {
         int         entity;
         int         parent;
+        camera_type type;
         float       fov;
-        float       aspect;
         float       znear;
         float       zfar;
         glm::mat4   projection;

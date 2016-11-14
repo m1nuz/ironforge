@@ -102,8 +102,9 @@ namespace video {
     };
 
     __must_ckeck auto init(const std::string &title, int32_t w, int32_t h, bool fullscreen, bool vsync, bool debug) -> result;
+    auto reset(int32_t w, int32_t h, bool fullscreen, bool vsync, bool debug) -> result;
     auto cleanup() -> void;
-    auto present(const std::vector<gl330::command_buffer *> &buffers) -> void;
+    auto present(const std::vector<gl::command_buffer *> &buffers) -> void;
     auto get_string(result r) -> const char *;
     auto is_extension_supported(const char *extension) -> bool;
     auto get_info() -> const char *;
@@ -127,6 +128,9 @@ namespace video {
 
     auto make_program(const gl::program_info &info) -> program;
     auto get_shader(const char *name) -> program;
+
+    auto init_resources() -> void;
+    auto cleanup_resources() -> void;
 
     extern _config config;
     extern int32_t max_uniform_components;    

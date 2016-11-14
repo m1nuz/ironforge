@@ -43,6 +43,24 @@ load_scene(lua_State *L) {
     return 0;
 }
 
+static int
+load_asset(lua_State *L) {
+    const char *s = luaL_checkstring(L, 1);
+
+    game::load_asset(s);
+
+    return 0;
+}
+
+static int
+load_settings(lua_State *L) {
+    const char *s = luaL_checkstring(L, 1);
+
+    game::load_settings(s);
+
+    return 0;
+}
+
 static const struct luaL_Reg scene_functions[] = {
     {"get_entity_velocity", get_entity_velocity},
     {"set_entity_velocity", set_entity_velocity},
@@ -55,6 +73,8 @@ namespace bindings {
         lua_setglobal(L, "scene");
 
         lua_register(L, "load_scene", load_scene);
+        lua_register(L, "load_asset", load_asset);
+        lua_register(L, "load_settings", load_settings);
 
         return 0;
     }

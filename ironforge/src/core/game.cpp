@@ -20,6 +20,10 @@ namespace scene {
 
 namespace game {
 
+    struct instance {
+
+    };
+
     std::vector<std::unique_ptr<scene::instance>>   scenes;
     std::unique_ptr<renderer::instance>             render;
     std::unique_ptr<ui::context>                    uis;
@@ -48,19 +52,50 @@ namespace game {
         return *s;
     }
 
-    auto load_scene(const std::string &name) -> bool {
-        scenes.push_back(scene::load(name, static_cast<uint32_t>(scene::state_flags::start) | static_cast<uint32_t>(scene::state_flags::current)));
+    __must_ckeck auto load_scene(const std::string &path) -> bool {
+        scenes.push_back(scene::load(path, static_cast<uint32_t>(scene::state_flags::start) | static_cast<uint32_t>(scene::state_flags::current)));
+        return true;
+    }
+
+    __must_ckeck auto load_asset(const std::string &path) -> bool {
+        auto asset_result = assets::result::failure;
+
+        if ((asset_result = assets::open(application::get_base_path() + path)) != assets::result::success) {
+            application::error(application::log_category::application, "%\n", "Can't open asset");
+            return false;
+        }
+
+        return true;
+    }
+
+    __must_ckeck auto load_settings(const std::string &path) -> bool {
+        if (!application::append_settings(application::get_base_path() + path))
+        {
+            application::error(application::log_category::application, "%\n", "Can't load settings");
+            return false;
+        }
+
         return true;
     }
 
     __must_ckeck auto init(const std::string &title, const std::string &startup_script) -> result {
-        int w = application::int_value("video_width", 800);
-        int h = application::int_value("video_height", 600);
-        bool fullscreen = application::bool_value("video_fullscreen", false);
-        bool vsync = application::bool_value("video_vsync", false);
-
         auto video_result = video::result::failure;
-        if ((video_result = video::init(title, w, h, fullscreen, vsync, true)) != video::result::success) {
+        if ((video_result = video::init(title, 1, 1, false, false, true)) != video::result::success) {
+            application::error(application::log_category::video, "%\n", video::get_string(video_result));
+
+            return game::result::error_init_video;
+        }
+
+        // TODO: call startup script here
+        scene::init_all(); // TODO: get result
+        scene::do_script(startup_script);
+
+        const int w = application::int_value("video_width", 800);
+        const int h = application::int_value("video_height", 600);
+        const bool fullscreen = application::bool_value("video_fullscreen", false);
+        const bool vsync = application::bool_value("video_vsync", false);
+
+        if ((video_result = video::reset(w, h, fullscreen, vsync, true)) != video::result::success) {
             application::error(application::log_category::video, "%\n", video::get_string(video_result));
 
             return game::result::error_init_video;
@@ -68,13 +103,10 @@ namespace game {
 
         application::info(application::log_category::video, "%\n", video::get_info());
 
+        video::init_resources();
+
         //render = renderer::create_null_renderer();
-        render = renderer::create_forward_renderer();
-
-        scene::init_all(); // TODO: get result
-
-        // TODO: call startup script here
-        scene::do_script(startup_script);
+        render = renderer::create_forward_renderer();        
 
         //scenes.push_back(scene::load("scene02.scene", static_cast<uint32_t>(scene::state_flags::start) | static_cast<uint32_t>(scene::state_flags::current)));
 

@@ -30,6 +30,8 @@ namespace video {
 
         auto font = TTF_OpenFontRW(rw, SDL_TRUE, info.size);
 
+        // TODO: check font for null
+
         auto count = info.cache.size(); // TODO: make support utf8
         for (size_t i = 0; i < count; i++) {
             char ch[2] = {info.cache[i], 0};

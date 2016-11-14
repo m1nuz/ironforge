@@ -51,6 +51,7 @@ namespace assets {
     auto process() -> void;
     auto cleanup() -> void;
     auto get_text(const std::string& name) -> text_data;
+    auto get_text_absolute(const std::string& path) -> text_data;
     auto get_image(const std::string& name) -> image_data;
     auto get_binary(const std::string& name) -> binary_data;
 } // namespace assets

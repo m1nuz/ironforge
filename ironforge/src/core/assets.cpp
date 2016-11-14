@@ -155,6 +155,27 @@ namespace assets {
         return {nullptr, 0};
     }
 
+    auto get_text_absolute(const std::string& path) -> text_data {
+        fs::path p(path);
+
+        auto r = text_readers.find(p.extension().string());
+
+        if (r == text_readers.end())
+            return {nullptr, 0};
+
+        auto td = text_data{nullptr, 0};
+
+        auto ret = r->second(SDL_RWFromFile(path.c_str(), "r"), td);
+        if (ret != 0) {
+            application::error(application::log_category::system, "Can't read file %\n", path);
+            return {nullptr, 0};
+        }
+
+        application::debug(application::log_category::application, "Read file %\n", path);
+        texts.insert({p.filename().string(), td}); // TODO: free memory
+        return td;
+    }
+
     auto get_image(const std::string& name) -> image_data {
         auto im = images.find(name);
 

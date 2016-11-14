@@ -325,18 +325,19 @@ namespace video {
             return it->tex;
         }
 
-        //auto imd = image_future.get();//assets::get_image(name);
+        auto imd = /*image_future.get();/*/assets::get_image(name);
 
-        /*if (!imd.pixels) {
+        if (!imd.pixels) {
             application::warning(application::log_category::application, "Texture % not found\n", name);
             return default_tex;
-        }*/
+        }
 
-        //return make_texture_2d(name, imd);
+        return make_texture_2d(name, imd);
 
-        texture_desc desc;
+        // TODO: fix texture striming
+        /*texture_desc desc;
         desc.name = name;
-        desc.tex = default_check_texture();//gl::create_texture_2d(imd);
+        desc.tex = default_check_texture();
         desc.name_hash = utils::xxhash64(name, strlen(name));//name.empty() ? 0 : utils::xxhash64(name);
         desc.hash = 0; // TODO: calc it
         desc.usage = 0;
@@ -345,9 +346,10 @@ namespace video {
 
         application::debug(application::log_category::application, "Texture % LOADING\n", name);
 
+        // FIXME: dont modif desc
         textures.push_back(desc);
         textures.back().tex.desc = &textures.back();
-        return textures.back().tex;
+        return textures.back().tex;*/
     }
 
     auto query_texture(texture &tex, const texture_desc *desc) -> void {

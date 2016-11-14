@@ -69,7 +69,7 @@ namespace scene {
 
     auto process_all_materials() -> void {
         for (auto &m : materials) {
-            //printf("%s %p\n", m.name.c_str(), m.m0.diffuse_tex.desc);
+            //printf("%s %p\n", m.name.c_str(), (void*)m.m0.diffuse_tex.desc);
             video::query_texture(m.m0.diffuse_tex);
             video::query_texture(m.m0.specular_tex);
             video::query_texture(m.m0.gloss_tex);
