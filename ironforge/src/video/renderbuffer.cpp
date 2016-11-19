@@ -1,5 +1,5 @@
 #include <glcore_330.h>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <video/renderbuffer.hpp>
 
 #include "texture_format.inl"
@@ -27,7 +27,7 @@ namespace video {
 
         auto destroy_renderbuffer(renderbuffer &buf) -> void {
             if (!glIsRenderbuffer(buf.id))
-                application::debug(application::log_category::video, "Trying delete not renderbuffer %\n", buf.id);
+                game::journal::debug(game::journal::category::video, "Trying delete not renderbuffer %\n", buf.id);
 
             glDeleteRenderbuffers(1, &buf.id);
             buf.id = 0;

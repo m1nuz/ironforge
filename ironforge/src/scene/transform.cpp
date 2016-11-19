@@ -1,5 +1,5 @@
 #include <ironforge_common.hpp>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
 
@@ -18,7 +18,7 @@ namespace scene {
     }
 
     auto create_transform(int32_t _entity, int32_t _parent) -> transform_instance* {
-        application::debug(application::log_category::scene, "Create transform ID % PARENT % (%)\n", _entity, _parent, transform_instances.size());
+        game::journal::debug(game::journal::category::scene, "Create transform ID % PARENT % (%)\n", _entity, _parent, transform_instances.size());
 
         // TODO: error when transform_instances.size > max_transforms
 

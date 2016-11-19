@@ -3,8 +3,12 @@
 #include <algorithm>
 #include <functional>
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+
 #include <video/video.hpp>
 #include <core/application.hpp>
+#include <core/journal.hpp>
 #include <core/settings.hpp>
 #include <core/assets.hpp>
 #include <core/game.hpp>
@@ -21,7 +25,14 @@ namespace scene {
 namespace game {
 
     struct instance {
+        auto get_current() -> std::unique_ptr<scene::instance>& {
+            return scenes[current];
+        }
 
+        std::vector<std::unique_ptr<scene::instance>>   scenes;
+        std::unique_ptr<renderer::instance>             render;
+        std::unique_ptr<ui::context>                    uic;
+        unsigned int                                    current = 0;
     };
 
     std::vector<std::unique_ptr<scene::instance>>   scenes;
@@ -31,6 +42,12 @@ namespace game {
     std::string some_text1{"AAA"};
     std::string some_text2{"BBB"};
     std::string some_text3{"CCC"};
+
+    static bool running = true;
+
+    auto quit() -> void {
+        running = false;
+    }
 
     auto get_current() -> std::unique_ptr<scene::instance>& {
         // TODO: optimize this shit
@@ -60,8 +77,8 @@ namespace game {
     __must_ckeck auto load_asset(const std::string &path) -> bool {
         auto asset_result = assets::result::failure;
 
-        if ((asset_result = assets::open(application::get_base_path() + path)) != assets::result::success) {
-            application::error(application::log_category::application, "%\n", "Can't open asset");
+        if ((asset_result = assets::open(game::get_base_path() + path)) != assets::result::success) {
+            game::journal::error(game::journal::category::game, "%\n", "Can't open asset");
             return false;
         }
 
@@ -69,9 +86,9 @@ namespace game {
     }
 
     __must_ckeck auto load_settings(const std::string &path) -> bool {
-        if (!application::append_settings(application::get_base_path() + path))
+        if (!application::append_settings(game::get_base_path() + path))
         {
-            application::error(application::log_category::application, "%\n", "Can't load settings");
+            game::journal::error(game::journal::category::game, "%\n", "Can't load settings");
             return false;
         }
 
@@ -81,7 +98,7 @@ namespace game {
     __must_ckeck auto init(const std::string &title, const std::string &startup_script) -> result {
         auto video_result = video::result::failure;
         if ((video_result = video::init(title, 1, 1, false, false, true)) != video::result::success) {
-            application::error(application::log_category::video, "%\n", video::get_string(video_result));
+            game::journal::error(game::journal::category::video, "%\n", video::get_string(video_result));
 
             return game::result::error_init_video;
         }
@@ -96,12 +113,12 @@ namespace game {
         const bool vsync = application::bool_value("video_vsync", false);
 
         if ((video_result = video::reset(w, h, fullscreen, vsync, true)) != video::result::success) {
-            application::error(application::log_category::video, "%\n", video::get_string(video_result));
+            game::journal::error(game::journal::category::video, "%\n", video::get_string(video_result));
 
             return game::result::error_init_video;
         }
 
-        application::info(application::log_category::video, "%\n", video::get_info());
+        game::journal::info(game::journal::category::video, "%\n", video::get_info());
 
         video::init_resources();
 
@@ -114,14 +131,14 @@ namespace game {
             return result::error_empty_render;
 
         if (scenes.empty())
-            application::warning(application::log_category::game, "%\n", "No scene loaded");
+            game::journal::warning(game::journal::category::game, "%\n", "No scene loaded");
 
 
         auto controller_db = assets::get_text("gamecontrollerdb.txt");
         auto rw = SDL_RWFromMem(controller_db.text, controller_db.size);
 
         if (SDL_GameControllerAddMappingsFromRW(rw, 1) == -1)
-            application::error(application::log_category::input, "%\n", SDL_GetError());
+            game::journal::error(game::journal::category::input, "%\n", SDL_GetError());
 
         uis = ui::create_context();
         /*ui::button_info bi;
@@ -142,7 +159,7 @@ namespace game {
         bi.level = 0;
         bi.margins = {0.025, 0.025, 0.025, 0.025};
         bi.on_click = [](int32_t id) {
-            application::info(application::log_category::game, "Click %\n", id);
+            game::journal::info(game::journal::category::game, "Click %\n", id);
         };
         int btn1 = ui::create_button(bi);
 
@@ -191,14 +208,14 @@ namespace game {
     static auto joystick_info(SDL_Joystick *joystick) -> void {
         char guid[64];
         SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guid, sizeof (guid));
-        application::info(application::log_category::input, "          name: %\n", SDL_JoystickName(joystick));
-        application::info(application::log_category::input, "          axes: %\n", SDL_JoystickNumAxes(joystick));
-        application::info(application::log_category::input, "         balls: %\n", SDL_JoystickNumBalls(joystick));
-        application::info(application::log_category::input, "          hats: %\n", SDL_JoystickNumHats(joystick));
-        application::info(application::log_category::input, "       buttons: %\n", SDL_JoystickNumButtons(joystick));
-        application::info(application::log_category::input, "   instance id: %\n", SDL_JoystickInstanceID(joystick));
-        application::info(application::log_category::input, "          guid: %\n", guid);
-        application::info(application::log_category::input, "gamecontroller: %\n", SDL_IsGameController(SDL_JoystickInstanceID(joystick)) ? "yes" : "no");
+        game::journal::info(game::journal::category::input, "          name: %\n", SDL_JoystickName(joystick));
+        game::journal::info(game::journal::category::input, "          axes: %\n", SDL_JoystickNumAxes(joystick));
+        game::journal::info(game::journal::category::input, "         balls: %\n", SDL_JoystickNumBalls(joystick));
+        game::journal::info(game::journal::category::input, "          hats: %\n", SDL_JoystickNumHats(joystick));
+        game::journal::info(game::journal::category::input, "       buttons: %\n", SDL_JoystickNumButtons(joystick));
+        game::journal::info(game::journal::category::input, "   instance id: %\n", SDL_JoystickInstanceID(joystick));
+        game::journal::info(game::journal::category::input, "          guid: %\n", guid);
+        game::journal::info(game::journal::category::input, "gamecontroller: %\n", SDL_IsGameController(SDL_JoystickInstanceID(joystick)) ? "yes" : "no");
     }
 
     static auto controller_append(int dev) -> bool {
@@ -206,11 +223,11 @@ namespace game {
 
             auto controller = SDL_GameControllerOpen(dev);
             if (!controller) {
-                application::error(application::log_category::input, "Couldn't open controller %: %\n", dev, SDL_GetError());
+                game::journal::error(game::journal::category::input, "Couldn't open controller %: %\n", dev, SDL_GetError());
                 return false;
             }
 
-            application::info(application::log_category::input, "Controller % opened\n", dev);
+            game::journal::info(game::journal::category::input, "Controller % opened\n", dev);
 
             joystick_info(SDL_GameControllerGetJoystick(controller));
 
@@ -218,7 +235,7 @@ namespace game {
         }
 
         const char *name = SDL_JoystickNameForIndex(dev);
-        application::warning(application::log_category::input, "Unknown controller %s\n", name ? name : "Unknown joystick");
+        game::journal::warning(game::journal::category::input, "Unknown controller %s\n", name ? name : "Unknown joystick");
 
         SDL_Joystick *joystick = SDL_JoystickOpen(dev);
         if (!joystick) {
@@ -234,26 +251,25 @@ namespace game {
 
     auto process_event(const SDL_Event &e) -> void {
         if (e.type == SDL_KEYDOWN)
-            if (e.key.keysym.sym == SDLK_ESCAPE) {
-                application::quit();
-            }
+            if (e.key.keysym.sym == SDLK_ESCAPE)
+                quit();
 
         switch (e.type) {
         case SDL_JOYDEVICEADDED:
             if (controller_append(e.jdevice.which))
-                application::info(application::log_category::input, "Joystick device % added.\n", e.jdevice.which);
+                game::journal::info(game::journal::category::input, "Joystick device % added.\n", e.jdevice.which);
             break;
         case SDL_JOYDEVICEREMOVED:
-            application::info(application::log_category::input, "Joystick device % removed.\n", e.jdevice.which);
+            game::journal::info(game::journal::category::input, "Joystick device % removed.\n", e.jdevice.which);
             break;
         case SDL_CONTROLLERDEVICEADDED:
-            application::info(application::log_category::input, "Controller device % added.\n", e.cdevice.which);
+            game::journal::info(game::journal::category::input, "Controller device % added.\n", e.cdevice.which);
             break;
         case SDL_CONTROLLERDEVICEREMOVED:
-            application::info(application::log_category::input, "Controller device % added.\n", e.cdevice.which);
+            game::journal::info(game::journal::category::input, "Controller device % added.\n", e.cdevice.which);
             break;
         case SDL_CONTROLLERDEVICEREMAPPED:
-            application::info(application::log_category::input, "Controller device % mapped.\n", e.cdevice.which);
+            game::journal::info(game::journal::category::input, "Controller device % mapped.\n", e.cdevice.which);
             break;
         }
 
@@ -295,5 +311,90 @@ namespace game {
         }
 
         return nullptr;
+    }
+
+    auto get_base_path() -> const std::string& {
+        static std::string base_path;
+        if (!base_path.empty())
+            return base_path;
+
+        auto path = SDL_GetBasePath();
+        base_path = path;
+        SDL_free(path);
+
+        return base_path;
+    }
+
+    auto get_pref_path() -> const std::string& {
+        static std::string pref_path;
+
+        if (!pref_path.empty())
+            return pref_path;
+
+        auto path = SDL_GetBasePath(); // TODO: change it to
+        pref_path = path;
+        SDL_free(path);
+
+        return pref_path;
+    }
+
+    auto exec(const std::string &startup_script) -> int {
+        auto asset_result = assets::result::failure;
+        if ((asset_result = assets::append(assets::default_readers)) != assets::result::success) {
+            game::journal::error(game::journal::category::game, "%\n", "Can't append readers");
+            return EXIT_FAILURE;
+        }
+
+        if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+            return EXIT_FAILURE;
+
+        atexit(SDL_Quit);
+
+        if (TTF_Init() < 0)
+            return EXIT_FAILURE;
+
+        atexit(TTF_Quit);
+
+        auto game_result = game::result::failure;
+        if ((game_result = game::init("IRON_FORGE", startup_script)) != game::result::success) {
+            error(game::journal::category::game, "%\n", game::get_string(game_result));
+            return EXIT_FAILURE;
+        }
+
+        SDL_Event e;
+
+        auto current = 0ull;
+        auto last = 0ull;
+        auto timesteps = 0ull;
+        auto accumulator = 0.0f;
+
+        while (running) {
+            while (SDL_PollEvent(&e))
+                game::process_event(e);
+
+            assets::process();
+
+            last = current;
+            current = SDL_GetPerformanceCounter();
+            auto freq = SDL_GetPerformanceFrequency();
+
+            auto dt = static_cast<float>(static_cast<double>(current - last) / static_cast<double>(freq));
+
+            accumulator += glm::clamp(dt, 0.f, 0.2f);
+
+            while (accumulator >= timestep) {
+                accumulator -= timestep;
+
+                game::update(timestep);
+
+                timesteps++;
+            }
+
+            game::present(accumulator / timestep);
+        }
+
+        game::cleanup();
+
+        return EXIT_SUCCESS;
     }
 } // namespace game

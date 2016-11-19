@@ -15,6 +15,9 @@ namespace game {
 
     struct instance;
 
+    constexpr auto timestep = 0.002f;
+
+    auto quit() -> void;
     auto get_current() -> std::unique_ptr<scene::instance>&;
     __must_ckeck auto load_scene(const std::string &path) -> bool;
     __must_ckeck auto load_asset(const std::string &path) -> bool;
@@ -25,4 +28,9 @@ namespace game {
     auto update(float dt) -> void;
     auto present(float interpolation) -> void;
     auto get_string(result r) -> const char *;
+
+    auto get_base_path() -> const std::string&;
+    auto get_pref_path() -> const std::string&;
+
+    auto exec(const std::string &startup_script) -> int;
 } // namespace game

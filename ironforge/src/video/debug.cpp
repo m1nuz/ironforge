@@ -1,4 +1,4 @@
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <video/video.hpp>
 #include <glcore_450.h>
 
@@ -27,7 +27,7 @@ namespace video {
             break;
         }*/
 
-        application::error(application::log_category::video, "%\n", message);
+        game::journal::error(game::journal::category::video, "%\n", message);
     }
 
     auto setup_debug() -> void {

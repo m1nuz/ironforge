@@ -1,5 +1,5 @@
 #include <ironforge_utility.hpp>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
@@ -40,7 +40,7 @@ namespace scene {
         if (!source)
             return nullptr;
 
-        application::debug(application::log_category::scene, "Create input %\n", entity);
+        game::journal::debug(game::journal::category::scene, "Create input %\n", entity);
 
         inputs.push_back({entity, source});
 

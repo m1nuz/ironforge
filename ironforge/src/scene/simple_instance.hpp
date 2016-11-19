@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/application.hpp>
+#include <core/journal.hpp>
 
 #include "timer.hpp"
 #include "physics.hpp"
@@ -36,11 +36,11 @@ namespace scene {
             name_hashes.reserve(capacity);
             flags.reserve(capacity);
 
-            application::debug(application::log_category::game, "Create '%' scene %\n", name);
+            game::journal::debug(game::journal::category::game, "Create '%' scene %\n", name);
         }
 
         ~simple_instance() {
-            application::debug(application::log_category::game, "Destroy '%' scene\n", name);
+            game::journal::debug(game::journal::category::game, "Destroy '%' scene\n", name);
         }
 
         virtual auto state() -> uint32_t {
@@ -49,7 +49,7 @@ namespace scene {
 
         virtual auto create_entity(const entity_info &info) -> int32_t {
             if ((size > capacity) || (size > INT_MAX)) {
-                application::error(application::log_category::scene, "Can't create more then % entities\n", capacity);
+                game::journal::error(game::journal::category::scene, "Can't create more then % entities\n", capacity);
                 return -1;
             }
 
@@ -70,7 +70,7 @@ namespace scene {
             // TODO: camera and no body? error
             // TODO: renderable and no body? error
 
-            application::debug(application::log_category::scene, "Create entity '%' % parent '%' ID %\n", info.name, hash, parent_name, eid);
+            game::journal::debug(game::journal::category::scene, "Create entity '%' % parent '%' ID %\n", info.name, hash, parent_name, eid);
 
             if (info.flags & static_cast<uint32_t>(entity_flags::root)) {
                 bodies.push_back(create_body(body_info{}));

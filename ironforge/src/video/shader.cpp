@@ -1,7 +1,7 @@
 #include <vector>
 
 #include <glcore_330.h>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <video/video.hpp>
 #include <video/shader.hpp>
 
@@ -41,7 +41,7 @@ namespace video {
                 glGetShaderInfoLog(sh.id, lenght, &written, &log_text[0]);
                 log_text.resize(written);
 
-                application::error(application::log_category::video, "%\n", log_text);
+                game::journal::error(game::journal::category::video, "%\n", log_text);
 
                 glDeleteShader(sh.id);
                 sh.id = 0;

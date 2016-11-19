@@ -1,5 +1,5 @@
 #include <glcore_330.h>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <video/video.hpp>
 #include <video/command_buffer.hpp>
 #include <video/stats.hpp>
@@ -11,7 +11,7 @@ namespace video {
                 mem_size = static_cast<size_t>(video::max_uniform_components * sizeof (float));
 
             if (mem_size > static_cast<size_t>(video::max_uniform_components * sizeof (float)))
-                application::error(application::log_category::video, "No uniforms memory % needed %\n", video::max_uniform_components * sizeof (float), mem_size);
+                game::journal::error(game::journal::category::video, "No uniforms memory % needed %\n", video::max_uniform_components * sizeof (float), mem_size);
 
             memory_size = mem_size;
             raw_memory = malloc(memory_size);
@@ -75,7 +75,7 @@ namespace video {
                 glUniform4fv(location, count, (const float*)((const char*)buf.raw_memory + offset));
                 break;
             default:
-                application::warning(application::log_category::video, "Unknown uniform %", type);
+                game::journal::warning(game::journal::category::video, "Unknown uniform %", type);
                 break;
             }
         }
@@ -150,7 +150,7 @@ namespace video {
                                   c._blit.mask, c._blit.filter);
                 break;
             default:
-                application::warning(application::log_category::video, "Unknown command %\n", static_cast<uint32_t>(c.type));
+                game::journal::warning(game::journal::category::video, "Unknown command %\n", static_cast<uint32_t>(c.type));
                 break;
             }
         }

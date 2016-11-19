@@ -321,7 +321,7 @@ namespace ui {
             const float px = - 0.5f + (float)event.button.x / video::screen.width;
             const float py =   0.5f - (float)event.button.y / video::screen.height;
 
-            //application::info(application::log_category::ui, "% %\n", px, py);
+            //game::journal::info(application::log_category::ui, "% %\n", px, py);
 
             for (auto &b : buttons)
                 if (in_rect(b.x, b.y, b.w, b.h, px, py)) {
@@ -446,7 +446,7 @@ namespace ui {
         while (!ctx->commands.empty()) {
             const auto c = ctx->commands.back();
 
-            //application::debug(application::log_category::ui, "% %\n", static_cast<int>(c.type), c.level);
+            //game::journal::debug(application::log_category::ui, "% %\n", static_cast<int>(c.type), c.level);
 
             dispath(c);
 

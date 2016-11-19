@@ -1,7 +1,7 @@
 #include <cstddef>
 #include <algorithm>
 #include <ironforge_utility.hpp>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <core/assets.hpp>
 #include <video/video.hpp>
 #include <utility/thread_pool.hpp>
@@ -53,7 +53,7 @@ namespace video {
         textures.reserve(100);
         programs.reserve(100);
 
-        application::debug(application::log_category::video, "%\n", "Init resources");
+        game::journal::debug(game::journal::category::video, "%\n", "Init resources");
 
         auto white_name = "white-map";
         auto im = video::imgen::make_color(128, 128, {255, 255, 255}); // white
@@ -112,7 +112,7 @@ namespace video {
                     t.tex = gl::create_texture_2d(t.imd_future.get());
                     t.ready = true;
                     t.tex.desc = &t;
-                    application::debug(application::log_category::video, "%\n", "TEX LOADED");
+                    game::journal::debug(game::journal::category::video, "%\n", "TEX LOADED");
                     delete[] t.imd_future.get().pixels;
                     // FIXME: ok, for now
                     //t.imd_future.get().pixels = NULL;
@@ -205,7 +205,7 @@ namespace video {
                 vertices_data_size += vb_size;
                 break;
             default:
-                application::warning(application::log_category::video, "%\n", "Unknown vertex format");
+                game::journal::warning(game::journal::category::video, "%\n", "Unknown vertex format");
                 break;
             }
 
@@ -221,7 +221,7 @@ namespace video {
                 indices_data_size += ib_size;
                 break;
             default:
-                application::warning(application::log_category::video, "%\n", "Unknown index format");
+                game::journal::warning(game::journal::category::video, "%\n", "Unknown index format");
                 break;
             }
 
@@ -293,7 +293,7 @@ namespace video {
             gl::vertex_array_format(va, vertex_attributes::tangent, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3t3, tangent));
             break;
         default:
-            application::warning(application::log_category::video, "%\n", "Unknown vertex format");
+            game::journal::warning(game::journal::category::video, "%\n", "Unknown vertex format");
             break;
         }
 
@@ -321,14 +321,14 @@ namespace video {
         });
 
         if (it != textures.end()) {
-            application::info(application::log_category::application, "Texture % found\n", name);
+            game::journal::info(game::journal::category::game, "Texture % found\n", name);
             return it->tex;
         }
 
         auto imd = /*image_future.get();/*/assets::get_image(name);
 
         if (!imd.pixels) {
-            application::warning(application::log_category::application, "Texture % not found\n", name);
+            game::journal::warning(game::journal::category::game, "Texture % not found\n", name);
             return default_tex;
         }
 
@@ -344,7 +344,7 @@ namespace video {
         desc.ready = false;
         desc.imd_future = pool.enqueue(assets::get_image, name);
 
-        application::debug(application::log_category::application, "Texture % LOADING\n", name);
+        game::journal::debug(game::journal::category::game, "Texture % LOADING\n", name);
 
         // FIXME: dont modif desc
         textures.push_back(desc);
@@ -408,7 +408,7 @@ namespace video {
         });
 
         if (pi != programs.end()) {
-            application::warning(application::log_category::video, "Program % already created\n", pi->pro.pid);
+            game::journal::warning(game::journal::category::video, "Program % already created\n", pi->pro.pid);
             return pi->pro;
         }
 

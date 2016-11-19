@@ -1,20 +1,20 @@
 #pragma once
 
 #include <video/video.hpp>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <renderer/renderer.hpp>
 #include <video/commands.hpp>
 
 namespace renderer {
     struct null_instance : public instance {
         null_instance() {
-            application::debug(application::log_category::render, "%\n", "Create null render");
+            game::journal::debug(game::journal::category::render, "%\n", "Create null render");
 
             reset();
         }
 
         ~null_instance() {
-            application::debug(application::log_category::render, "%\n", "Destroy null render");
+            game::journal::debug(game::journal::category::render, "%\n", "Destroy null render");
         }
 
         virtual auto append(const phong::ambient_light &light) -> void {

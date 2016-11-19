@@ -2,12 +2,13 @@
 #include <video/commands.hpp>
 #include <video/glyphs.hpp>
 #include <video/screen.hpp>
+#include <core/journal.hpp>
 #include <core/settings.hpp>
 #include "forward_renderer.hpp"
 
 namespace renderer {
     forward_renderer::forward_renderer() {
-        application::debug(application::log_category::render, "% % with % %\n", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);        
+        game::journal::debug(game::journal::category::render, "% % with % %\n", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
         init_ui();
 
@@ -116,7 +117,7 @@ namespace renderer {
         video::gl::destroy_renderbuffer(sample_depth);
         video::gl::destroy_sampler(texture_sampler);
         video::gl::destroy_sampler(filter_sampler);
-        application::debug(application::log_category::render, "%\n", "Destroy forward render");
+        game::journal::debug(game::journal::category::render, "%\n", "Destroy forward render");
     }
 
     auto forward_renderer::append(const phong::ambient_light &light) -> void {
@@ -174,7 +175,7 @@ namespace renderer {
             auto glyph = video::glyph_cache_find(c, font);
             if (glyph.ch == 0)
             {
-                application::warning(application::log_category::render, "%\n", "Glyph not found");
+                game::journal::warning(game::journal::category::render, "%\n", "Glyph not found");
                 continue;
             }
 
@@ -493,7 +494,7 @@ namespace renderer {
 
             auto glyph = video::glyph_cache_find(ch, font);
             if (glyph.ch == 0) {
-                application::warning(application::log_category::render, "%\n", "Glyph not found");
+                game::journal::warning(game::journal::category::render, "%\n", "Glyph not found");
                 continue;
             }
 
@@ -543,7 +544,7 @@ namespace renderer {
 
             auto glyph = video::glyph_cache_find(ch, c.font);
             if (glyph.ch == 0) {
-                application::warning(application::log_category::render, "%\n", "Glyph not found");
+                game::journal::warning(game::journal::category::render, "%\n", "Glyph not found");
                 continue;
             }
 

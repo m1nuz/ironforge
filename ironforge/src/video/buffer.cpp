@@ -2,7 +2,7 @@
 #include <map>
 
 #include <glcore_330.h>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <video/buffer.hpp>
 
 namespace video {
@@ -79,16 +79,16 @@ namespace video {
             glBindBuffer(bt, buf);
             glBufferData(bt, size, ptr, bu);
 
-            application::debug(application::log_category::video, "Create % buffer %\n", buffer_target_names[target], buf);
+            game::journal::debug(game::journal::category::video, "Create % buffer %\n", buffer_target_names[target], buf);
 
             return buffer{buf, bt, bu};
         }
 
         auto destroy_buffer(buffer &buf) -> void {
             if (!glIsBuffer(buf.id))
-                application::warning(application::log_category::video, "Trying delete not buffer %\n", buf.id);
+                game::journal::warning(game::journal::category::video, "Trying delete not buffer %\n", buf.id);
 
-            application::debug(application::log_category::video, "Destroy % buffer %\n", get_buffer_target_name(buf.target), buf.id);
+            game::journal::debug(game::journal::category::video, "Destroy % buffer %\n", get_buffer_target_name(buf.target), buf.id);
 
             glDeleteBuffers(1, &buf.id);
             buf.id = 0;

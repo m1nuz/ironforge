@@ -17,14 +17,14 @@
 
 #define json_error_if(obj, pred_fn, ret, root, ...) \
     if(pred_fn(obj)) { \
-    application::error(application::log_category::game, __VA_ARGS__); \
+    game::journal::error(game::journal::category::game, __VA_ARGS__); \
     json_decref(root); \
     }
 
 namespace scene {
     inline glm::vec3 json_vec3_value(json_t *arr) {
         if (json_array_size(arr) < 3) {
-            application::warning(application::log_category::system, "%\n", "array size is not 3 elements");
+            game::journal::warning(game::journal::category::system, "%\n", "array size is not 3 elements");
             return {0.f, 0.f, 0.f};
         }
 
@@ -125,7 +125,7 @@ namespace scene {
             auto type = json_object_get(effect, "type");
             json_error_if(type, !json_is_string, -1, root, "%\n", "type is not a string");
 
-            application::debug(application::log_category::game, "Effect % '%'\n", json_string_value(type), json_string_value(name));
+            game::journal::debug(game::journal::category::game, "Effect % '%'\n", json_string_value(type), json_string_value(name));
 
             if (strcmp(json_string_value(type), "skybox") == 0) {
 
@@ -137,7 +137,7 @@ namespace scene {
                         auto tex_name = json_array_get(textures, j);
                         texs[j] = json_string_value(tex_name);
 
-                        application::debug(application::log_category::game, "TEX % %\n", json_string_value(name), json_string_value(tex_name));
+                        game::journal::debug(game::journal::category::game, "TEX % %\n", json_string_value(name), json_string_value(tex_name));
                     }
 
                     // TODO: and add skybox texture to textures
@@ -161,7 +161,7 @@ namespace scene {
             auto type = json_object_get(material, "type");
             json_error_if(type, !json_is_string, -1, root, "%\n", "type is not a string");
 
-            application::debug(application::log_category::game, "Material % %\n", json_string_value(type), json_string_value(name));
+            game::journal::debug(game::journal::category::game, "Material % %\n", json_string_value(type), json_string_value(name));
 
             if (strcmp(json_string_value(type), "phong") == 0) {
                 auto ambient = json_object_get(material, "ambient");
@@ -233,7 +233,7 @@ namespace scene {
             auto name = json_object_get(model, "name");
             json_error_if(name, !json_is_string, -1, root, "%\n", "name is not a string");
 
-            application::debug(application::log_category::game, "Model %\n", json_string_value(name));
+            game::journal::debug(game::journal::category::game, "Model %\n", json_string_value(name));
 
             auto meshes = json_object_get(model, "meshes");
             json_error_if(meshes, !json_is_array, -1, root, "%\n", "meshes is not an array");
@@ -250,7 +250,7 @@ namespace scene {
                 auto type = json_object_get(mesh, "type");
                 json_error_if(type, !json_is_string, -1, root, "%\n", "type is not a string");
 
-                application::debug(application::log_category::game, "Mesh %\n", json_string_value(type));
+                game::journal::debug(game::journal::category::game, "Mesh %\n", json_string_value(type));
 
                 if (strcmp(json_string_value(type), "gen_sphere") == 0) {
                     auto radius = json_object_get(mesh, "radius");
@@ -353,7 +353,7 @@ namespace scene {
                     input_actions[i].caxis_motion = json_string_value(on_cmotion);
             }
 
-            application::debug(application::log_category::game, "Input '%'\n", json_string_value(name));
+            game::journal::debug(game::journal::category::game, "Input '%'\n", json_string_value(name));
 
             create_input_source(json_string_value(name), input_actions);
         }
@@ -461,7 +461,7 @@ namespace scene {
 
                     auto La = json_vec3_value(ambient);
 
-                    application::debug(application::log_category::game, "Ambient light % % %\n", La.x, La.y, La.z);
+                    game::journal::debug(game::journal::category::game, "Ambient light % % %\n", La.x, La.y, La.z);
 
                     li.type = light_type::ambient;
                     li.ambient_light.ambient = La;
@@ -479,7 +479,7 @@ namespace scene {
                     auto Ls = json_vec3_value(specular);
                     auto d = json_vec3_value(direction);
 
-                    application::debug(application::log_category::game, "Directional light d% d% d% s% s% s% % % %\n",
+                    game::journal::debug(game::journal::category::game, "Directional light d% d% d% s% s% s% % % %\n",
                                        Ld.x, Ld.y, Ld.z, Ls.x, Ls.y, Ls.z, d.x, d.y, d.z);
 
                     li.type = light_type::directional;
@@ -519,7 +519,7 @@ namespace scene {
             this_scene->create_entity(ei);
         }
 
-        application::debug(application::log_category::scene, "Scene entities %\n", this_scene->get_entity_num());
+        game::journal::debug(game::journal::category::scene, "Scene entities %\n", this_scene->get_entity_num());
 
         // TODO: make optimization, sort all objets in arrays(material.cpp, ...)
         // to use binary search, make a flag that show then array is sorted, and we can
@@ -547,7 +547,7 @@ namespace scene {
 
         process_all_materials();
 
-        //application::debug(application::log_category::scene, "Present %\n", s->name);
+        //game::journal::debug(game::journal::category::scene, "Present %\n", s->name);
 
         physics::interpolate_all(interpolation);
         scene::present_all_cameras(scn);

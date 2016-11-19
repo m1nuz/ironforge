@@ -1,6 +1,7 @@
 #include <cassert>
 #include <readers/text.hpp>
-#include <core/application.hpp>
+#include <core/journal.hpp>
+#include <core/game.hpp>
 
 auto read_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
     assert(rw != nullptr);
@@ -73,14 +74,14 @@ auto read_shader_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
             char *end = strchr(sp, '\n');
 
             if ((size_t)(end - sp) == step) {
-                application::error(application::log_category::input, "%\n", "#include expect \"FILENAME\"");
-                application::quit();
+                game::journal::error(game::journal::category::input, "%\n", "#include expect \"FILENAME\"");
+                game::quit();
             }
 
             char *bracers_first = strchr(sp, '\"');
             if (bracers_first == NULL) {
-                application::error(application::log_category::input, "%\n", "#include expect \"FILENAME\"");
-                application::quit();
+                game::journal::error(game::journal::category::input, "%\n", "#include expect \"FILENAME\"");
+                game::quit();
             }
 
             char *space = sp + sizeof(include_directive);
@@ -88,20 +89,20 @@ auto read_shader_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
                 if (*space == ' ')
                     space++;
                 else {
-                    application::error(application::log_category::input, "%\n", "#include expect \"FILENAME\"");
-                    application::quit();
+                    game::journal::error(game::journal::category::input, "%\n", "#include expect \"FILENAME\"");
+                    game::quit();
                 }
 
             char *bracers_second = strchr(bracers_first + 1, '\"');
             if (bracers_second == NULL) {
-                application::error(application::log_category::input, "%\n", "#include expect \"FILENAME\"");
-                application::quit();
+                game::journal::error(game::journal::category::input, "%\n", "#include expect \"FILENAME\"");
+                game::quit();
             }
 
             size_t name_size = bracers_second - bracers_first - 1;
             if (name_size == 0) {
-                application::error(application::log_category::input, "%\n", "empty filename in #include");
-                application::quit();
+                game::journal::error(game::journal::category::input, "%\n", "empty filename in #include");
+                game::quit();
             }
 
             char name[name_size];

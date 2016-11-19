@@ -2,7 +2,7 @@
 
 #include <glcore_330.h>
 #include <ironforge_utility.hpp>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <video/video.hpp>
 #include <video/program.hpp>
 
@@ -24,7 +24,7 @@ namespace video {
                 glGetProgramInfoLog(pid, lenght, &written, &log_text[0]);
                 log_text.resize(written);
 
-                application::error(application::log_category::video, "%\n", log_text);
+                game::journal::error(game::journal::category::video, "%\n", log_text);
             }
 
             return true;
@@ -48,7 +48,7 @@ namespace video {
 
                 p.attributes.push_back({name, utils::xxhash64(name, name_len), glGetAttribLocation(p.pid, name), num, type});
 
-                application::debug(application::log_category::video, "-a- % %\n", p.attributes.back().name, p.attributes.back().location);
+                game::journal::debug(game::journal::category::video, "-a- % %\n", p.attributes.back().name, p.attributes.back().location);
             }
 
             return static_cast<int32_t>(p.attributes.size());
@@ -72,7 +72,7 @@ namespace video {
 
                 p.uniforms.push_back({name, utils::xxhash64(name, name_len), glGetUniformLocation(p.pid, name), num, type});
 
-                application::debug(application::log_category::video, "-u- % %\n", p.uniforms.back().name, p.uniforms.back().location);
+                game::journal::debug(game::journal::category::video, "-u- % %\n", p.uniforms.back().name, p.uniforms.back().location);
             }
 
             return static_cast<int32_t>(p.uniforms.size());
@@ -81,7 +81,7 @@ namespace video {
         auto create_program(const program_info &info) -> program {
             auto pid = glCreateProgram();
 
-            application::debug(application::log_category::video, "Create program %\n", pid);
+            game::journal::debug(game::journal::category::video, "Create program %\n", pid);
 
             std::vector<shader> shaders;
             shaders.reserve(5);
@@ -121,9 +121,9 @@ namespace video {
 
         auto destroy_program(program &pro) -> void {
             if (!glIsProgram(pro.pid))
-                application::debug(application::log_category::video, "Trying delete not program %\n", pro.pid);
+                game::journal::debug(game::journal::category::video, "Trying delete not program %\n", pro.pid);
 
-            application::debug(application::log_category::video, "Destroy program %\n", pro.pid);
+            game::journal::debug(game::journal::category::video, "Destroy program %\n", pro.pid);
 
             glDeleteProgram(pro.pid);
             pro.pid = 0;
@@ -139,7 +139,7 @@ namespace video {
             if (it != pro.uniforms.end())
                 return it->location;
 
-            application::warning(application::log_category::video, "Uniform not found %\n", name);
+            game::journal::warning(game::journal::category::video, "Uniform not found %\n", name);
 
             return -1;
         }

@@ -29,6 +29,8 @@ namespace video {
         auto rw = SDL_RWFromConstMem(fb.raw_memory, fb.size);
 
         auto font = TTF_OpenFontRW(rw, SDL_TRUE, info.size);
+        if (!font)
+            return;
 
         // TODO: check font for null
 

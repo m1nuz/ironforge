@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include <ironforge_utility.hpp>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <scene/scene.hpp>
 #include <video/video.hpp>
 
@@ -41,7 +41,7 @@ namespace scene {
 
         materials.push_back(mi);
 
-        application::debug(application::log_category::scene, "Create material '%' % (%)\n", info.name, mi.name_hash, materials.size());
+        game::journal::debug(game::journal::category::scene, "Create material '%' % (%)\n", info.name, mi.name_hash, materials.size());
 
         return &materials.back();
     }
@@ -62,7 +62,7 @@ namespace scene {
         if (it != materials.end())
             return &(*it);
 
-        application::warning(application::log_category::scene, "Material '%' not found\n", name);
+        game::journal::warning(game::journal::category::scene, "Material '%' not found\n", name);
 
         return default_material();
     }

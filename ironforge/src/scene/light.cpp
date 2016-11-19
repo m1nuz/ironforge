@@ -1,4 +1,4 @@
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <scene/scene.hpp>
 
 #include "light.hpp"
@@ -25,7 +25,7 @@ namespace scene {
 
         ambient_instances.push_back(ai);
 
-        application::debug(application::log_category::scene, "%\n", "Create ambient light");
+        game::journal::debug(game::journal::category::scene, "%\n", "Create ambient light");
 
         return &ambient_instances.back();
     }
@@ -35,7 +35,7 @@ namespace scene {
 
         directional_instances.push_back(di);
 
-        application::debug(application::log_category::scene, "%\n", "Create directional light");
+        game::journal::debug(game::journal::category::scene, "%\n", "Create directional light");
 
         return &directional_instances.back();
     }
@@ -45,7 +45,7 @@ namespace scene {
 
         point_instances.push_back(pi);
 
-        application::debug(application::log_category::scene, "%\n", "Create point light");
+        game::journal::debug(game::journal::category::scene, "%\n", "Create point light");
 
         return &point_instances.back();
     }

@@ -1,31 +1,16 @@
 #include <ironforge.hpp>
-#include <ui/ui.hpp>
 #include "config.hpp"
+
+#include <cstdio>
 
 extern int main(int argc, char* argv[]) {
     (void)argc;
     (void)argv;
 
-    auto asset_result = assets::result::failure;
-    if ((asset_result = assets::append(assets::default_readers)) != assets::result::success) {
-        application::error(application::log_category::application, "%\n", "Can't append readers");
-        return EXIT_FAILURE;
-    }
+    game::journal::add_storage(game::journal::console_storage);
+    game::journal::add_storage(game::journal::file_storage);
 
-    auto app_result = application::result::failure;
-    if ((app_result = application::init(GAME_NAME, application::get_base_path() + STARTUP_SCRIPT)) != application::result::success) {
-        application::error(application::log_category::application, "%\n", application::get_string(app_result));
-        return EXIT_FAILURE;
-    }
+    const auto start_script = game::get_base_path() + STARTUP_SCRIPT;
 
-    atexit(application::cleanup);
-
-    if ((app_result = application::exec()) != application::result::success) {
-        application::error(application::log_category::application, "%\n", "Can't execute application");
-        return EXIT_FAILURE;
-    }
-
-    application::info(application::log_category::application, "%\n", application::get_string(app_result));
-
-    return EXIT_SUCCESS;
+    return game::exec(start_script);
 }

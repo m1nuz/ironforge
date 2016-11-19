@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include <ironforge_utility.hpp>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <video/video.hpp>
 
 #include "model.hpp"
@@ -43,7 +43,7 @@ namespace scene {
                 vi = video::vertgen::make_grid_plane(&msh.grid, glm::mat4(1.f));
                 break;
             default:
-                application::warning(application::log_category::video, "%\n", "Unknown mesh source");
+                game::journal::warning(game::journal::category::video, "%\n", "Unknown mesh source");
                 break;
             }
 
@@ -57,7 +57,7 @@ namespace scene {
 
         models.push_back(mi);
 
-        application::debug(application::log_category::scene, "Create model '%' %\n", info.name, mi.name_hash);
+        game::journal::debug(game::journal::category::scene, "Create model '%' %\n", info.name, mi.name_hash);
 
         return &models.back();
     }
@@ -78,7 +78,7 @@ namespace scene {
         if (it != models.end())
             return &(*it);
 
-        application::warning(application::log_category::scene, "Model '%' not found\n", name);
+        game::journal::warning(game::journal::category::scene, "Model '%' not found\n", name);
 
         return default_model();
     }

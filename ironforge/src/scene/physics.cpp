@@ -1,5 +1,5 @@
 #include <ironforge_common.hpp>
-#include <core/application.hpp>
+#include <core/journal.hpp>
 #include <scene/scene.hpp>
 #include "physics.hpp"
 
@@ -26,7 +26,7 @@ namespace physics {
 
     auto cleanup() -> void {
         for (auto i = 0ul; i < bodies.size(); ++i)
-            application::debug(application::log_category::scene, "Destoy body (%)\n", i);
+            game::journal::debug(game::journal::category::scene, "Destoy body (%)\n", i);
 
         bodies.clear();
     }
@@ -55,7 +55,7 @@ namespace scene {
 
         physics::bodies.push_back(body_instance{state, state, state});
 
-        application::debug(application::log_category::scene, "Create body (%)\n", physics::bodies.size());
+        game::journal::debug(game::journal::category::scene, "Create body (%)\n", physics::bodies.size());
 
         return &physics::bodies.back();
     }
