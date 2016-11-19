@@ -7,7 +7,6 @@
 #include <SDL2/SDL_ttf.h>
 
 #include <video/video.hpp>
-#include <core/application.hpp>
 #include <core/journal.hpp>
 #include <core/settings.hpp>
 #include <core/assets.hpp>

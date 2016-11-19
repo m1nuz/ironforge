@@ -1,6 +1,5 @@
 #include <SDL2/SDL_video.h>
 #include <glcore_330.h>
-#include <core/application.hpp>
 #include <video/video.hpp>
 
 namespace video {

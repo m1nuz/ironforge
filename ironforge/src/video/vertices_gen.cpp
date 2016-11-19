@@ -2,7 +2,6 @@
 #include <cstring>
 
 #include <glcore_330.h>
-#include <core/application.hpp>
 #include <video/vertices.hpp>
 #include <video/vertices_gen.hpp>
 

@@ -6,7 +6,6 @@
 #include <video/atlas.hpp>
 #include <video/sprite_batch.hpp>
 #include <video/triangles_batch.hpp>
-#include <core/application.hpp>
 #include <renderer/renderer.hpp>
 
 namespace renderer {

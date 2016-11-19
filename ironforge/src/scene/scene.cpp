@@ -3,7 +3,6 @@
 #include <iterator>
 #include <ironforge_common.hpp>
 #include <ironforge_utility.hpp>
-#include <core/application.hpp>
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>

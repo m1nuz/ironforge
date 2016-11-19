@@ -5,7 +5,6 @@
 #include <ui/context.hpp>
 #include <ui/widgets.hpp>
 #include <video/screen.hpp>
-#include <core/application.hpp>
 
 #include "button.hpp"
 #include "label.hpp"
