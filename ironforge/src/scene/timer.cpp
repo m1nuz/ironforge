@@ -16,7 +16,7 @@ namespace scene {
         auto elapsed_seconds = std::chrono::duration<double> {t.end - t.start};
         t.start = t.end;
 
-        game::journal::debug(game::journal::category::scene, "% % %s\n", t.id, "on_time", elapsed_seconds.count());
+        game::journal::debug(game::journal::_SCENE, "% % %s\n", t.id, "on_time", elapsed_seconds.count());
     }
 
     auto init_all_timers() -> void {
@@ -76,7 +76,7 @@ namespace scene {
 
         timers.push_back(t);
 
-        game::journal::debug(game::journal::category::scene, "Create timer %\n", t.id);
+        game::journal::debug(game::journal::_SCENE, "Create timer %\n", t.id);
 
         return &timers.back();
     }
@@ -96,7 +96,7 @@ namespace scene {
         if (it == timers.end())
             return;
 
-        game::journal::debug(game::journal::category::scene, "Destroy timer %\n", t->id);
+        game::journal::debug(game::journal::_SCENE, "Destroy timer %\n", t->id);
 
         if (timers.size() > 1)
             *it = timers.back();

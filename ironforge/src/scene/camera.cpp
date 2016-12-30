@@ -19,7 +19,7 @@ namespace scene {
     auto create_camera(int32_t entity, const camera_info &info) -> camera_instance* {
         using namespace glm;
 
-        game::journal::debug(game::journal::category::scene, "Create camera ID % PARENT %\n", entity, info.parent);
+        game::journal::debug(game::journal::_SCENE, "Create camera ID % PARENT %\n", entity, info.parent);
 
         camera_instance ci;
         ci.entity = entity;

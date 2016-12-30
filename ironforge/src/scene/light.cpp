@@ -25,7 +25,7 @@ namespace scene {
 
         ambient_instances.push_back(ai);
 
-        game::journal::debug(game::journal::category::scene, "%\n", "Create ambient light");
+        game::journal::debug(game::journal::_SCENE, "%\n", "Create ambient light");
 
         return &ambient_instances.back();
     }
@@ -35,7 +35,7 @@ namespace scene {
 
         directional_instances.push_back(di);
 
-        game::journal::debug(game::journal::category::scene, "%\n", "Create directional light");
+        game::journal::debug(game::journal::_SCENE, "%\n", "Create directional light");
 
         return &directional_instances.back();
     }
@@ -45,7 +45,7 @@ namespace scene {
 
         point_instances.push_back(pi);
 
-        game::journal::debug(game::journal::category::scene, "%\n", "Create point light");
+        game::journal::debug(game::journal::_SCENE, "%\n", "Create point light");
 
         return &point_instances.back();
     }

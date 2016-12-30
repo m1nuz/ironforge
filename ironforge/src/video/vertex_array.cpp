@@ -9,7 +9,7 @@ namespace video {
             GLuint va;
             glGenVertexArrays(1, &va);
 
-            game::journal::debug(game::journal::category::video, "Create vertex array %\n", va);
+            game::journal::debug(game::journal::_VIDEO, "Create vertex array %\n", va);
 
             return {va, {}, {}, {}};
         }
@@ -22,7 +22,7 @@ namespace video {
 
         auto destroy_vertex_array(vertex_array &va) -> void {
             if (glIsVertexArray(va.id)) {
-                game::journal::debug(game::journal::category::video, "Destroy vertex array %\n", va.id);
+                game::journal::debug(game::journal::_VIDEO, "Destroy vertex array %\n", va.id);
                 glDeleteVertexArrays(1, &va.id);
             }
             va.id = 0;

@@ -40,7 +40,7 @@ namespace scene {
         if (!source)
             return nullptr;
 
-        game::journal::debug(game::journal::category::scene, "Create input %\n", entity);
+        game::journal::debug(game::journal::_SCENE, "Create input %\n", entity);
 
         inputs.push_back({entity, source});
 

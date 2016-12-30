@@ -10,7 +10,7 @@ namespace video {
             const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
             if (status != GL_FRAMEBUFFER_COMPLETE)
-                game::journal::error(game::journal::category::video, "Framebuffer incomplete %\n", utils::to_hex(status));
+                game::journal::error(game::journal::_VIDEO, "Framebuffer incomplete %\n", utils::to_hex(status));
 
             // TODO: make verbose output
 
@@ -51,7 +51,7 @@ namespace video {
             glGenFramebuffers(1, &buf);
             glBindFramebuffer(GL_FRAMEBUFFER, buf);
 
-            game::journal::debug(game::journal::category::video, "Create framebuffer %\n", buf);
+            game::journal::debug(game::journal::_VIDEO, "Create framebuffer %\n", buf);
 
             for (const auto &att : info.attachments) {
                 switch (att.attachment_target) {
@@ -71,9 +71,9 @@ namespace video {
 
         auto destroy_framebuffer(framebuffer &buf) -> void {
             if (!glIsFramebuffer(buf.id))
-                game::journal::debug(game::journal::category::video, "Trying delete not framebuffer %\n", buf.id);
+                game::journal::debug(game::journal::_VIDEO, "Trying delete not framebuffer %\n", buf.id);
 
-            game::journal::debug(game::journal::category::video, "Destroy framebuffer %\n", buf.id);
+            game::journal::debug(game::journal::_VIDEO, "Destroy framebuffer %\n", buf.id);
 
             glDeleteFramebuffers(1, &buf.id);
             buf.id = 0;

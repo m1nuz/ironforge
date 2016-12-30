@@ -33,7 +33,7 @@ namespace video {
                 return GL_LINEAR_MIPMAP_LINEAR;
             }
 
-            game::journal::debug(game::journal::category::video, "Texture min filter not found %\n", static_cast<uint32_t>(filter));
+            game::journal::debug(game::journal::_VIDEO, "Texture min filter not found %\n", static_cast<uint32_t>(filter));
 
             return GL_NONE;
         }
@@ -50,7 +50,7 @@ namespace video {
                 return GL_CLAMP_TO_BORDER;
             }
 
-            game::journal::debug(game::journal::category::video, "Texture wrap not found %\n", static_cast<uint32_t>(wrap));
+            game::journal::debug(game::journal::_VIDEO, "Texture wrap not found %\n", static_cast<uint32_t>(wrap));
 
             return GL_NONE;
         }
@@ -75,14 +75,14 @@ namespace video {
             if(info.anisotropy > 0)
                 glSamplerParameteri(sid, GL_TEXTURE_MAX_ANISOTROPY_EXT, info.anisotropy);
 
-            game::journal::debug(game::journal::category::video, "Create sampler %\n", sid);
+            game::journal::debug(game::journal::_VIDEO, "Create sampler %\n", sid);
 
             return {sid};
         }
 
         auto destroy_sampler(sampler &sam) -> void {
             if (glIsSampler(sam.id)) {
-                game::journal::debug(game::journal::category::video, "Destroy sampler %\n", sam.id);
+                game::journal::debug(game::journal::_VIDEO, "Destroy sampler %\n", sam.id);
                 glDeleteSamplers(1, &sam.id);
             }
 

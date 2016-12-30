@@ -26,7 +26,7 @@ namespace physics {
 
     auto cleanup() -> void {
         for (auto i = 0ul; i < bodies.size(); ++i)
-            game::journal::debug(game::journal::category::scene, "Destoy body (%)\n", i);
+            game::journal::debug(game::journal::_SCENE, "Destoy body (%)\n", i);
 
         bodies.clear();
     }
@@ -55,7 +55,7 @@ namespace scene {
 
         physics::bodies.push_back(body_instance{state, state, state});
 
-        game::journal::debug(game::journal::category::scene, "Create body (%)\n", physics::bodies.size());
+        game::journal::debug(game::journal::_SCENE, "Create body (%)\n", physics::bodies.size());
 
         return &physics::bodies.back();
     }

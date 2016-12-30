@@ -36,11 +36,11 @@ namespace scene {
             name_hashes.reserve(capacity);
             flags.reserve(capacity);
 
-            game::journal::debug(game::journal::category::game, "Create '%' scene %\n", name);
+            game::journal::debug(game::journal::_GAME, "Create '%' scene %\n", name);
         }
 
         ~simple_instance() {
-            game::journal::debug(game::journal::category::game, "Destroy '%' scene\n", name);
+            game::journal::debug(game::journal::_GAME, "Destroy '%' scene\n", name);
         }
 
         virtual auto state() -> uint32_t {
@@ -49,7 +49,7 @@ namespace scene {
 
         virtual auto create_entity(const entity_info &info) -> int32_t {
             if ((size > capacity) || (size > INT_MAX)) {
-                game::journal::error(game::journal::category::scene, "Can't create more then % entities\n", capacity);
+                game::journal::error(game::journal::_SCENE, "Can't create more then % entities\n", capacity);
                 return -1;
             }
 
@@ -70,7 +70,7 @@ namespace scene {
             // TODO: camera and no body? error
             // TODO: renderable and no body? error
 
-            game::journal::debug(game::journal::category::scene, "Create entity '%' % parent '%' ID %\n", info.name, hash, parent_name, eid);
+            game::journal::debug(game::journal::_SCENE, "Create entity '%' % parent '%' ID %\n", info.name, hash, parent_name, eid);
 
             if (info.flags & static_cast<uint32_t>(entity_flags::root)) {
                 bodies.push_back(create_body(body_info{}));

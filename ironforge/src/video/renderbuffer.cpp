@@ -27,7 +27,7 @@ namespace video {
 
         auto destroy_renderbuffer(renderbuffer &buf) -> void {
             if (!glIsRenderbuffer(buf.id))
-                game::journal::debug(game::journal::category::video, "Trying delete not renderbuffer %\n", buf.id);
+                game::journal::debug(game::journal::_VIDEO, "Trying delete not renderbuffer %\n", buf.id);
 
             glDeleteRenderbuffers(1, &buf.id);
             buf.id = 0;

@@ -41,7 +41,7 @@ namespace video {
                 glGetShaderInfoLog(sh.id, lenght, &written, &log_text[0]);
                 log_text.resize(written);
 
-                game::journal::error(game::journal::category::video, "%\n", log_text);
+                game::journal::error(game::journal::_VIDEO, "%\n", log_text);
 
                 glDeleteShader(sh.id);
                 sh.id = 0;

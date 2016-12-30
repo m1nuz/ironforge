@@ -41,7 +41,7 @@ namespace scene {
         lua_getglobal(L, sc->table.c_str());
 
         if (lua_type(L, -1) != LUA_TTABLE) {
-            game::journal::error(game::journal::category::scene, "% not found\n", sc->table.c_str());
+            game::journal::error(game::journal::_SCENE, "% not found\n", sc->table.c_str());
             return -1;
         }
 
@@ -54,7 +54,7 @@ namespace scene {
             push(arg, std::forward<Args>(args)...);
 
             if (lua_pcall(L, num_args + 3, 0, 0) != 0) {
-                game::journal::error(game::journal::category::scene, "call function '%' : %\n", "_init", lua_tostring(L, -1));
+                game::journal::error(game::journal::_SCENE, "call function '%' : %\n", "_init", lua_tostring(L, -1));
                 return -1;
             }
         }
@@ -71,7 +71,7 @@ namespace scene {
         lua_getglobal(L, sc->table.c_str());
 
         if (lua_type(L, -1) != LUA_TTABLE) {
-            game::journal::error(game::journal::category::scene, "% not found\n", sc->table.c_str());
+            game::journal::error(game::journal::_SCENE, "% not found\n", sc->table.c_str());
             return -1;
         }
 
@@ -82,7 +82,7 @@ namespace scene {
             lua_pushinteger(L, sc->entity);
 
             if (lua_pcall(L, 2, 0, 0) != 0) {
-                game::journal::error(game::journal::category::scene, "call function '%' : %\n", "_init", lua_tostring(L, -1));
+                game::journal::error(game::journal::_SCENE, "call function '%' : %\n", "_init", lua_tostring(L, -1));
                 return -1;
             }
         }
@@ -95,7 +95,7 @@ namespace scene {
             lua_close(lua_state);
 
         if ((lua_state = luaL_newstate()) == nullptr) {
-            game::journal::error(game::journal::category::scene, "%\n", "Can't init LUA");
+            game::journal::error(game::journal::_SCENE, "%\n", "Can't init LUA");
 
             return -1;
         }
@@ -130,14 +130,14 @@ namespace scene {
     }
 
     auto create_script(int32_t entity, const script_info &info, uint32_t flags) -> script_instance* {
-        game::journal::debug(game::journal::category::scene, "Create script %\n", info.name);
+        game::journal::debug(game::journal::_SCENE, "Create script %\n", info.name);
 
         auto td = assets::get_text(info.name);
 
         auto L = lua_state;
 
         if (luaL_dostring(L, td.text)) {
-            game::journal::error(game::journal::category::scene, "% %\n", "Could not load module", info.name);
+            game::journal::error(game::journal::_SCENE, "% %\n", "Could not load module", info.name);
             lua_close(L);
             return nullptr;
         }
@@ -148,7 +148,7 @@ namespace scene {
         snprintf(text, sizeof text, "%s = M", info.table_name);
 
         if (luaL_dostring(L, text)) {
-            game::journal::error(game::journal::category::scene, "%s\n", "Could set module");
+            game::journal::error(game::journal::_SCENE, "%s\n", "Could set module");
             lua_close(L);
             return NULL;
         }
@@ -170,7 +170,7 @@ namespace scene {
 
         if (td.size != 0) {
             if (luaL_dostring(L, td.text)) {
-                game::journal::error(game::journal::category::scene, "% %\n", "Could not load script", name);
+                game::journal::error(game::journal::_SCENE, "% %\n", "Could not load script", name);
                 lua_close(L);
                 return false;
             }

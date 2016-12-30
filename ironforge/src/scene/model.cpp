@@ -43,7 +43,7 @@ namespace scene {
                 vi = video::vertgen::make_grid_plane(&msh.grid, glm::mat4(1.f));
                 break;
             default:
-                game::journal::warning(game::journal::category::video, "%\n", "Unknown mesh source");
+                game::journal::warning(game::journal::_VIDEO, "%\n", "Unknown mesh source");
                 break;
             }
 
@@ -57,7 +57,7 @@ namespace scene {
 
         models.push_back(mi);
 
-        game::journal::debug(game::journal::category::scene, "Create model '%' %\n", info.name, mi.name_hash);
+        game::journal::debug(game::journal::_SCENE, "Create model '%' %\n", info.name, mi.name_hash);
 
         return &models.back();
     }
@@ -78,7 +78,7 @@ namespace scene {
         if (it != models.end())
             return &(*it);
 
-        game::journal::warning(game::journal::category::scene, "Model '%' not found\n", name);
+        game::journal::warning(game::journal::_SCENE, "Model '%' not found\n", name);
 
         return default_model();
     }

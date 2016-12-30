@@ -27,7 +27,7 @@ namespace video {
             break;
         }*/
 
-        game::journal::error(game::journal::category::video, "%\n", message);
+        game::journal::error(game::journal::_VIDEO, "%\n", message);
     }
 
     auto setup_debug() -> void {
