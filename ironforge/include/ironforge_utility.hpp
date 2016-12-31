@@ -30,6 +30,9 @@ namespace utils {
     }
 
     inline auto xxhash64(const void *ptr, size_t size, uint64_t seed = 0) -> uint64_t {
+        if (!ptr || (size == 0))
+            return 0;
+
         return XXH64(ptr, size, seed);
     }
 } // namespace utils

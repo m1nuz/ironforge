@@ -1,6 +1,10 @@
 #pragma once
 
+#include <ironforge_utility.hpp>
+
 #include <core/journal.hpp>
+
+#include <scene/entity.hpp>
 
 #include "timer.hpp"
 #include "physics.hpp"
@@ -36,6 +40,17 @@ namespace scene {
             name_hashes.reserve(capacity);
             flags.reserve(capacity);
 
+            if (_state & static_cast<uint32_t>(state_flags::empty)) {
+                entity_info info;
+                camera_info ci;
+                body_info bi;
+                ci.fov = 45.f;
+                info.camera = &ci;
+                info.body = &bi;
+                info.flags |= static_cast<uint32_t>(entity_flags::camera);
+                create_entity(info);
+            }
+
             game::journal::debug(game::journal::_GAME, "Create '%' scene %\n", name);
         }
 
@@ -65,12 +80,12 @@ namespace scene {
             if (info.flags & static_cast<uint32_t>(entity_flags::current_camera))
                 current_camera = eid;
 
-            auto hash = utils::xxhash64(info.name, strlen(info.name), 0);
+            auto hash = utils::xxhash64(info.name, info.name ? strlen(info.name) : 0, 0);
 
             // TODO: camera and no body? error
             // TODO: renderable and no body? error
 
-            game::journal::debug(game::journal::_SCENE, "Create entity '%' % parent '%' ID %\n", info.name, hash, parent_name, eid);
+            game::journal::debug(game::journal::_SCENE, "Create entity '%' % parent '%' ID %\n", info.name ? info.name : "unknown", hash, parent_name, eid);
 
             if (info.flags & static_cast<uint32_t>(entity_flags::root)) {
                 bodies.push_back(create_body(body_info{}));
@@ -118,7 +133,7 @@ namespace scene {
                     break;
                 }
 
-                names.push_back(info.name);
+                names.push_back(info.name ? info.name : std::string{});
                 name_hashes.push_back(hash);
                 flags.push_back(info.flags);
                 scripts.push_back(info.script ? create_script(eid, *info.script, info.flags) : nullptr);
@@ -192,6 +207,7 @@ namespace scene {
 
         virtual auto get_current_camera() -> camera_instance* {
             assert(current_camera < cameras.capacity());
+            assert(cameras.capacity() != 0);
 
             return cameras[current_camera];
         }

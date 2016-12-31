@@ -61,7 +61,7 @@ namespace scene {
     }
 
     auto empty(uint32_t state) -> std::unique_ptr<instance> {
-        return make_unique<simple_instance>("empty", state);
+        return make_unique<simple_instance>("empty", static_cast<uint32_t>(state | scene::state_flags::empty));
     }
 
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance> {

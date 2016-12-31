@@ -22,7 +22,16 @@ namespace scene {
     enum class state_flags : uint32_t {
         start       = 0x00000001,
         current     = 0x00000002,
+        empty       = 0x10000000,
     };
+
+    inline state_flags operator |(state_flags a, state_flags b) {
+        return static_cast<state_flags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    }
+
+    inline state_flags operator |(uint32_t a, state_flags b) {
+        return static_cast<state_flags>(a | static_cast<uint32_t>(b));
+    }
 
     struct instance;
 
