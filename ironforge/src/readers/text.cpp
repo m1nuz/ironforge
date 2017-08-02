@@ -74,13 +74,13 @@ auto read_shader_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
             char *end = strchr(sp, '\n');
 
             if ((size_t)(end - sp) == step) {
-                game::journal::error(game::journal::_INPUT, "%\n", "#include expect \"FILENAME\"");
+                game::journal::error(game::journal::_INPUT, "%", "#include expect \"FILENAME\"");
                 game::quit();
             }
 
             char *bracers_first = strchr(sp, '\"');
             if (bracers_first == NULL) {
-                game::journal::error(game::journal::_INPUT, "%\n", "#include expect \"FILENAME\"");
+                game::journal::error(game::journal::_INPUT, "%", "#include expect \"FILENAME\"");
                 game::quit();
             }
 
@@ -89,19 +89,19 @@ auto read_shader_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
                 if (*space == ' ')
                     space++;
                 else {
-                    game::journal::error(game::journal::_INPUT, "%\n", "#include expect \"FILENAME\"");
+                    game::journal::error(game::journal::_INPUT, "%", "#include expect \"FILENAME\"");
                     game::quit();
                 }
 
             char *bracers_second = strchr(bracers_first + 1, '\"');
             if (bracers_second == NULL) {
-                game::journal::error(game::journal::_INPUT, "%\n", "#include expect \"FILENAME\"");
+                game::journal::error(game::journal::_INPUT, "%", "#include expect \"FILENAME\"");
                 game::quit();
             }
 
             size_t name_size = bracers_second - bracers_first - 1;
             if (name_size == 0) {
-                game::journal::error(game::journal::_INPUT, "%\n", "empty filename in #include");
+                game::journal::error(game::journal::_INPUT, "%", "empty filename in #include");
                 game::quit();
             }
 

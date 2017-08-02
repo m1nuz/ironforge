@@ -30,9 +30,9 @@ namespace video {
 
     struct texture_info {
         texture_info() = default;
-        texture_info(pixel_format _format, int32_t _mipmaps, uint32_t _flags, int32_t w, int32_t h, int32_t d, void *_pixels)
+        /*texture_info(pixel_format _format, int32_t _mipmaps, uint32_t _flags, int32_t w, int32_t h, int32_t d, void *_pixels)
             : format{_format}, mipmaps{_mipmaps}, flags{_flags}, width{w}, height{h}, depth{d}, pixels{_pixels} {
-        }
+        }*/
 
         pixel_format format = pixel_format::unknown;
         int32_t     mipmaps = 0;

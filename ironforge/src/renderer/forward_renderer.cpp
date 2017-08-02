@@ -8,7 +8,7 @@
 
 namespace renderer {
     forward_renderer::forward_renderer() {
-        game::journal::debug(game::journal::_RENDER, "% % with % %\n", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
+        game::journal::debug(game::journal::_RENDER, "% % with % %", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
         init_ui();
 
@@ -117,7 +117,7 @@ namespace renderer {
         video::gl::destroy_renderbuffer(sample_depth);
         video::gl::destroy_sampler(texture_sampler);
         video::gl::destroy_sampler(filter_sampler);
-        game::journal::debug(game::journal::_RENDER, "%\n", "Destroy forward render");
+        game::journal::debug(game::journal::_RENDER, "%", "Destroy forward render");
     }
 
     auto forward_renderer::append(const phong::ambient_light &light) -> void {
@@ -175,7 +175,7 @@ namespace renderer {
             auto glyph = video::glyph_cache_find(c, font);
             if (glyph.ch == 0)
             {
-                game::journal::warning(game::journal::_RENDER, "%\n", "Glyph not found");
+                game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
                 continue;
             }
 
@@ -494,7 +494,7 @@ namespace renderer {
 
             auto glyph = video::glyph_cache_find(ch, font);
             if (glyph.ch == 0) {
-                game::journal::warning(game::journal::_RENDER, "%\n", "Glyph not found");
+                game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
                 continue;
             }
 
@@ -544,7 +544,7 @@ namespace renderer {
 
             auto glyph = video::glyph_cache_find(ch, c.font);
             if (glyph.ch == 0) {
-                game::journal::warning(game::journal::_RENDER, "%\n", "Glyph not found");
+                game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
                 continue;
             }
 

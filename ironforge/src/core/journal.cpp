@@ -41,6 +41,22 @@ namespace game {
             "CRITICAL"
         };
 
+        auto setup_default(const std::string &log_path) -> void {
+            add_tag(_GAME, verbosity::verbose);
+            add_tag(_SYSTEM, verbosity::verbose);
+            add_tag(_AUDIO, verbosity::verbose);
+            add_tag(_VIDEO, verbosity::verbose);
+            add_tag(_RENDER, verbosity::verbose);
+            add_tag(_INPUT, verbosity::verbose);
+            add_tag(_SCENE, verbosity::verbose);
+            add_tag(_UI, verbosity::verbose);
+
+            add_storage(console_storage);
+
+            using namespace std::placeholders;
+            add_storage(std::bind(journal::single_file_storage, log_path, _1, _2, _3, _4));
+        }
+
         auto console_storage(const std::string &tag, const verbosity v, const void *d, size_t s) -> int {
             using game::journal::verbosity;
 
@@ -67,7 +83,7 @@ namespace game {
 
             fprintf(stdout, "%s (%s): ", priority_names[static_cast<int>(v)], tag.c_str());
             fwrite(d, s, 1, stdout);
-            fputs("\x1b[0m", stdout);
+            fputs("\x1b[0m\n", stdout);
 
             return 0;
         }

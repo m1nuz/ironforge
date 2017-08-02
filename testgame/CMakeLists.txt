@@ -26,7 +26,12 @@ foreach(dir ${dirs})
   message(STATUS "dir='${dir}'")
 endforeach()
 
-add_executable(simple-game-test src/config.hpp src/main.cpp)
+
+set(GENERATE_MAIN_OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+
+
+add_executable(simple-game-test src/main.cpp)
+generate_main(simple-game-test ../assets/test/scripts/test.lua)
 set_property(TARGET simple-game-test PROPERTY CXX_STANDARD 14)
 set_property(TARGET simple-game-test APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
 target_link_libraries(simple-game-test ${libs})

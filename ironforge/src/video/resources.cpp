@@ -53,7 +53,7 @@ namespace video {
         textures.reserve(100);
         programs.reserve(100);
 
-        game::journal::debug(game::journal::_VIDEO, "%\n", "Init resources");
+        game::journal::debug(game::journal::_VIDEO, "%", "Init resources");
 
         auto white_name = "white-map";
         auto im = video::imgen::make_color(128, 128, {255, 255, 255}); // white
@@ -112,7 +112,7 @@ namespace video {
                     t.tex = gl::create_texture_2d(t.imd_future.get());
                     t.ready = true;
                     t.tex.desc = &t;
-                    game::journal::debug(game::journal::_VIDEO, "%\n", "TEX LOADED");
+                    game::journal::debug(game::journal::_VIDEO, "%", "TEX LOADED");
                     delete[] t.imd_future.get().pixels;
                     // FIXME: ok, for now
                     //t.imd_future.get().pixels = NULL;
@@ -205,7 +205,7 @@ namespace video {
                 vertices_data_size += vb_size;
                 break;
             default:
-                game::journal::warning(game::journal::_VIDEO, "%\n", "Unknown vertex format");
+                game::journal::warning(game::journal::_VIDEO, "%", "Unknown vertex format");
                 break;
             }
 
@@ -221,7 +221,7 @@ namespace video {
                 indices_data_size += ib_size;
                 break;
             default:
-                game::journal::warning(game::journal::_VIDEO, "%\n", "Unknown index format");
+                game::journal::warning(game::journal::_VIDEO, "%", "Unknown index format");
                 break;
             }
 
@@ -293,7 +293,7 @@ namespace video {
             gl::vertex_array_format(va, vertex_attributes::tangent, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3t3, tangent));
             break;
         default:
-            game::journal::warning(game::journal::_VIDEO, "%\n", "Unknown vertex format");
+            game::journal::warning(game::journal::_VIDEO, "%", "Unknown vertex format");
             break;
         }
 
@@ -321,14 +321,14 @@ namespace video {
         });
 
         if (it != textures.end()) {
-            game::journal::info(game::journal::_GAME, "Texture % found\n", name);
+            game::journal::info(game::journal::_GAME, "Texture % found", name);
             return it->tex;
         }
 
         auto imd = /*image_future.get();/*/assets::get_image(name);
 
         if (!imd.pixels) {
-            game::journal::warning(game::journal::_GAME, "Texture % not found\n", name);
+            game::journal::warning(game::journal::_GAME, "Texture % not found", name);
             return default_tex;
         }
 
@@ -344,7 +344,7 @@ namespace video {
         desc.ready = false;
         desc.imd_future = pool.enqueue(assets::get_image, name);
 
-        game::journal::debug(game::journal::_GAME, "Texture % LOADING\n", name);
+        game::journal::debug(game::journal::_GAME, "Texture % LOADING", name);
 
         // FIXME: dont modif desc
         textures.push_back(desc);
@@ -408,7 +408,7 @@ namespace video {
         });
 
         if (pi != programs.end()) {
-            game::journal::warning(game::journal::_VIDEO, "Program % already created\n", pi->pro.pid);
+            game::journal::warning(game::journal::_VIDEO, "Program % already created", pi->pro.pid);
             return pi->pro;
         }
 

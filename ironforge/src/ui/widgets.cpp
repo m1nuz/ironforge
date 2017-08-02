@@ -308,7 +308,7 @@ namespace ui {
     }
 
     auto create_context() -> std::unique_ptr<context> {
-        return make_unique<context>();
+        return std::make_unique<context>();
     }
 
     window *current_window = nullptr;
@@ -320,7 +320,7 @@ namespace ui {
             const float px = - 0.5f + (float)event.button.x / video::screen.width;
             const float py =   0.5f - (float)event.button.y / video::screen.height;
 
-            //game::journal::info(application::log_category::ui, "% %\n", px, py);
+            //game::journal::info(application::log_category::ui, "% %", px, py);
 
             for (auto &b : buttons)
                 if (in_rect(b.x, b.y, b.w, b.h, px, py)) {
@@ -445,7 +445,7 @@ namespace ui {
         while (!ctx->commands.empty()) {
             const auto c = ctx->commands.back();
 
-            //game::journal::debug(application::log_category::ui, "% %\n", static_cast<int>(c.type), c.level);
+            //game::journal::debug(application::log_category::ui, "% %", static_cast<int>(c.type), c.level);
 
             dispath(c);
 

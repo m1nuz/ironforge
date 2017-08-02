@@ -37,7 +37,7 @@ namespace video {
                 return GL_ONE_MINUS_CONSTANT_ALPHA;
             }
 
-            game::journal::warning(game::journal::_VIDEO, "Unknown blend factor %\n", static_cast<uint32_t>(factor));
+            game::journal::warning(game::journal::_VIDEO, "Unknown blend factor %", static_cast<uint32_t>(factor));
 
             return GL_NONE;
         }
@@ -52,7 +52,7 @@ namespace video {
                 return GL_FRONT_AND_BACK;
             }
 
-            game::journal::warning(game::journal::_VIDEO, "Unknown cull face mode %\n", static_cast<uint32_t>(mode));
+            game::journal::warning(game::journal::_VIDEO, "Unknown cull face mode %", static_cast<uint32_t>(mode));
 
             return GL_NONE;
         }
@@ -67,7 +67,7 @@ namespace video {
                 return GL_FILL;
             }
 
-            game::journal::warning(game::journal::_VIDEO, "Unknown polygon mode fill %\n", static_cast<uint32_t>(mode));
+            game::journal::warning(game::journal::_VIDEO, "Unknown polygon mode fill %", static_cast<uint32_t>(mode));
 
             return GL_NONE;
         }
@@ -92,7 +92,7 @@ namespace video {
                 return GL_ALWAYS;
             }
 
-            game::journal::warning(game::journal::_VIDEO, "Unknown depth func %\n", static_cast<uint32_t>(f));
+            game::journal::warning(game::journal::_VIDEO, "Unknown depth func %", static_cast<uint32_t>(f));
 
             return GL_NONE;
         }

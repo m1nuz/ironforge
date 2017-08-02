@@ -41,7 +41,7 @@ namespace scene {
 
         materials.push_back(mi);
 
-        game::journal::debug(game::journal::_SCENE, "Create material '%' % (%)\n", info.name, mi.name_hash, materials.size());
+        game::journal::debug(game::journal::_SCENE, "Create material '%' % (%)", info.name, mi.name_hash, materials.size());
 
         return &materials.back();
     }
@@ -62,7 +62,7 @@ namespace scene {
         if (it != materials.end())
             return &(*it);
 
-        game::journal::warning(game::journal::_SCENE, "Material '%' not found\n", name);
+        game::journal::warning(game::journal::_SCENE, "Material '%' not found", name);
 
         return default_material();
     }

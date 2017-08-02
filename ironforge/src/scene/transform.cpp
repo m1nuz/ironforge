@@ -18,7 +18,7 @@ namespace scene {
     }
 
     auto create_transform(int32_t _entity, int32_t _parent) -> transform_instance* {
-        game::journal::debug(game::journal::_SCENE, "Create transform ID % PARENT % (%)\n", _entity, _parent, transform_instances.size());
+        game::journal::debug(game::journal::_SCENE, "Create transform ID % PARENT % (%)", _entity, _parent, transform_instances.size());
 
         // TODO: error when transform_instances.size > max_transforms
 

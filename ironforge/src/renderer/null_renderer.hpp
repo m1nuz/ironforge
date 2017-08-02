@@ -8,13 +8,13 @@
 namespace renderer {
     struct null_instance : public instance {
         null_instance() {
-            game::journal::debug(game::journal::_RENDER, "%\n", "Create null render");
+            game::journal::debug(game::journal::_RENDER, "%", "Create null render");
 
             reset();
         }
 
         ~null_instance() {
-            game::journal::debug(game::journal::_RENDER, "%\n", "Destroy null render");
+            game::journal::debug(game::journal::_RENDER, "%", "Destroy null render");
         }
 
         virtual auto append(const phong::ambient_light &light) -> void {

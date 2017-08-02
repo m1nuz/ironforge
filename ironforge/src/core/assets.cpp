@@ -105,7 +105,7 @@ namespace assets {
                     if (!is_readable(entry.path().extension().string()))
                         continue;
 
-                    game::journal::debug(game::journal::_GAME, "Asset found %\n", entry.path().string());
+                    game::journal::debug(game::journal::_GAME, "Asset found %", entry.path().string());
 
                     files.insert({entry.path().filename().string(), entry.path().string()});
                 }
@@ -140,17 +140,17 @@ namespace assets {
 
                 auto ret = r->second(SDL_RWFromFile(f->second.c_str(), "r"), td);
                 if (ret != 0) {
-                    game::journal::error(game::journal::_SYSTEM, "Can't read file %\n", f->second);
+                    game::journal::error(game::journal::_SYSTEM, "Can't read file %", f->second);
                     return {nullptr, 0};
                 }
 
-                game::journal::debug(game::journal::_GAME, "Read file %\n", f->second);
+                game::journal::debug(game::journal::_GAME, "Read file %", f->second);
                 texts.insert({p.filename().string(), td}); // TODO: free memory
                 return td;
             }
         }        
 
-        game::journal::warning(game::journal::_GAME, "File '%' not found\n", name);
+        game::journal::warning(game::journal::_GAME, "File '%' not found", name);
 
         return {nullptr, 0};
     }
@@ -167,11 +167,11 @@ namespace assets {
 
         auto ret = r->second(SDL_RWFromFile(path.c_str(), "r"), td);
         if (ret != 0) {
-            game::journal::error(game::journal::_SYSTEM, "Can't read file %\n", path);
+            game::journal::error(game::journal::_SYSTEM, "Can't read file %", path);
             return {nullptr, 0};
         }
 
-        game::journal::debug(game::journal::_GAME, "Read file %\n", path);
+        game::journal::debug(game::journal::_GAME, "Read file %", path);
         texts.insert({p.filename().string(), td}); // TODO: free memory
         return td;
     }
@@ -194,11 +194,11 @@ namespace assets {
 
                 auto ret = r->second(SDL_RWFromFile(f->second.c_str(), "r"), imd);
                 if (ret != 0) {
-                    game::journal::error(game::journal::_SYSTEM, "Can't read file %\n", f->second);
+                    game::journal::error(game::journal::_SYSTEM, "Can't read file %", f->second);
                     return {0, 0, 0, video::pixel_format::unknown, nullptr};
                 }
 
-                game::journal::debug(game::journal::_GAME, "Read file %\n", f->second);
+                game::journal::debug(game::journal::_GAME, "Read file %", f->second);
                 images.insert({p.filename().string(), imd}); // TODO: free memory
                 return imd;
             }
@@ -226,11 +226,11 @@ namespace assets {
                 auto ret = r->second(SDL_RWFromFile(f->second.c_str(), "r"), dat);
 
                 if (ret != 0) {
-                    game::journal::error(game::journal::_SYSTEM, "Can't read file %\n", f->second);
+                    game::journal::error(game::journal::_SYSTEM, "Can't read file %", f->second);
                     return {nullptr, 0};
                 }
 
-                game::journal::debug(game::journal::_GAME, "Read file %\n", f->second);
+                game::journal::debug(game::journal::_GAME, "Read file %", f->second);
                 binaries.insert({p.filename().string(), dat});
                 return dat;
             }

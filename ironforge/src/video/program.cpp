@@ -24,7 +24,7 @@ namespace video {
                 glGetProgramInfoLog(pid, lenght, &written, &log_text[0]);
                 log_text.resize(written);
 
-                game::journal::error(game::journal::_VIDEO, "%\n", log_text);
+                game::journal::error(game::journal::_VIDEO, "%", log_text);
             }
 
             return true;
@@ -48,7 +48,7 @@ namespace video {
 
                 p.attributes.push_back({name, utils::xxhash64(name, name_len), glGetAttribLocation(p.pid, name), num, type});
 
-                game::journal::debug(game::journal::_VIDEO, "-a- % %\n", p.attributes.back().name, p.attributes.back().location);
+                game::journal::debug(game::journal::_VIDEO, "-a- % %", p.attributes.back().name, p.attributes.back().location);
             }
 
             return static_cast<int32_t>(p.attributes.size());
@@ -72,7 +72,7 @@ namespace video {
 
                 p.uniforms.push_back({name, utils::xxhash64(name, name_len), glGetUniformLocation(p.pid, name), num, type});
 
-                game::journal::debug(game::journal::_VIDEO, "-u- % %\n", p.uniforms.back().name, p.uniforms.back().location);
+                game::journal::debug(game::journal::_VIDEO, "-u- % %", p.uniforms.back().name, p.uniforms.back().location);
             }
 
             return static_cast<int32_t>(p.uniforms.size());
@@ -81,7 +81,7 @@ namespace video {
         auto create_program(const program_info &info) -> program {
             auto pid = glCreateProgram();
 
-            game::journal::debug(game::journal::_VIDEO, "Create program %\n", pid);
+            game::journal::debug(game::journal::_VIDEO, "Create program %", pid);
 
             std::vector<shader> shaders;
             shaders.reserve(5);
@@ -121,9 +121,9 @@ namespace video {
 
         auto destroy_program(program &pro) -> void {
             if (!glIsProgram(pro.pid))
-                game::journal::debug(game::journal::_VIDEO, "Trying delete not program %\n", pro.pid);
+                game::journal::debug(game::journal::_VIDEO, "Trying delete not program %", pro.pid);
 
-            game::journal::debug(game::journal::_VIDEO, "Destroy program %\n", pro.pid);
+            game::journal::debug(game::journal::_VIDEO, "Destroy program %", pro.pid);
 
             glDeleteProgram(pro.pid);
             pro.pid = 0;
@@ -139,7 +139,7 @@ namespace video {
             if (it != pro.uniforms.end())
                 return it->location;
 
-            game::journal::warning(game::journal::_VIDEO, "Uniform not found %\n", name);
+            game::journal::warning(game::journal::_VIDEO, "Uniform not found %", name);
 
             return -1;
         }

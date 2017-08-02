@@ -40,7 +40,7 @@ namespace scene {
         if (!source)
             return nullptr;
 
-        game::journal::debug(game::journal::_SCENE, "Create input %\n", entity);
+        game::journal::debug(game::journal::_SCENE, "Create input %", entity);
 
         inputs.push_back({entity, source});
 
@@ -48,6 +48,8 @@ namespace scene {
     }
 
     auto process_input_events(std::unique_ptr<instance> &s, const SDL_Event &e) -> void {
+        using namespace game;
+
         switch (e.type) {
         case SDL_KEYDOWN:
             for (const auto &input : inputs)
@@ -69,6 +71,8 @@ namespace scene {
                     if (e.cbutton.button == action.cbutton)
                         if (!action.key_down.empty())
                             call_fn(s->get_script(input.entity), action.key_down.c_str());
+
+            journal::debug(journal::_INPUT, "button=% state=%", e.cbutton.button, e.cbutton.state);
             break;
         case SDL_CONTROLLERBUTTONUP:
             for (const auto &input : inputs)
@@ -76,6 +80,8 @@ namespace scene {
                     if (e.cbutton.button == action.cbutton)
                         if (!action.key_up.empty())
                             call_fn(s->get_script(input.entity), action.key_up.c_str());
+
+            journal::debug(journal::_INPUT, "button=% state=%", e.cbutton.button, e.cbutton.state);
             break;
         case SDL_CONTROLLERAXISMOTION:
             for (const auto &input : inputs)

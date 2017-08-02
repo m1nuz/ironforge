@@ -95,6 +95,8 @@ namespace game {
             write(tag, verbosity::verbose, message);
         }
 
+        auto setup_default(const std::string &log_path) -> void;
+
         auto console_storage(const std::string &tag, const verbosity v, const void *d, size_t s) -> int;
         auto single_file_storage(const std::string &path, const std::string &tag, const verbosity v, const void *d, size_t s) -> int;
         auto multi_file_storage(const std::unordered_map<std::string, std::string> &files, const std::string &tag, const verbosity v, const void *d, size_t s) -> int;

@@ -29,7 +29,7 @@ namespace video {
 
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            game::journal::debug(game::journal::_VIDEO, "Create 2d texture %\n", tex);
+            game::journal::debug(game::journal::_VIDEO, "Create 2d texture %", tex);
 
             return {static_cast<uint32_t>(tex), GL_TEXTURE_2D, nullptr};
         }
@@ -70,7 +70,7 @@ namespace video {
 
             glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-            game::journal::debug(game::journal::_VIDEO, "Create cube texture %\n", tex);
+            game::journal::debug(game::journal::_VIDEO, "Create cube texture %", tex);
 
             return {static_cast<uint32_t>(tex), GL_TEXTURE_CUBE_MAP, nullptr};
         }
@@ -95,7 +95,7 @@ namespace video {
 
         auto destroy_texture(texture &tex) -> void {
             if (glIsTexture(tex.id)) {
-                game::journal::debug(game::journal::_VIDEO, "Delete texture %\n", tex.id);
+                game::journal::debug(game::journal::_VIDEO, "Delete texture %", tex.id);
                 glDeleteTextures(1, &tex.id);
             }
 

@@ -79,16 +79,16 @@ namespace video {
             glBindBuffer(bt, buf);
             glBufferData(bt, size, ptr, bu);
 
-            game::journal::debug(game::journal::_VIDEO, "Create % buffer %\n", buffer_target_names[target], buf);
+            game::journal::debug(game::journal::_VIDEO, "Create % buffer %", buffer_target_names[target], buf);
 
             return buffer{buf, bt, bu};
         }
 
         auto destroy_buffer(buffer &buf) -> void {
             if (!glIsBuffer(buf.id))
-                game::journal::warning(game::journal::_VIDEO, "Trying delete not buffer %\n", buf.id);
+                game::journal::warning(game::journal::_VIDEO, "Trying delete not buffer %", buf.id);
 
-            game::journal::debug(game::journal::_VIDEO, "Destroy % buffer %\n", get_buffer_target_name(buf.target), buf.id);
+            game::journal::debug(game::journal::_VIDEO, "Destroy % buffer %", get_buffer_target_name(buf.target), buf.id);
 
             glDeleteBuffers(1, &buf.id);
             buf.id = 0;
