@@ -40,8 +40,14 @@ namespace scene {
                 vi = video::vertgen::make_sphere(&msh.sphere, glm::mat4(1.f));
                 break;
             case mesh_source::gen_grid:
-                vi = video::vertgen::make_grid_plane(&msh.grid, glm::mat4(1.f));
+            {
+                video::heightmap_t height_map;
+                /*if (msh.height_map)
+                    height_map = video::get_heightmap(msh.height_map);*/
+
+                vi = video::vertgen::make_grid_plane(&msh.grid, glm::mat4(1.f), height_map);
                 break;
+            }
             default:
                 game::journal::warning(game::journal::_VIDEO, "%", "Unknown mesh source");
                 break;

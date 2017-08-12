@@ -288,12 +288,15 @@ namespace scene {
 
                     auto triangle_strip = json_object_get(mesh, "triangle_strip");
 
+                    auto height_map = json_object_get(mesh, "height_map");
+
                     mi.meshes[j].source = mesh_source::gen_grid;
                     mi.meshes[j].grid.horizontal_extend = json_number_value(horizontal_extend);
                     mi.meshes[j].grid.vertical_extend = json_number_value(vertical_extend);
                     mi.meshes[j].grid.rows = json_integer_value(rows);
                     mi.meshes[j].grid.columns = json_integer_value(columns);
                     mi.meshes[j].grid.triangle_strip = json_is_true(triangle_strip);
+                    mi.meshes[j].height_map = json_string_value(height_map);
                 }
             }
 

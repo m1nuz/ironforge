@@ -92,14 +92,15 @@ namespace renderer {
         //video::gl::command_buffer               transparent_commands;
         video::gl::command_buffer               glow_commands;
         video::gl::command_buffer               skybox_commands;
+        video::gl::command_buffer               terrain_commands;
 
-        video::gl::program                      emission_shader;
-        video::gl::program                      ambient_light_shader;
-        video::gl::program                      directional_light_shader;
-        video::gl::program                      point_light_shader;
-        video::gl::program                      postprocess_shader;
-        video::gl::program                      filter_vblur_shader;
-        video::gl::program                      filter_hblur_shader;
+        video::program                          emission_shader;
+        video::program                          ambient_light_shader;
+        video::program                          directional_light_shader;
+        video::program                          point_light_shader;
+        video::program                          postprocess_shader;
+        video::program                          filter_vblur_shader;
+        video::program                          filter_hblur_shader;
         video::program                          skybox_shader;
 
         video::sprite_batch                     sprites;

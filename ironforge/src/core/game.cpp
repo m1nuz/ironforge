@@ -106,6 +106,8 @@ namespace game {
     }
 
     __must_ckeck auto init(instance &inst, const std::string &title, const std::string &startup_script) -> result {
+        srand(time(nullptr));
+
         auto video_result = video::result::failure;
         if ((video_result = video::init(title, 1, 1, false, false, true)) != video::result::success) {
             game::journal::error(game::journal::_VIDEO, "%", video::get_string(video_result));

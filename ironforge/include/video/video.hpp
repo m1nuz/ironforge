@@ -126,6 +126,8 @@ namespace video {
     auto query_texture(texture &tex, const texture_desc *desc) -> void;
     auto query_texture(texture &tex) -> void;
 
+    auto get_heightmap(const char *name) -> heightmap_t;
+
     auto make_program(const gl::program_info &info) -> program;
     auto get_shader(const char *name) -> program;
 

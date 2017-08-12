@@ -190,17 +190,13 @@ namespace video {
         //vertices_info make_cone(const float half_extend, const float radius, const uint32_t num_slices, const uint32_t num_stacks);
         //vertices_info make_ribbon(const gen_ribbon_info *info, glm::mat4 transform);
 
-        auto make_grid_plane(const gen_grid_plane_info *info, const glm::mat4 &transform) -> vertices_info {
+        auto make_grid_plane(const gen_grid_plane_info *info, const glm::mat4 &transform, const video::heightmap_t &height_map) -> vertices_info {
             UNUSED(transform);
+            UNUSED(height_map);
 
-            size_t num_vertices = (info->rows + 1) * (info->columns + 1);
-            size_t num_indices = info->rows * 6 * info->columns;
-            uint32_t mode = GL_TRIANGLES;
-
-            if (info->triangle_strip) {
-                num_indices = info->rows * 2 * (info->columns + 1);
-                mode = GL_TRIANGLE_STRIP;
-            }
+            const size_t num_vertices = (info->rows + 1) * (info->columns + 1);
+            const size_t num_indices = info->triangle_strip ? info->rows * 2 * (info->columns + 1) : info->rows * 6 * info->columns;
+            const uint32_t mode = info->triangle_strip ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
 
             shape sh;
             sh.mode = mode;
@@ -211,12 +207,14 @@ namespace video {
             sh.indices.reserve(num_indices);
 
             for (size_t i = 0; i < num_vertices; i++) {
-                float x = (float) (i % (info->columns + 1)) / (float) info->columns;
-                float y = 1.0f - (float) (i / (info->columns + 1)) / (float) info->rows;
-                float s = x * info->columns;
-                float t = y * info->rows;
+                const float x = (float) (i % (info->columns + 1)) / (float) info->columns;
+                const float y = 1.0f - (float) (i / (info->columns + 1)) / (float) info->rows;
+                const float s = x * info->columns;
+                const float t = y * info->rows;
 
-                sh.vertices.emplace_back(info->horizontal_extend * (x - 0.5f), info->vertical_extend * (y - 0.5f), 0.f, 1.f);
+                const float z = 0.f;//randf();
+
+                sh.vertices.emplace_back(info->horizontal_extend * (x - 0.5f), info->vertical_extend * (y - 0.5f), z, 1.f);
                 sh.normals.emplace_back(0.f, 0.f, 1.f);
                 sh.tangents.emplace_back(1.f, 0.f, 0.f);
                 sh.texcoords.emplace_back(s, t);

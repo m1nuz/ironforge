@@ -291,6 +291,13 @@ namespace renderer {
         skybox_commands.rasterizer.cull_face = true;
         skybox_commands.rasterizer.cull_mode = video::gl::cull_face_mode::front;
         skybox_commands.rasterizer.polygon_mode = true;
+
+        terrain_commands.clear_color = glm::vec4(0.0f, 0.0f, 0.0f, 0.f);
+        terrain_commands.memory_offset = 0;
+        terrain_commands.commands.clear();
+        terrain_commands.depth.depth_test = false;
+        terrain_commands.depth.depth_write = true;
+        terrain_commands.depth.depth_func = video::gl::depth_fn::lequal;
     }
 
     auto forward_renderer::present(const glm::mat4 &proj, const glm::mat4 &view) -> void {

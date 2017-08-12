@@ -15,8 +15,9 @@ namespace scene {
     };
 
     struct mesh_info {
-        mesh_source         source;
-        const char          *filename;
+        mesh_source                source;
+        const char                 *filename;
+        const char                 *height_map = nullptr;
         video::gen_cube_info       cube;
         video::gen_sphere_info     sphere;
         video::gen_grid_plane_info grid;

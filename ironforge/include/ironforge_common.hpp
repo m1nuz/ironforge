@@ -16,7 +16,6 @@ inline std::unique_ptr<T> make_unique(Args&& ...args) {
     return std::unique_ptr<T>(new T( std::forward<Args>(args)... ));
 }*/
 
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #include <glm/glm.hpp>
@@ -24,3 +23,5 @@ inline std::unique_ptr<T> make_unique(Args&& ...args) {
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/quaternion.hpp>
 #pragma GCC diagnostic pop
+
+#define randf() (rand() / (float)RAND_MAX)

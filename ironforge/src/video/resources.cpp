@@ -42,6 +42,7 @@ namespace video {
         uint64_t    name_hash;
     };
 
+    // TODO: make resource cash instance
     std::vector<texture_desc>       textures;
     std::vector<buffer_desc>        buffers;
     std::vector<vertex_array_desc>  vertex_arrays;
@@ -55,22 +56,22 @@ namespace video {
 
         game::journal::debug(game::journal::_VIDEO, "%", "Init resources");
 
-        auto white_name = "white-map";
+        const auto white_name = "white-map";
         auto im = video::imgen::make_color(128, 128, {255, 255, 255}); // white
         textures.push_back({white_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
         delete[] im.pixels;
 
-        auto black_name = "black-map";
+        const auto black_name = "black-map";
         im = video::imgen::make_color(128, 128, {0, 0, 0}); // black
         textures.push_back({black_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(black_name, strlen(black_name)), true});
         delete[] im.pixels;
 
-        auto check_name = "check-map";
+        const auto check_name = "check-map";
         im = video::imgen::make_check(128, 128, 0x10, {255, 255, 255}); // check
         textures.push_back({check_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name)), true});
         delete[] im.pixels;
 
-        auto red_name = "red-map";
+        const auto red_name = "red-map";
         im = video::imgen::make_color(128, 128, {255, 0, 0}); // white
         textures.push_back({red_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
         delete[] im.pixels;
@@ -83,6 +84,7 @@ namespace video {
         make_program({"vblur-shader", {{"screenspace.vert", {}}, {"filter-vblur.frag", {}}}});
         make_program({"skybox-shader", {{"skybox.vert", {}}, {"skybox.frag", {}}}});
         make_program({"sprite-shader", {{"sprite.vert", {}}, {"sprite.frag", {}}}});
+        make_program({"terrain-shader", {{"terrain.vert", {}}, {"terrain.frag", {}}}});
     }
 
     auto cleanup_resources() -> void {
@@ -315,7 +317,7 @@ namespace video {
     }
 
     auto get_texture(const char *name, const texture &default_tex) -> texture {
-        auto hash = utils::xxhash64(name, strlen(name));
+        const auto hash = utils::xxhash64(name, strlen(name));
         auto it = std::find_if(textures.begin(), textures.end(), [hash](const texture_desc &td) {
             return td.name_hash == hash;
         });
@@ -380,6 +382,30 @@ namespace video {
 
     auto default_red_texture() -> texture {
         return textures[3].tex;
+    }
+
+    auto get_heightmap(const char *name) -> heightmap_t {
+        UNUSED(name);
+        /*const auto hash = utils::xxhash64(name, strlen(name));
+        auto it = std::find_if(textures.begin(), textures.end(), [hash](const texture_desc &td) {
+            return td.name_hash == hash;
+        });
+
+        if (it != textures.end()) {
+            game::journal::info(game::journal::_GAME, "Texture % found", name);
+            return it->tex;
+        }
+
+        auto imd = assets::get_image(name);
+
+        if (!imd.pixels) {
+            game::journal::warning(game::journal::_GAME, "Texture % not found", name);
+            return default_tex;
+        }
+
+        make_texture_2d(name, imd);*/
+
+        return {};
     }
 
     auto make_program(const gl330::program_info &info) -> program {

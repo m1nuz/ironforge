@@ -78,4 +78,6 @@ namespace video {
         uint32_t    base_vertex;
         uint32_t    base_index;
     };
+
+    typedef std::vector<std::vector<uint8_t>> heightmap_t;
 } // namespace video

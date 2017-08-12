@@ -79,9 +79,9 @@ namespace video {
         }
 
         auto create_program(const program_info &info) -> program {
-            auto pid = glCreateProgram();
+            const auto pid = glCreateProgram();
 
-            game::journal::debug(game::journal::_VIDEO, "Create program %", pid);
+            game::journal::debug(game::journal::_VIDEO, "Create program \'%\' %", info.name, pid);
 
             std::vector<shader> shaders;
             shaders.reserve(5);
