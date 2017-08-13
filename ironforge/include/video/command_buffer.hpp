@@ -33,7 +33,7 @@ namespace video {
             size_t  memory_offset;
         };
 
-        auto get_uniform_type_size(uint32_t type) -> size_t;
+        auto get_uniform_type_size(const uint32_t type) -> size_t;
 
         template <typename T>
         inline auto& operator <<(command_buffer &cb, const T &c) {

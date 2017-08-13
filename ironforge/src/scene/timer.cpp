@@ -21,8 +21,6 @@ namespace scene {
 
     auto init_all_timers() -> void {
         timers.reserve(max_timers);
-        // NOTE: not best idea
-        memset(&timers[0], 0, max_timers * sizeof (timer_instance));
 
         timer_info ti;
         ti.type = timer_type::once;

@@ -50,6 +50,12 @@ namespace video {
 
     utils::thread_pool              pool;
 
+    auto create_instance() -> instance_t {
+        instance_t inst;
+
+        return inst;
+    }
+
     auto init_resources() -> void {
         textures.reserve(100);
         programs.reserve(100);
@@ -408,7 +414,7 @@ namespace video {
         return {};
     }
 
-    auto make_program(const gl330::program_info &info) -> program {
+    auto make_program(const gl::program_info &info) -> program {
         auto inf = info;
 
         std::vector<uint64_t> hashes;

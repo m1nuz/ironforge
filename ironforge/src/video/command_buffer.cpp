@@ -25,7 +25,7 @@ namespace video {
             memory_offset = 0;
         }
 
-        auto get_uniform_type_size(uint32_t type) -> size_t {
+        auto get_uniform_type_size(const uint32_t type) -> size_t {
             size_t sz = 0;
             switch (type) {
             case GL_INT:

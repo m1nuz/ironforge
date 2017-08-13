@@ -101,11 +101,14 @@ namespace video {
         texture_filtering filtering;
     };
 
-    __must_ckeck auto init(const std::string &title, int32_t w, int32_t h, bool fullscreen, bool vsync, bool debug) -> result;
-    auto reset(int32_t w, int32_t h, bool fullscreen, bool vsync, bool debug) -> result;
+    struct instance_type;
+    typedef struct instance_type {} instance_t;
+
+    __must_ckeck auto init(instance_t &inst, const std::string &title, const int32_t w, const int32_t h, const bool fullscreen, const bool vsync, const bool debug) -> result;
+    auto reset(instance_t &inst, const int32_t w, const int32_t h, const bool fullscreen, const bool vsync, const bool debug) -> result;
     auto cleanup() -> void;
     auto present(const std::vector<gl::command_buffer *> &buffers) -> void;
-    auto get_string(result r) -> const char *;
+    auto get_string(const result r) -> const char *;
     auto is_extension_supported(const char *extension) -> bool;
     auto get_info() -> const char *;
 
@@ -130,6 +133,8 @@ namespace video {
 
     auto make_program(const gl::program_info &info) -> program;
     auto get_shader(const char *name) -> program;
+
+    auto create_instance() -> instance_t;
 
     auto init_resources() -> void;
     auto cleanup_resources() -> void;

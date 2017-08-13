@@ -473,7 +473,7 @@ namespace renderer {
         ui_rc = glm::vec4{rc.x / (float)asz, rc.y / (float)asz, rc.w / (float)asz, rc.h / (float)asz};
     }
 
-    inline auto color_to_vec4(uint32_t color) -> glm::vec4 {
+    inline auto color_to_vec4(const uint32_t color) -> glm::vec4 {
         constexpr auto max_component = 255.0f;
         float x = static_cast<float>((color & 0xff000000) >> 24) / max_component;
         float y = static_cast<float>((color & 0x00ff0000) >> 16) / max_component;

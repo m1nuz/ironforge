@@ -14,8 +14,8 @@ namespace physics {
 
     auto init_all() -> void;
     auto cleanup() -> void;
-    auto integrate_all(float dt) -> void;
-    auto interpolate_all(float interpolation) -> void;
+    auto integrate_all(const float dt) -> void;
+    auto interpolate_all(const float interpolation) -> void;
 } // namespace physics
 
 namespace scene {

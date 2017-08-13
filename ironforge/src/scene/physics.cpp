@@ -31,14 +31,14 @@ namespace physics {
         bodies.clear();
     }
 
-    auto integrate_all(float dt) -> void {
+    auto integrate_all(const float dt) -> void {
         for (auto &b : bodies) {
             b.previous = b.current;
             integrate(b.current, dt);
         }
     }
 
-    auto interpolate_all(float interpolation) -> void {
+    auto interpolate_all(const float interpolation) -> void {
         for (auto &b : bodies)
             interpolate(b.state, b.previous, b.current, interpolation);
     }

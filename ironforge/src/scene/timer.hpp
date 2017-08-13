@@ -24,13 +24,14 @@ namespace scene {
     };
 
     struct timer_instance {
-        std::chrono::time_point<std::chrono::system_clock> start, end;
+        std::chrono::time_point<std::chrono::system_clock> start = {};
+        std::chrono::time_point<std::chrono::system_clock> end = {};
 
-        int32_t         id;
-        timer_type      type;
-        timer_status    status;
-        float           value;
-        float           stop_value;
+        int32_t         id = 0;
+        timer_type      type = timer_type::once;
+        timer_status    status = timer_status::dead;
+        float           value = 0.f;
+        float           stop_value = 0.f;
         std::function<void(timer_instance &)> callback;
     };
 

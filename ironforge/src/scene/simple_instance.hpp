@@ -24,7 +24,7 @@ namespace scene {
 
         }
 
-        simple_instance(const std::string& _name, uint32_t _state)
+        simple_instance(const std::string& _name, const uint32_t _state)
             : name{_name}, states{_state}, size{0}, capacity{max_entities}, current_camera(0) {
             bodies.reserve(capacity);
             transforms.reserve(capacity);
@@ -68,7 +68,7 @@ namespace scene {
                 return -1;
             }
 
-            int32_t eid = size++;
+            const int32_t eid = size++;
 
             auto parent_name = std::string{"root"};
             if (info.parent > 0)
@@ -80,7 +80,7 @@ namespace scene {
             if (info.flags & static_cast<uint32_t>(entity_flags::current_camera))
                 current_camera = eid;
 
-            auto hash = utils::xxhash64(info.name, info.name ? strlen(info.name) : 0, 0);
+            const auto hash = utils::xxhash64(info.name, info.name ? strlen(info.name) : 0, 0);
 
             // TODO: camera and no body? error
             // TODO: renderable and no body? error

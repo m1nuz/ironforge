@@ -8,11 +8,11 @@ namespace video {
     _config config;
 
     static SDL_Window *window;
-    static SDL_GLContext context;
+    static SDL_GLContext context;    
 
     auto setup_debug() -> void;
 
-    auto init(const std::string &title, int32_t w, int32_t h, bool fullscreen, bool vsync, bool debug) -> result {
+    auto init(instance_t &inst, const std::string &title, const int32_t w, const int32_t h, const bool fullscreen, const bool vsync, const bool debug) -> result {
         auto flags = static_cast<uint32_t>(SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
         if (fullscreen)
@@ -75,11 +75,13 @@ namespace video {
 
 
         // get real window size
-        SDL_GL_GetDrawableSize(window, &w, &h);
+        auto drawable_w = 0;
+        auto drawable_h = 0;
+        SDL_GL_GetDrawableSize(window, &drawable_w, &drawable_h);
 
         // setup default screen
-        screen.width = w;
-        screen.height = h;
+        screen.width = drawable_w;
+        screen.height = drawable_h;
         screen.vsync = vsync;
         screen.aspect = (float)screen.width / (float)screen.height;
 
@@ -89,7 +91,7 @@ namespace video {
         return result::success;
     }
 
-    auto reset(int32_t w, int32_t h, bool fullscreen, bool vsync, bool debug) -> result {
+    auto reset(instance_t &inst, const int32_t w, const int32_t h, const bool fullscreen, const bool vsync, const bool debug) -> result {
         SDL_SetWindowSize(window, w, h);
         SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
@@ -100,10 +102,12 @@ namespace video {
             SDL_GL_SetSwapInterval(1);
 
         // get real window size
-        SDL_GL_GetDrawableSize(window, &w, &h);
+        auto drawable_w = 0;
+        auto drawable_h = 0;
+        SDL_GL_GetDrawableSize(window, &drawable_w, &drawable_h);
 
-        screen.width = w;
-        screen.height = h;
+        screen.width = drawable_w;
+        screen.height = drawable_h;
         screen.vsync = vsync;
         screen.aspect = (float)screen.width / (float)screen.height;
 
@@ -138,7 +142,7 @@ namespace video {
         SDL_GL_SwapWindow(window);
     }
 
-    auto get_string(result r) -> const char * {
+    auto get_string(const result r) -> const char * {
         switch (r) {
         case result::success:
             return "Success";

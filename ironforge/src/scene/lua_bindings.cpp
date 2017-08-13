@@ -1,6 +1,8 @@
+#include <core/journal.hpp>
+#include <core/game.hpp>
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
-#include <core/game.hpp>
+
 #include "physics.hpp"
 #include "lua_bindings.hpp"
 
@@ -12,7 +14,7 @@ set_entity_velocity(lua_State *L) {
     float y = luaL_checknumber(L, 3);
     float z = luaL_checknumber(L, 4);
 
-    auto &sc = game::get_current();
+    auto &sc = game::current_scene();
     auto body = sc->get_body(e);
 
     body->current.velocity = glm::vec3(x, y, z);
@@ -24,7 +26,7 @@ static int
 get_entity_velocity(lua_State *L) {
     int32_t e = luaL_checkinteger(L, 1);
 
-    auto &sc = game::get_current();
+    auto &sc = game::current_scene();
     auto body = sc->get_body(e);
 
     lua_pushnumber(L, body->current.velocity.x);
@@ -36,27 +38,36 @@ get_entity_velocity(lua_State *L) {
 
 static int
 load_scene(lua_State *L) {
+    using namespace game;
+
     const char *s = luaL_checkstring(L, 1);
 
-    game::load_scene(s);
+    if (!game::load_scene(s))
+        journal::error(journal::_SCENE, "Can't load scene %", s);
 
     return 0;
 }
 
 static int
 load_asset(lua_State *L) {
+    using namespace game;
+
     const char *s = luaL_checkstring(L, 1);
 
-    game::load_asset(s);
+    if (!game::load_asset(s))
+        journal::error(journal::_SCENE, "Can't load asset %", s);
 
     return 0;
 }
 
 static int
 load_settings(lua_State *L) {
+    using namespace game;
+
     const char *s = luaL_checkstring(L, 1);
 
-    game::load_settings(s);
+    if (!game::load_settings(s))
+        journal::error(journal::_SCENE, "Can't load settings %", s);
 
     return 0;
 }

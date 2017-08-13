@@ -67,7 +67,8 @@ namespace scene {
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance> {
         auto t = assets::get_text(_name);
 
-        std::unique_ptr<instance> this_scene{new simple_instance(_name, flags)};
+        auto this_scene = std::make_unique<simple_instance>(_name, flags);
+        //std::unique_ptr<instance> this_scene{new simple_instance(_name, flags)};
 
         // TODO: make error when t.text == null
 
@@ -530,8 +531,9 @@ namespace scene {
         return this_scene;
     }
 
-    auto update(std::unique_ptr<instance>& s, float dt) -> void {
+    auto update(std::unique_ptr<instance>& s, const float dt) -> void {
         UNUSED(s);
+
         physics::integrate_all(dt);
         scene::update_all_timers(dt);
         scene::update_all_scripts(dt);
@@ -544,7 +546,7 @@ namespace scene {
     }
 
     auto present_all_transforms(std::unique_ptr<instance> &s, std::function<void(int32_t, const glm::mat4 &)> cb) -> void;
-    auto present(std::unique_ptr<instance>& scn, std::unique_ptr<renderer::instance> &render, float interpolation) -> void {
+    auto present(std::unique_ptr<instance>& scn, std::unique_ptr<renderer::instance> &render, const float interpolation) -> void {
         using namespace glm;
 
         process_all_materials();

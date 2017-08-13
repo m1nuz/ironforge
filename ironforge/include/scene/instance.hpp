@@ -17,12 +17,6 @@ namespace scene {
     struct bound_sphere;
     struct oriented_bound_box;
 
-    /*template <typename T>
-    struct handle {
-        int32_t id;
-        T       *ptr;
-    };*/
-
     struct entity_info;
 
     struct instance {
