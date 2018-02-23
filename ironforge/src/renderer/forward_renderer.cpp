@@ -6,8 +6,10 @@
 #include <core/settings.hpp>
 #include "forward_renderer.hpp"
 
+#include <GL/ext_texture_filter_anisotropic.h>
+
 namespace renderer {
-    forward_renderer::forward_renderer() {
+    forward_renderer::forward_renderer(video::instance_t &in, const json &info) {
         game::journal::debug(game::journal::_RENDER, "% % with % %", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
         init_ui();
@@ -23,7 +25,7 @@ namespace renderer {
 
         video::gl::sampler_info sam_info;
 
-        switch (video::config.filtering) {
+        switch (in.tex_filtering) {
         case video::texture_filtering::bilinear:
             sam_info.mag_filter = video::gl::texture_mag_filter::linear;
             sam_info.min_filter = video::gl::texture_min_filter::linear;
@@ -33,6 +35,9 @@ namespace renderer {
             sam_info.min_filter = video::gl::texture_min_filter::linear_mipmap_linear;
             break;
         case video::texture_filtering::anisotropic:
+            sam_info.mag_filter = video::gl::texture_mag_filter::linear;
+            sam_info.min_filter = video::gl::texture_min_filter::linear_mipmap_linear;
+            sam_info.anisotropy = max_supported_anisotropy;
             break;
         }
 
@@ -46,16 +51,18 @@ namespace renderer {
         filter_sampler = video::gl::create_sampler(filter_info);
 
         const auto ratio = 2;
-        const auto samples = application::int_value("video_fsaa", 1);
+        const auto samples = info.find("fsaa") != info.end() ? info["fsaa"].get<uint32_t>() : 0u;
+        const auto w = static_cast<uint32_t>(in.w);
+        const auto h = static_cast<uint32_t>(in.h);
 
-        color_map = video::gl::create_texture_2d({video::pixel_format::rgba16f, 0, 0, video::screen.width, video::screen.height, 0, nullptr});
-        depth_map = video::gl::create_texture_2d({video::pixel_format::depth, 0, 0, video::screen.width, video::screen.height, 0, nullptr});
-        glow_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, video::screen.width / ratio, video::screen.height / ratio, 0, nullptr});
-        blur_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, video::screen.width / ratio, video::screen.height / ratio, 0, nullptr});
+        color_map = video::gl::create_texture_2d({video::pixel_format::rgba16f, 0, 0, in.w, in.h, 0, {}});
+        depth_map = video::gl::create_texture_2d({video::pixel_format::depth, 0, 0, in.w, in.h, 0, {}});
+        glow_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, in.w / ratio, in.h / ratio, 0, {}});
+        blur_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, in.w / ratio, in.h / ratio, 0, {}});
 
-        blur_depth = video::gl::create_renderbuffer({video::pixel_format::depth, video::screen.width / ratio, video::screen.height / ratio, 0});
-        sample_color = video::gl::create_renderbuffer({video::pixel_format::rgb16f, video::screen.width, video::screen.height, samples});
-        sample_depth = video::gl::create_renderbuffer({video::pixel_format::depth, video::screen.width, video::screen.height, samples});
+        blur_depth = video::gl::create_renderbuffer({video::pixel_format::depth, w / ratio, h/ ratio, 0});
+        sample_color = video::gl::create_renderbuffer({video::pixel_format::rgb16f, w, h, samples});
+        sample_depth = video::gl::create_renderbuffer({video::pixel_format::depth, w, h, samples});
 
         memset(&skybox_map, 0, sizeof skybox_map);
 
@@ -63,15 +70,15 @@ namespace renderer {
 
         using namespace video;
 
-        color_framebuffer = gl::create_framebuffer({screen.width, screen.height, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, color_map.id},
+        color_framebuffer = gl::create_framebuffer({w, h, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, color_map.id},
                                                                                         {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::texture, depth_map.id}}});
 
-        glow_framebuffer = gl::create_framebuffer({screen.width / ratio, screen.height / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, glow_map.id},
+        glow_framebuffer = gl::create_framebuffer({w / ratio, h / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, glow_map.id},
                                                                                        {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, blur_depth.id}}});
 
-        blur_framebuffer = gl::create_framebuffer({screen.width / ratio, screen.height / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, blur_map.id}}});
+        blur_framebuffer = gl::create_framebuffer({w / ratio, h / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, blur_map.id}}});
 
-        sample_framebuffer = gl::create_framebuffer({screen.width, screen.height, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::renderbuffer, sample_color.id},
+        sample_framebuffer = gl::create_framebuffer({w, h, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::renderbuffer, sample_color.id},
                                                                                          {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, sample_depth.id}}});
 
         auto quad_vi = video::vertgen::make_plane(glm::mat4{1.f});
@@ -300,8 +307,10 @@ namespace renderer {
         terrain_commands.depth.depth_func = video::gl::depth_fn::lequal;
     }
 
-    auto forward_renderer::present(const glm::mat4 &proj, const glm::mat4 &view) -> void {
-        UNUSED(proj), UNUSED(view);
+    auto forward_renderer::present(video::instance_t &vi, const glm::mat4 &proj, const glm::mat4 &view) -> void {
+        using namespace game;
+
+        //journal::debug(journal::_VIDEO, "Proj % View %", proj, view);
 
         if (skybox_map.id == 0)
             skybox_map = video::get_texture("skybox1");
@@ -347,6 +356,8 @@ namespace renderer {
         directional_commands << vcs::bind{directional_light_shader};
         directional_commands << vcs::uniform{directional_light_shader, "projection_view_matrix", projection_view};
 
+        directional_commands << vcs::uniform{directional_light_shader, "view_position", -glm::vec3(view[3])};
+
         for (const auto &lt : directional_lights) {
             directional_commands << vcs::uniform{directional_light_shader, "light_direction", lt.direction};
             directional_commands << vcs::uniform{directional_light_shader, "light.Ld", lt.ld};
@@ -363,16 +374,16 @@ namespace renderer {
                 directional_commands << vcs::bind{directional_light_shader, "diffuse_map", 0, materials[i].diffuse_tex};
                 directional_commands << vcs::bind{0, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "specular_map", 1, materials[i].specular_tex};
+                directional_commands << vcs::bind{directional_light_shader, "specular_map", 1, /*materials[i].specular_tex*/video::default_white_texture()};
                 directional_commands << vcs::bind{1, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "gloss_map", 2, materials[i].gloss_tex};
+                directional_commands << vcs::bind{directional_light_shader, "gloss_map", 2, /*materials[i].gloss_tex*/video::default_white_texture()};
                 directional_commands << vcs::bind{2, texture_sampler};
 
                 directional_commands << vcs::bind{directional_light_shader, "normal_map", 3, materials[i].normal_tex};
                 directional_commands << vcs::bind{3, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "environment_map", 4, skybox_map};
+                directional_commands << vcs::bind{directional_light_shader, "environment_map", 4, /*skybox_map*/video::default_white_texture()};
                 directional_commands << vcs::bind{4, filter_sampler};
 
                 directional_commands << vcs::bind{sources[i]};
@@ -453,7 +464,7 @@ namespace renderer {
         video::submit_triangles_batch(post_commands, triangles, sprite_shader, texture_sampler);
         video::submit_sprite_batch(post_commands, sprites, sprite_shader, texture_sampler);
 
-        video::present({&prepare_commands, &skybox_commands, &ambient_commands, &directional_commands, &glow_commands, &post_commands});
+        video::present(vi, {&prepare_commands, &skybox_commands, &ambient_commands, &directional_commands, &glow_commands, &post_commands});
         reset();
     }
 
@@ -467,9 +478,8 @@ namespace renderer {
         auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
         ui_atlas = video::create_atlas(asz, asz, 1);
         auto rc = video::insert_image(ui_atlas, white_im);
-        delete[] white_im.pixels;
         video::glyph_cache_build(fonts, ui_atlas);
-        video::make_texture_2d("glyphs-map", get_atlas_texture(ui_atlas));
+        video::make_texture_2d("glyphs-map", get_atlas_texture(ui_atlas), static_cast<uint32_t>(video::texture_flags::auto_mipmaps));
         ui_rc = glm::vec4{rc.x / (float)asz, rc.y / (float)asz, rc.w / (float)asz, rc.h / (float)asz};
     }
 

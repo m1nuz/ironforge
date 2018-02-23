@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <ironforge_common.hpp>
+#include <core/common.hpp>
 
 namespace video {
     namespace gl330 {

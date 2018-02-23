@@ -12,6 +12,6 @@ file(GLOB_RECURSE sources "./*.cpp")
 set(scene_lib "ironforge-scene")
 
 add_library(${scene_lib} ${headers} ${detail_headers} ${sources})
-set_property(TARGET ${scene_lib} PROPERTY CXX_STANDARD 14)
+#set_property(TARGET ${scene_lib} PROPERTY CXX_STANDARD 14)
 set_property(TARGET ${scene_lib} APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
 target_link_libraries(${scene_lib} -ljansson xxhash ironforge-video-gl330 ${LUA_LIBRARIES} -ldl)

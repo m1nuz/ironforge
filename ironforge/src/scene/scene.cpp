@@ -1,8 +1,8 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
-#include <ironforge_common.hpp>
-#include <ironforge_utility.hpp>
+#include <core/common.hpp>
+#include <utility/hash.hpp>
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
@@ -13,6 +13,8 @@
 #include "simple_instance.hpp"
 
 #include <jansson.h>
+
+#include <json.hpp>
 
 #define json_error_if(obj, pred_fn, ret, root, ...) \
     if(pred_fn(obj)) { \
@@ -40,28 +42,40 @@ namespace scene {
         return value;
     }
 
+    auto reset_all(instance_t &sc) -> bool {
+        (void)sc;
+        //scene::reset_engine(sc);
+
+        return true;
+    }
+
     auto init_all() -> void {
         init_all_timers();
-        physics::init_all();
+        //physics::init_all();
         init_all_transforms();
         init_all_materials();
         init_all_cameras();
         init_all_models();
-        init_all_scripts();
+        //init_all_scripts();
     }
 
     auto cleanup_all() -> void {
         cleanup_all_timers();
-        cleanup_all_scripts();
+        //cleanup_all_scripts();
         cleanup_all_models();
         cleanup_all_cameras();
         cleanup_all_materials();
         cleanup_all_transforms();
-        physics::cleanup();
+        //physics::cleanup();
     }
 
-    auto empty(const uint32_t state) -> std::unique_ptr<instance> {
-        return std::make_unique<simple_instance>("empty", state);
+    auto cleanup_all(std::vector<instance_t> &scenes) -> void {
+        for (auto &s : scenes) {
+            physics::cleanup_all(s);
+            /*for (auto &t : s.transforms) {
+
+            }*/
+        }
     }
 
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance> {
@@ -358,7 +372,7 @@ namespace scene {
 
             game::journal::debug(game::journal::_GAME, "Input '%'", json_string_value(name));
 
-            create_input_source(json_string_value(name), input_actions);
+            //create_input_source(json_string_value(name), input_actions);
         }
 
         // read nodes
@@ -529,31 +543,40 @@ namespace scene {
         // in other case use std::find
 
         return this_scene;
-    }
+    }    
 
     auto update(std::unique_ptr<instance>& s, const float dt) -> void {
         UNUSED(s);
 
-        physics::integrate_all(dt);
+        //physics::integrate_all(dt);
         scene::update_all_timers(dt);
-        scene::update_all_scripts(dt);
+        //scene::update_all_scripts(dt);
 
         video::stats_update(dt);
     }
 
-    auto process_event(std::unique_ptr<instance> &s, const SDL_Event &event) -> void {
+    auto update(instance_t &sc, const float dt) -> void {
+        physics::integrate_all(sc, dt);
+        update_all_scripts(sc, dt);
+    }
+
+    /*auto process_event(std::unique_ptr<instance> &s, const SDL_Event &event) -> void {
         process_input_events(s, event);
+    }*/
+
+    auto process_event(instance_t &sc, const SDL_Event &ev) -> void {
+        process_input_events(sc, ev);
     }
 
     auto present_all_transforms(std::unique_ptr<instance> &s, std::function<void(int32_t, const glm::mat4 &)> cb) -> void;
     auto present(std::unique_ptr<instance>& scn, std::unique_ptr<renderer::instance> &render, const float interpolation) -> void {
         using namespace glm;
 
-        process_all_materials();
-
         //game::journal::debug(game::journal::_SCENE, "Present %", s->name);
 
-        physics::interpolate_all(interpolation);
+        process_all_materials();
+
+        //physics::interpolate_all(interpolation);
         scene::present_all_cameras(scn);
         scene::present_all_lights(scn, render);
         scene::present_all_transforms(scn, [&scn, &render](int32_t e, const glm::mat4 &m) {
@@ -565,7 +588,7 @@ namespace scene {
                 }
         });
 
-        static video::frame_stats stats;
+        static video::frame_info stats;
 
         ui::command dt;
         dt.level = 0;
@@ -585,12 +608,213 @@ namespace scene {
         dt2.text.text = video::video_stats.info;
         dt2.text.size = video::video_stats.info_size;
 
-        video::stats_clear();
-        video::begin(stats);
+        //video::stats_clear();
+        //video::begin(stats);
         render->dispath(dt);
         render->dispath(dt2);
-        render->present(scn->get_current_camera()->projection, scn->get_current_camera()->view);
-        video::end(stats);
+        //render->present(scn->get_current_camera()->projection, scn->get_current_camera()->view);
+        //video::end(stats);
+    }
+
+    auto present(video::instance_t &vi, instance_t &sc, std::unique_ptr<renderer::instance> &render, const float interpolation) -> void {
+        using namespace glm;
+        using namespace game;
+
+
+        for (auto &mtl : sc.materials) {
+            video::query_texture(mtl.second.m0.diffuse_tex);
+            video::query_texture(mtl.second.m0.specular_tex);
+            video::query_texture(mtl.second.m0.gloss_tex);
+            video::query_texture(mtl.second.m0.normal_tex);
+        }
+
+        interpolate_all(sc, interpolation);
+        scene::present_all_cameras(sc);
+
+        for (const auto &lt : sc.lights) {
+            const auto l = lt.second;
+            std::visit([&render](auto&& arg) {
+                render->append(arg);
+            }, l);
+        }
+
+        for (auto &tr : sc.transforms) {
+            const auto &mdl = sc.models[tr.first];
+
+            for (const auto &msh : mdl.meshes)
+                for (const auto &dr : msh.draws) {
+                    const auto ix = tr.first;
+                    auto &t = tr.second;
+
+                    const auto &b = sc.bodies[ix];
+
+                    auto model = translate(mat4(1.f), b.position());
+                    model = rotate(model, b.orientation().x, vec3(1.f, 0.f, 0.f));
+                    model = rotate(model, b.orientation().y, vec3(0.f, 1.f, 0.f));
+                    model = rotate(model, b.orientation().z, vec3(0.f, 0.f, 1.f));
+                    model = scale(model, b.size());
+
+                    auto &p = sc.transforms[t.parent];
+                    t.model = p.model * model;
+
+                    //journal::debug(journal::_SCENE, "model %", t.model);
+
+                    const auto mt = sc.materials[ix];
+
+                    render->append(mt.m0);
+                    render->append(t.model);
+                    render->append(msh.source, dr);
+                }
+        }
+
+        ui::command dt;
+        dt.level = 0;
+        dt.type = ui::command_type::text;
+        dt.text.align = 0;
+        dt.text.w = video::screen.width;
+        dt.text.h = video::screen.height;
+        dt.text.color = 0x1f1f1fff;
+        dt.text.font = 0;
+        dt.text.x = -0.98;
+        dt.text.y = 0.92;
+        dt.text.text = vi.stats_info.info;
+        dt.text.size = vi.stats_info.info_size;
+
+        ui::command dt2 = dt;
+        dt2.text.y = 0.4;
+        dt2.text.text = video::video_stats.info;
+        dt2.text.size = video::video_stats.info_size;
+
+        video::stats::begin(vi.stats_info);
+        render->dispath(dt);
+        render->dispath(dt2);
+        render->present(vi, sc.current_camera().projection, sc.current_camera().view);
+        video::stats::end(vi.stats_info);
+    }
+
+    auto create_entity(instance_t &sc, const json &info) -> instance_t::index_t {
+        using namespace std;
+        using namespace game;
+
+        static instance_t::index_t entity_id = 0;
+
+        string name;
+        if (info.find("name") != info.end())
+            name = info["name"].get<string>();
+
+        const auto ix = (name != "root") ? entity_id++ : 0;
+
+        if (!name.empty())
+            sc.names.emplace(name, ix);
+
+        const string parent_name = info.find("parent") != info.end() ? info["parent"].get<string>() : string{};
+
+        const auto parent_ix = find_entity(sc, parent_name);
+        const auto renderable = info.find("renderable") != info.end() ? info["renderable"].get<bool>() : false;
+        //const auto bool movable = info.find("movable") != info.end() ? info["movable"].get<bool>() : false;
+
+        journal::info(journal::_SCENE, "Create entity:\n\tname '%' (%)\n\tparent '%' (%)\n\trenderable %", name, entity_id, parent_name, parent_ix, renderable);
+
+        if (info.find("body") != info.end()) {
+            const auto b = create_body(info["body"]);
+            if (b)
+                sc.bodies[ix] = b.value();
+        }
+
+        if (info.find("camera") != info.end()) {
+            const auto c = create_camera(ix, info["camera"]);
+            if (c) {
+                sc.cameras[ix] = c.value();
+                sc.current_camera_index = ix;
+            }
+        }
+
+        if (renderable) {
+            const auto t = create_transforms(ix, parent_ix);
+            if (t)
+                sc.transforms[ix] = t.value();
+        }
+
+        if (info.find("model") != info.end()) {
+            const auto m = get_model(sc, info["model"].get<string>());
+            if (m)
+                sc.models[ix] = m.value();
+        }
+
+        if (info.find("light") != info.end()) {
+            const auto l = create_light(info["light"]);
+            if (l)
+                sc.lights[ix] = l.value();
+        }
+
+        if (info.find("materials") != info.end()) {
+            const auto mats = info["materials"];
+            if (mats.size() != 0) {
+                const auto mat_name = mats[0].get<string>();
+                const auto m = get_material(sc, mat_name);
+                if (m)
+                    sc.materials[ix] = m.value();
+            }
+        }
+
+        if (info.find("script") != info.end()) {
+            const auto s = create_script(ix, info["script"]);
+            if (s)
+                sc.scripts[ix] = s.value();
+        }
+
+        if (info.find("input") != info.end()) {
+            const auto in = create_input(ix, info["input"], sc.input_sources);
+
+            if (in)
+                sc.inputs[ix] = in.value();
+        }
+
+        return ix;
+    }
+
+    auto find_entity(instance_t &sc, const std::string &name) -> instance_t::index_t {
+        if (name.empty())
+            return 0;
+
+        auto it = sc.names.find(name);
+        if (it != sc.names.end())
+            return (*it).second;
+
+        return 0;
+    }
+
+    auto cache_model(instance_t &sc, const std::string &name, const model_instance &m) -> bool {
+        if (sc.all_models.find(name) != sc.all_models.end())
+            return false;
+
+        sc.all_models.emplace(name, m);
+
+        return true;
+    }
+
+    auto cache_material(instance_t &sc, const std::string &name, const material_instance &m) -> bool {
+        if (sc.all_materials.find(name) != sc.all_materials.end())
+            return false;
+
+        sc.all_materials.emplace(name, m);
+
+        return true;
+    }
+
+    auto get_model(instance_t &sc, const std::string &name) -> std::optional<model_instance> {
+        auto it = sc.all_models.find(name);
+        if (it == sc.all_models.end())
+            return {};
+
+        return (*it).second;
+    }
+
+    auto get_material(instance_t &sc, const std::string &name) -> std::optional<material_instance> {
+        if (auto it = sc.all_materials.find(name); it != sc.all_materials.end())
+            return (*it).second;
+
+        return {};
     }
 } // namespace scene
 

@@ -1,6 +1,6 @@
 #include <cstddef>
 #include <algorithm>
-#include <ironforge_utility.hpp>
+#include <utility/hash.hpp>
 #include <core/journal.hpp>
 #include <core/assets.hpp>
 #include <video/video.hpp>
@@ -50,37 +50,37 @@ namespace video {
 
     utils::thread_pool              pool;
 
-    auto create_instance() -> instance_t {
-        instance_t inst;
-
-        return inst;
-    }
-
-    auto init_resources() -> void {
+    auto init_resources(instance_t &inst) -> void {
         textures.reserve(100);
         programs.reserve(100);
+
+        uint32_t textures_flags = 0;
+        switch (inst.tex_filtering) {
+        case texture_filtering::bilinear:
+            break;
+        case texture_filtering::trilinear:
+        case texture_filtering::anisotropic:
+            textures_flags |= static_cast<uint32_t>(texture_flags::auto_mipmaps);
+            break;
+        }
 
         game::journal::debug(game::journal::_VIDEO, "%", "Init resources");
 
         const auto white_name = "white-map";
         auto im = video::imgen::make_color(128, 128, {255, 255, 255}); // white
-        textures.push_back({white_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
-        delete[] im.pixels;
+        textures.push_back({white_name, gl::create_texture_2d(im, textures_flags), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
 
         const auto black_name = "black-map";
         im = video::imgen::make_color(128, 128, {0, 0, 0}); // black
-        textures.push_back({black_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(black_name, strlen(black_name)), true});
-        delete[] im.pixels;
+        textures.push_back({black_name, gl::create_texture_2d(im, textures_flags), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(black_name, strlen(black_name)), true});
 
         const auto check_name = "check-map";
         im = video::imgen::make_check(128, 128, 0x10, {255, 255, 255}); // check
-        textures.push_back({check_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name)), true});
-        delete[] im.pixels;
+        textures.push_back({check_name, gl::create_texture_2d(im, textures_flags), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name)), true});
 
         const auto red_name = "red-map";
         im = video::imgen::make_color(128, 128, {255, 0, 0}); // white
-        textures.push_back({red_name, gl::create_texture_2d(im), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
-        delete[] im.pixels;
+        textures.push_back({red_name, gl::create_texture_2d(im, textures_flags), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
 
         make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
         make_program({"ambient-light-shader", {{"forward-ambient.vert", {}}, {"forward-ambient.frag", {}}}});
@@ -112,16 +112,25 @@ namespace video {
         programs.clear();
     }
 
-    auto process() -> void {
+    auto process(instance_t &inst) -> void {
+        uint32_t textures_flags = 0;
+        switch (inst.tex_filtering) {
+        case texture_filtering::bilinear:
+            break;
+        case texture_filtering::trilinear:
+        case texture_filtering::anisotropic:
+            textures_flags |= static_cast<uint32_t>(texture_flags::auto_mipmaps);
+            break;
+        }
+
         for (auto &t : textures) {
             if (!t.ready)
                 if (t.imd_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
                 {
-                    t.tex = gl::create_texture_2d(t.imd_future.get());
+                    t.tex = gl::create_texture_2d(t.imd_future.get(), textures_flags);
                     t.ready = true;
                     t.tex.desc = &t;
                     game::journal::debug(game::journal::_VIDEO, "%", "TEX LOADED");
-                    delete[] t.imd_future.get().pixels;
                     // FIXME: ok, for now
                     //t.imd_future.get().pixels = NULL;
                 }
@@ -143,9 +152,9 @@ namespace video {
         return make_texture_2d({}, data);
     }*/
 
-    auto make_texture_2d(const std::string &name, const image_data &data) -> texture {
+    auto make_texture_2d(const std::string &name, const image_data &data, const uint32_t flags) -> texture {
         texture_desc desc;
-        desc.tex = gl::create_texture_2d(data);
+        desc.tex = gl::create_texture_2d(data, flags);
         desc.name_hash = name.empty() ? 0 : utils::xxhash64(name);
         desc.hash = 0; // TODO: calc it
         desc.usage = 0;
@@ -323,6 +332,16 @@ namespace video {
     }
 
     auto get_texture(const char *name, const texture &default_tex) -> texture {
+        uint32_t textures_flags = static_cast<uint32_t>(video::texture_flags::auto_mipmaps);
+        /*switch (inst.tex_filtering) {
+        case texture_filtering::bilinear:
+            break;
+        case texture_filtering::trilinear:
+        case texture_filtering::anisotropic:
+            textures_flags |= static_cast<uint32_t>(video::texture_flags::auto_mipmaps);
+            break;
+        }*/
+
         const auto hash = utils::xxhash64(name, strlen(name));
         auto it = std::find_if(textures.begin(), textures.end(), [hash](const texture_desc &td) {
             return td.name_hash == hash;
@@ -335,12 +354,12 @@ namespace video {
 
         auto imd = /*image_future.get();/*/assets::get_image(name);
 
-        if (!imd.pixels) {
+        if (imd.pixels.empty()) {
             game::journal::warning(game::journal::_GAME, "Texture % not found", name);
             return default_tex;
         }
 
-        return make_texture_2d(name, imd);
+        return make_texture_2d(name, imd, textures_flags);
 
         // TODO: fix texture striming
         /*texture_desc desc;

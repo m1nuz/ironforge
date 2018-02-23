@@ -41,8 +41,10 @@ auto read_targa(SDL_RWops *rw, assets::image_data& image) -> int32_t {
     SDL_RWread(rw, &header, sizeof(header), 1);
 
     const uint8_t bytesperpixel = header.bpp / 8;
-    uint8_t *data = (uint8_t*)malloc(header.width * header.height * (bytesperpixel + 1));
-    uint8_t *pdata = data;
+    std::vector<uint8_t> data;
+    data.resize(header.width * header.height * (bytesperpixel + 1));
+
+    uint8_t *pdata = &data[0];
 
     if (header.data_type == TARGA_DATA_RLE_TRUE_COLOR) {
         uint8_t block = 0;
@@ -72,7 +74,7 @@ auto read_targa(SDL_RWops *rw, assets::image_data& image) -> int32_t {
         SDL_RWclose(rw);
     }
     else if ((header.data_type == TARGA_DATA_TRUE_COLOR) || (header.data_type == TARGA_DATA_BLACK_AND_WHITE)) {
-        if (!SDL_RWread(rw, data, lenght - sizeof(header), 1))
+        if (!SDL_RWread(rw, &data[0], lenght - sizeof(header), 1))
             SDL_RWclose(rw);
     }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <ironforge_common.hpp>
+#include <core/common.hpp>
 
 namespace video {
     enum class vertex_attributes : uint32_t {

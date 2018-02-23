@@ -1,4 +1,4 @@
-#include <ironforge_common.hpp>
+#include <core/common.hpp>
 #include <core/journal.hpp>
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
@@ -46,5 +46,14 @@ namespace scene {
 
             cb(t.entity, t.model);
         }
+    }
+
+    auto create_transforms(const uint32_t entity, const uint32_t parent) -> std::optional<transform_instance> {
+        using namespace glm;
+        using namespace game;
+
+        journal::info(journal::_SCENE, "Create transform % parent %", entity, parent);
+
+        return transform_instance{entity, parent, mat4(1.f)};
     }
 } // namespace scene

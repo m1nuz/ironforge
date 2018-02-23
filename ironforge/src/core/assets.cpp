@@ -1,25 +1,17 @@
+#include <chrono>
+#include <experimental/filesystem>
+
 #include <core/journal.hpp>
 #include <core/assets.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/range/iterator_range.hpp>
+#include <core/game.hpp>
+
 #include <readers/readers.hpp>
 
-namespace fs = boost::filesystem;
+namespace fs = std::experimental::filesystem;
 
 namespace assets {
-    _default_readers::_default_readers() {
-        text_readers.emplace_back(".vert", read_shader_text);
-        text_readers.emplace_back(".frag", read_shader_text);
-        text_readers.emplace_back(".glsl", read_shader_text);
-        text_readers.emplace_back(".lua", read_text);
-        text_readers.emplace_back(".scene", read_text);
-        text_readers.emplace_back(".txt", read_text);
-        image_readers.emplace_back(".tga", read_targa);
-        binary_readers.emplace_back(".ttf", read_binary);
-        //binary_readers.emplace_back(".*", read_binary);
-    }
 
-    _default_readers default_readers;
+    std::mutex      text_mutex;
 
     // ext, reader
     std::unordered_map<std::string, std::function<int32_t (SDL_RWops *rw, binary_data &)>> binary_readers;
@@ -34,92 +26,173 @@ namespace assets {
     // name, path
     std::unordered_map<std::string, std::string>    files;
 
-    static auto is_readable(const std::string &ext) -> bool {
-        if (binary_readers.find(ext) != binary_readers.end())
+    static auto is_readable(const instance_t &inst, const std::string &ext) -> bool {
+        if (inst.binary_readers.find(ext) != binary_readers.end())
             return true;
 
-        if (text_readers.find(ext) != text_readers.end())
+        if (inst.text_readers.find(ext) != text_readers.end())
             return true;
 
-        if (image_readers.find(ext) != image_readers.end())
+        if (inst.image_readers.find(ext) != image_readers.end())
             return true;
 
         return false;
     }
 
-    auto append(const readers &rs) -> result {
-        auto res = result::failure;
+    auto create_default_readers() -> readers {
+        readers rs;
+
+        rs.text_readers.emplace(".vert", read_shader_text);
+        rs.text_readers.emplace(".frag", read_shader_text);
+        rs.text_readers.emplace(".glsl", read_shader_text);
+        rs.text_readers.emplace(".lua", read_text);
+        rs.text_readers.emplace(".scene", read_text);
+        rs.text_readers.emplace(".txt", read_text);
+        rs.image_readers.emplace(".tga", read_targa);
+        rs.binary_readers.emplace(".ttf", read_binary);
+
+        return rs;
+    }
+
+    static auto append(instance_t &inst, const readers &rs) -> bool{
+        auto res = false;
 
         for (auto & r : rs.binary_readers)
-            if ((res = append(std::get<0>(r), std::get<1>(r))) != result::success)
+            if ((res = append(inst, std::get<0>(r), std::get<1>(r))) != true)
                 return res;
 
         for (auto & r : rs.text_readers)
-            if ((res = append(std::get<0>(r), std::get<1>(r))) != result::success)
+            if ((res = append(inst, std::get<0>(r), std::get<1>(r))) != true)
                 return res;
 
         for (auto & r : rs.image_readers)
-            if ((res = append(std::get<0>(r), std::get<1>(r))) != result::success)
+            if ((res = append(inst, std::get<0>(r), std::get<1>(r))) != true)
                 return res;
 
-        return result::success;
+        return true;
     }
 
-    auto append(const std::string &ext, std::function<int32_t (SDL_RWops *rw, binary_data &)> reader) -> result {
+    static auto get_textdata(instance_t &inst, const std::string &name) -> text_t {
+        using namespace game;
+
+        if (const auto f = inst.all_files.find(name); f != inst.all_files.end()) {
+            fs::path p(f->second);
+
+            if (const auto r = inst.text_readers.find(p.extension().string()); r != inst.text_readers.end()) {
+                auto td = text_data{nullptr, 0};
+
+                auto ret = r->second(SDL_RWFromFile(f->second.c_str(), "r"), td);
+                if (ret != 0) {
+                    journal::error(journal::_SYSTEM, "Can't read file %", f->second);
+                    return text_t{};
+                }
+
+                journal::debug(journal::_GAME, "Read file %", f->second);
+                return text_t{{td.text, td.size}};
+            }
+        }
+    }
+
+    auto process_load(instance_t &inst) -> void {
+        using namespace std::chrono_literals;
+
+        while (inst.active) {
+
+            {
+                std::lock_guard lock(text_mutex);
+
+                for (auto& [name, ti] : inst.text_processed) {
+                    if (ti.ready)
+                        continue;
+
+                    auto data = get_textdata(inst, name);
+                    ti.ready = true;
+
+                    for (auto cb : ti.responces)
+                        cb(data);
+                }
+            }
+
+            std::this_thread::sleep_for(10ms);
+        }
+    }
+
+    [[nodiscard]] auto create_instance(const readers &rs) -> instance_result {
+        instance_t inst;
+        inst.binary_readers = rs.binary_readers;
+        inst.image_readers = rs.image_readers;
+        inst.text_readers = rs.text_readers;
+
+        //TODO: remove
+        instance_t __empty;
+        append(__empty, rs);
+
+        //inst.load_thread = std::thread{process_load, std::ref()};
+
+        return inst;//instance_t{rs.binary_readers, rs.image_readers, rs.text_readers};
+    }
+
+    auto append(instance_t &inst, const std::string &ext, std::function<int32_t (SDL_RWops *rw, binary_data &)> reader) -> bool {
         if (!reader || ext.empty())
-            return result::failure;
+            return false;
 
         binary_readers.insert({ext, reader});
+        inst.binary_readers.emplace(ext, reader);
 
-        return result::success;
+        return true;
     }
 
-    auto append(const std::string &ext, std::function<int32_t (SDL_RWops *rw, text_data &)> reader) -> result {
+    auto append(instance_t &inst, const std::string &ext, std::function<int32_t (SDL_RWops *rw, text_data &)> reader) -> bool {
         if (!reader || ext.empty())
-            return result::failure;
+            return false;
 
         text_readers.insert({ext, reader});
+        inst.text_readers.emplace(ext, reader);
 
-        return result::success;
+        return true;
     }
 
-    auto append(const std::string &ext, std::function<int32_t (SDL_RWops *rw, image_data &)> reader) -> result {
+    auto append(instance_t &inst, const std::string &ext, std::function<int32_t (SDL_RWops *rw, image_data &)> reader) -> bool {
         if (!reader || ext.empty())
-            return result::failure;
+            return false;
 
         image_readers.insert({ext, reader});
+        inst.image_readers.emplace(ext, reader);
 
-        return result::success;
+        return true;
     }
 
-    auto open(const std::string& path) -> result {
+    auto open(instance_t &inst, const std::string& path) -> result {
+        using namespace game;
+
         fs::path p(path);
 
         if (!fs::exists(p))
             return result::failure; // TODO: make error
 
-        if(fs::is_directory(p)) {
-            for(auto& entry : boost::make_iterator_range(fs::recursive_directory_iterator(p), {}))
+        if (fs::is_directory(p)) {
+            for (auto& entry : fs::recursive_directory_iterator(p))
                 if (fs::is_regular_file(entry.path())) {
 
-                    if (!is_readable(entry.path().extension().string()))
+                    if (!is_readable(inst, entry.path().extension().string()))
                         continue;
 
-                    game::journal::debug(game::journal::_GAME, "Asset found %", entry.path().string());
+                    journal::debug(journal::_GAME, "Asset found %", entry.path().string());
 
                     files.insert({entry.path().filename().string(), entry.path().string()});
+                    inst.all_files.emplace(entry.path().filename().string(), entry.path().string());
                 }
         }
 
         return result::success;
     }
 
-    auto process() -> void {
+    auto process(instance_t &inst) -> void {
         // TODO: process file queue, thread loading
     }
 
-    auto cleanup() -> void {
-
+    auto cleanup(instance_t &inst) -> void {
+        inst.active = false;
     }
 
     auto get_text(const std::string& name) -> text_data { // TODO: return optional
@@ -190,12 +263,12 @@ namespace assets {
             auto r = image_readers.find(p.extension().string());
 
             if (r != image_readers.end()) {
-                auto imd = image_data{0, 0, 0, video::pixel_format::unknown, nullptr};
+                auto imd = image_data{0, 0, 0, video::pixel_format::unknown, {}};
 
                 auto ret = r->second(SDL_RWFromFile(f->second.c_str(), "r"), imd);
                 if (ret != 0) {
                     game::journal::error(game::journal::_SYSTEM, "Can't read file %", f->second);
-                    return {0, 0, 0, video::pixel_format::unknown, nullptr};
+                    return {0, 0, 0, video::pixel_format::unknown, {}};
                 }
 
                 game::journal::debug(game::journal::_GAME, "Read file %", f->second);
@@ -204,7 +277,7 @@ namespace assets {
             }
         }
 
-        return {0, 0, 0, video::pixel_format::unknown, nullptr};
+        return {0, 0, 0, video::pixel_format::unknown, {}};
     }
 
     auto get_binary(const std::string& name) -> binary_data {
@@ -237,5 +310,22 @@ namespace assets {
         }
 
         return {nullptr, 0};
+    }
+
+    auto get_text(instance_t &inst, std::string_view name, text_responce cb) -> void {
+        std::string _name{name};
+
+        if (auto it = inst.all_texts.find(_name); it != inst.all_texts.end()) {
+            cb(it->second);
+            return;
+        }
+
+        std::lock_guard lock(text_mutex);
+        if (auto it = inst.text_processed.find(_name); it == inst.text_processed.end()) {
+            text_info ti;
+            ti.ready = false;
+            ti.responces.push_back(cb);
+            inst.text_processed.insert({_name, ti});
+        }
     }
 } // namespace assets

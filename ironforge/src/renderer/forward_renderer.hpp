@@ -8,6 +8,10 @@
 #include <video/triangles_batch.hpp>
 #include <renderer/renderer.hpp>
 
+#include <json.hpp>
+
+using json = nlohmann::json;
+
 namespace renderer {
     // limits
     constexpr size_t max_ambient_lights     = 1;
@@ -24,7 +28,7 @@ namespace renderer {
 
     // TODO : make video api specific template
     struct forward_renderer : public instance {
-        forward_renderer();
+        forward_renderer(video::instance_t &in, const json &info);
         ~forward_renderer();
 
         virtual auto append(const phong::ambient_light &light) -> void;
@@ -39,7 +43,7 @@ namespace renderer {
         virtual auto dispath(const ui::command &c) -> void;
 
         virtual auto reset() -> void;
-        virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void;
+        virtual auto present(video::instance_t &vi, const glm::mat4 &proj, const glm::mat4 &view) -> void;
 
         auto init_ui() -> void;
         auto text_box_size(const char *text, size_t size, int font) -> glm::vec2;

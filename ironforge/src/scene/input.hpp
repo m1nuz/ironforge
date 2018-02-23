@@ -4,10 +4,15 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <optional>
+
+#include <json.hpp>
 
 #include <SDL2/SDL_events.h>
 
 namespace scene {
+    struct instance;
+
     struct input_action {
         std::string                 key_down;
         std::string                 key_up;
@@ -27,14 +32,13 @@ namespace scene {
     struct input_instance {
         int32_t         entity;
         input_source    *source;
+        std::vector<input_action> actions;
     };
 
-    auto init_all_inputs() -> void;
-    auto cleanup_all_inputs() -> void;
+    using json = nlohmann::json;
 
-    auto create_input_source(const std::string &name, const std::vector<input_action> &actions) -> input_source*;
-    auto find_input_source(const char *name) -> input_source*;
+    [[nodiscard]] auto create_input(const int32_t entity, const json &info, const std::unordered_map<std::string, std::vector<input_action>> &sources) -> std::optional<input_instance>;
 
-    auto create_input(int32_t entity, input_source *source) -> input_instance*;
-    auto process_input_events(std::unique_ptr<instance> &s, const SDL_Event &e) -> void;
+    auto create_input_source(scene::instance_t &s, const std::string &name, const std::vector<input_action> &actions) -> bool;
+    auto process_input_events(scene::instance_t &s, const SDL_Event &e) -> void;
 } // namespace scene

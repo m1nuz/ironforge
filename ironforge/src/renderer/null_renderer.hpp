@@ -58,15 +58,15 @@ namespace renderer {
         }
 
         virtual auto reset() -> void {
-            commands.clear_color = glm::vec4(1.f, 1.f, 1.f, 1.f);
+            commands.clear_color = glm::vec4(0.f, 0.f, 0.f, 0.f);
         }
 
-        virtual auto present(const glm::mat4 &proj, const glm::mat4 &view) -> void {
+        virtual auto present(video::instance_t &vi, const glm::mat4 &proj, const glm::mat4 &view) -> void {
             UNUSED(proj), UNUSED(view);            
 
             commands << vcs::clear{};
 
-            video::present({&commands});
+            video::present(vi, {&commands});
             reset();
         }
 

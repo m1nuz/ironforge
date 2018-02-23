@@ -2,19 +2,23 @@
 
 #include <vector>
 #include <string>
-#include <ironforge_common.hpp>
+#include <core/common.hpp>
 #include <video/video.hpp>
 #include <renderer/renderer.hpp>
 
+#include <optional>
+
+#include <json.hpp>
+
 namespace scene {
     struct material_info {
-        glm::vec3       emission;
-        glm::vec3       ambient;
-        glm::vec3       diffuse;
-        glm::vec3       specular;
-        float           shininess;
-        float           transparency;
-        float           reflectivity;
+        glm::vec3       emission = {0.f, 0.f, 0.f};
+        glm::vec3       ambient = {0.f, 0.f, 0.f};
+        glm::vec3       diffuse = {0.f, 0.f, 0.f};
+        glm::vec3       specular = {0.f, 0.f, 0.f};
+        float           shininess = 0.f;
+        float           transparency = 0.f;
+        float           reflectivity = 0.f;
 
         const char      *emission_map = nullptr;
         const char      *diffuse_map = nullptr;
@@ -33,8 +37,8 @@ namespace scene {
 
     struct material_instance {
         renderer::phong::material m0; // TODO: array of materials?
-        std::string name;
-        uint64_t name_hash;
+        std::string name = {};
+        uint64_t name_hash = 0;
     };
 
     auto init_all_materials() -> void;
@@ -44,4 +48,7 @@ namespace scene {
     auto find_material(const char *name) -> material_instance*;
 
     auto process_all_materials() -> void;
+
+    using json = nlohmann::json;
+    auto create_material(const json &info) -> std::optional<material_instance>;
 } // namespace scene

@@ -3,8 +3,13 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <variant>
 
-#include <ironforge_common.hpp>
+#include <SDL2/SDL_video.h>
+
+#include <core/common.hpp>
+#include <core/journal.hpp>
+#include <video/errors.hpp>
 #include <video/screen.hpp>
 #include <video/vertices.hpp>
 #include <video/vertices_gen.hpp>
@@ -24,6 +29,8 @@
 #include <video/state.hpp>
 #include <video/framerate.hpp>
 #include <video/stats.hpp>
+
+#include <json.hpp>
 
 namespace video {
     /* specific gl APIs */
@@ -95,28 +102,36 @@ namespace video {
         bilinear,
         trilinear,
         anisotropic,
+        max_filtering
     };
 
     struct _config {
         texture_filtering filtering;
     };
 
-    struct instance_type;
-    typedef struct instance_type {} instance_t;
+    struct instance_type {
+        SDL_Window      *window = nullptr;
+        SDL_GLContext   graphic_context = nullptr;
+        int             w = 0;
+        int             h = 0;
+        texture_filtering tex_filtering;
+        frame_info      stats_info = {};
+    };
 
-    __must_ckeck auto init(instance_t &inst, const std::string &title, const int32_t w, const int32_t h, const bool fullscreen, const bool vsync, const bool debug) -> result;
+    typedef struct instance_type instance_t;
+
+    [[nodiscard]] auto init(instance_t &inst, const std::string &title, const int32_t w, const int32_t h, const bool fullscreen, const bool vsync, const bool debug) -> result;
     auto reset(instance_t &inst, const int32_t w, const int32_t h, const bool fullscreen, const bool vsync, const bool debug) -> result;
-    auto cleanup() -> void;
-    auto present(const std::vector<gl::command_buffer *> &buffers) -> void;
+    auto present(instance_t &in, const std::vector<gl::command_buffer *> &buffers) -> void;
     auto get_string(const result r) -> const char *;
     auto is_extension_supported(const char *extension) -> bool;
     auto get_info() -> const char *;
 
-    auto process() -> void;
+    auto process(instance_t &inst) -> void;
 
     /*auto make_texture_2d(const video::texture_info &info) -> texture;
     auto make_texture_2d(const image_data &data) -> texture;*/
-    auto make_texture_2d(const std::string &name, const image_data &data) -> texture;
+    auto make_texture_2d(const std::string &name, const image_data &data, const uint32_t flags) -> texture;
     auto make_texture_cube(const std::string &name, const std::string (&names)[6]) -> texture;
     auto make_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc, std::vector<vertices_draw> &draws) -> vertices_source;
 
@@ -134,10 +149,18 @@ namespace video {
     auto make_program(const gl::program_info &info) -> program;
     auto get_shader(const char *name) -> program;
 
-    auto create_instance() -> instance_t;
-
-    auto init_resources() -> void;
+    auto init_resources(instance_t &inst) -> void;
     auto cleanup_resources() -> void;
+
+    using json = nlohmann::json;
+    using video_result = std::variant<instance_t, std::error_code>;
+
+    inline bool is_ok(const video_result &res) {
+        return std::holds_alternative<instance_t>(res);
+    }
+
+    [[nodiscard]] auto init_once(const json &info) -> video_result;
+    auto cleanup_once(instance_t &in) -> void;
 
     extern _config config;
     extern int32_t max_uniform_components;    

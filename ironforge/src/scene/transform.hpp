@@ -2,16 +2,20 @@
 
 #include <memory>
 #include <vector>
-#include <ironforge_common.hpp>
+#include <optional>
+
+#include <core/common.hpp>
 
 namespace scene {
     struct transform_instance {
-        int32_t     entity;
-        int32_t     parent;
+        uint32_t     entity;
+        uint32_t     parent;
         glm::mat4   model;
     };
 
     auto init_all_transforms() -> void;
     auto cleanup_all_transforms() -> void;
     auto create_transform(int32_t _entity, int32_t _parent) -> transform_instance*;
+
+    auto create_transforms(const uint32_t entity, const uint32_t parent) -> std::optional<transform_instance>;
 } // namespace scene

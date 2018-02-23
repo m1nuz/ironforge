@@ -7,6 +7,8 @@
 namespace video {
     namespace gl330 {
         command_buffer::command_buffer(size_t mem_size) : memory_offset{0} {
+            assert(video::max_uniform_components != 0);
+
             if (mem_size == 0)
                 mem_size = static_cast<size_t>(video::max_uniform_components * sizeof (float));
 

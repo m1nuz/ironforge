@@ -2,7 +2,7 @@
 #include <GL/ext_texture_filter_anisotropic.h>
 #include <core/journal.hpp>
 #include <video/sampler.hpp>
-#include <ironforge_common.hpp>
+#include <core/common.hpp>
 
 namespace video {
     namespace gl330 {
@@ -70,10 +70,11 @@ namespace video {
                 glSamplerParameteri(sid, GL_TEXTURE_COMPARE_MODE, info.compare_mode); // initial GL_NONE
 
             if (info.compare_func != GL_NONE)
-                glSamplerParameteri(sid, GL_TEXTURE_COMPARE_FUNC, info.compare_func); // initial GL_NEVER
+                glSamplerParameterf(sid, GL_TEXTURE_COMPARE_FUNC, info.compare_func); // initial GL_NEVER
 
-            if(info.anisotropy > 0)
+            if(info.anisotropy > 0) {
                 glSamplerParameteri(sid, GL_TEXTURE_MAX_ANISOTROPY_EXT, info.anisotropy);
+            }
 
             game::journal::debug(game::journal::_VIDEO, "Create sampler %", sid);
 

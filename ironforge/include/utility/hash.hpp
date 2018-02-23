@@ -2,6 +2,7 @@
 
 #include <type_traits>
 #include <string>
+#include <vector>
 
 #include <cstdint>
 #include <xxhash.h>
@@ -34,5 +35,11 @@ namespace utils {
             return 0;
 
         return XXH64(ptr, size, seed);
+    }
+    inline auto xxhash64(const std::vector<uint8_t> buf, const uint64_t seed = 0) -> uint64_t {
+        if (buf.empty())
+            return 0;
+
+        return XXH64(reinterpret_cast<const void*>(&buf[0]), buf.size(), seed);
     }
 } // namespace utils

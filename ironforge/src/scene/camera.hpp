@@ -1,8 +1,18 @@
 #pragma once
 
-#include  <ironforge_common.hpp>
+#include <optional>
+
+#include <core/common.hpp>
+#include <json.hpp>
 
 namespace scene {
+    struct instance_type;
+    typedef instance_type instance_t;
+}
+
+namespace scene {
+    struct instance;
+
     enum class camera_type : uint32_t {
         root,
         perspective
@@ -31,4 +41,9 @@ namespace scene {
     auto cleanup_all_cameras() -> void;
     auto create_camera(int32_t entity, const camera_info &info) -> camera_instance*;
     auto present_all_cameras(std::unique_ptr<instance>& s) -> void;
+
+    using json = nlohmann::json;
+
+    auto create_camera(const uint32_t entity, const json &info) -> std::optional<camera_instance>;
+    auto present_all_cameras(instance_t& sc) -> void;
 } // namespace scene

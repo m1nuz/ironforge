@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ironforge_common.hpp>
+#include <core/common.hpp>
 
 namespace scene {
     struct bound_box { // AABB

@@ -3,11 +3,26 @@
 #include "forward_renderer.hpp"
 
 namespace renderer {
-    auto create_null_renderer() -> std::unique_ptr<renderer::instance> {
-        return std::make_unique<null_instance>();
-    }
+    auto create_renderer(std::string_view type, video::instance_t &in, const json &info) -> std::unique_ptr<instance> {
+        using namespace game;
 
-    auto create_forward_renderer() -> std::unique_ptr<instance> {
-        return std::make_unique<forward_renderer>();
+        if (type.empty())
+            return std::make_unique<null_instance>();
+
+        if (type == "null")
+            return std::make_unique<null_instance>();
+
+        if (type == "forward")
+            return std::make_unique<forward_renderer>(in, info);
+
+        if (type == "deffered") {
+            journal::warning(journal::_RENDER, "%", "Unsupported");
+            return std::make_unique<null_instance>();
+        }
+
+        journal::warning(journal::_RENDER, "%", "Unknown render type");
+
+        // TODO: replace with error_code
+        return std::make_unique<null_instance>();
     }
 } // namespace renderer

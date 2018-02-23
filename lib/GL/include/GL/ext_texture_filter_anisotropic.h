@@ -7,4 +7,4 @@
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT			0x84FE
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT		0x84FF
 
-extern float max_supported_anisotropy;
+extern int max_supported_anisotropy;

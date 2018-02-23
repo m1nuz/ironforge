@@ -8,31 +8,55 @@
 
 namespace game {
     namespace journal {
-        typedef std::vector<std::function<int (const std::string &, const verbosity, const void *, size_t)>> storages_t;
+        typedef std::vector<storage_fn> storages_t;
 
-        static std::unordered_map<std::string, std::pair<verbosity, storages_t>> tags;
+        struct stats {
+            stats() = default;
 
-        auto add_tag(const std::string &tag, const verbosity verbosity_level) -> void {
-            tags.emplace(tag, std::make_pair(verbosity_level, storages_t{}));
+            uint64_t verboses = 0;
+            uint64_t debugs = 0;
+            uint64_t infos = 0;
+            uint64_t warnings = 0;
+            uint64_t errors = 0;
+            uint64_t critical = 0;
+        };
+
+        static std::unordered_map<std::string, storages_t> tags_storage;
+        static std::unordered_map<std::string, verbosity> tags_verbosity;
+        static stats all_stats;
+
+        auto add_tag(const std::string_view tag, const verbosity verbosity_level) -> void {
+            tags_storage.emplace(tag, storages_t{});
+            tags_verbosity.emplace(tag, verbosity_level);
         }
 
         auto add_storage(std::function<int (const std::string &, const verbosity, const void *, size_t)> cb) -> void {
-            for (auto& tag : tags)
-                tag.second.second.push_back(cb);
+            for (auto &[tag, storages] : tags_storage)
+                storages.emplace_back(cb);
         }
-        auto add_storage(const std::string &tag, std::function<int (const std::string &, const verbosity, const void *, size_t)> cb) -> void {
-            tags[tag].second.push_back(cb);
+        auto add_storage(const std::string &tag, storage_fn cb) -> void {
+            if (auto it = tags_storage.find(tag); it != tags_storage.end())
+                it->second.emplace_back(cb);
         }
 
         auto write(const std::string &tag, const verbosity v, const std::string &message) -> void {
             std::mutex out_mutex;
             std::lock_guard<std::mutex> guard(out_mutex);
 
-            for (auto &store : tags[tag].second)
-                store(tag, v, message.c_str(), message.size());
+            auto itv = tags_verbosity.find(tag);
+
+            if (itv == tags_verbosity.end())
+                return;
+
+            if (itv->second > v)
+                return;
+
+            if (auto it = tags_storage.find(tag); it != tags_storage.end())
+                for (auto &store : it->second)
+                    store(tag, v, message.c_str(), message.size());
         }
 
-        static const char *priority_names[] = {
+        constexpr const char *priority_names[] = {
             "VERBOSE",
             "DEBUG",
             "INFO",
@@ -41,9 +65,47 @@ namespace game {
             "CRITICAL"
         };
 
+        auto save_stats(const std::string &tag, const verbosity v, const void *d, size_t sz) -> int {
+            (void)tag, (void)d, (void)sz;
+
+            static struct reporter {
+                ~reporter() {
+                    fputs("===== summary =====:\n", stdout);
+                    fprintf(stdout, "verbose: %lu\n"
+                                    "debug: %lu\n"
+                                    "info: %lu\n"
+                                    "warning: %lu\n"
+                                    "error: %lu\n"
+                                    "critical: %lu\n", all_stats.verboses, all_stats.debugs, all_stats.infos, all_stats.warnings, all_stats.errors, all_stats.critical);
+                    fflush(stdout);
+                }
+            } _reporter;
+
+            switch (v) {
+            case verbosity::verbose:
+                all_stats.verboses++;
+                break;
+            case verbosity::debug:
+                all_stats.debugs++;
+                break;
+            case verbosity::info:
+                all_stats.infos++;
+                break;
+            case verbosity::warning:
+                all_stats.warnings++;
+                break;
+            case verbosity::error:
+                all_stats.errors++;
+                break;
+            case verbosity::critical:
+                all_stats.critical++;
+                break;
+            }
+        }
+
         auto setup_default(const std::string &log_path) -> void {
-            add_tag(_GAME, verbosity::verbose);
             add_tag(_SYSTEM, verbosity::verbose);
+            add_tag(_GAME, verbosity::verbose);
             add_tag(_AUDIO, verbosity::verbose);
             add_tag(_VIDEO, verbosity::verbose);
             add_tag(_RENDER, verbosity::verbose);
@@ -55,6 +117,19 @@ namespace game {
 
             using namespace std::placeholders;
             add_storage(std::bind(journal::single_file_storage, log_path, _1, _2, _3, _4));
+            add_storage(save_stats);
+        }
+
+        auto set_verbosity(const std::string &tag, const verbosity level) -> void {
+            if (tags_verbosity.find(tag) == tags_verbosity.end())
+                return;
+
+            tags_verbosity[tag] = level;
+        }
+
+        auto set_verbosity(const verbosity level) -> void {
+           for (auto& tv : tags_verbosity)
+               tv.second = level;
         }
 
         auto console_storage(const std::string &tag, const verbosity v, const void *d, size_t s) -> int {
@@ -119,7 +194,7 @@ namespace game {
 
             fprintf(log_file.fp, "%s | %s (%s): ", timestamp_str, priority_names[static_cast<int>(v)], tag.c_str());
             fwrite(d, s, 1, log_file.fp);
-            //fputs("\n", log_file.fp);
+            fputs("\n", log_file.fp);
 
             return 0;
         }

@@ -4,5 +4,5 @@
 #include <lua.hpp>
 
 namespace bindings {
-    auto init(lua_State *L) -> int32_t;
+    auto init(scene::instance_t &sc, lua_State *L) -> int32_t;
 } // namespace bindings

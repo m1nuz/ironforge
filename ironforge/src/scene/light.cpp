@@ -76,4 +76,43 @@ namespace scene {
         for (const auto &pl : point_instances)
             r->append(pl);
     }
+
+    auto create_light(const json &info) -> std::optional<light_t> {
+        using namespace std;
+        using namespace glm;
+        using namespace game;
+
+        if (info.find("type") == info.end())
+            return {};
+
+        const auto type = info["type"].get<string>();
+
+        light_t l;
+
+        journal::info(journal::_SCENE, "Create % light", type);
+
+        if (type == "ambient_light" || type == "ambient") {
+            const auto ambient = info.find("ambient") != info.end() ? info["ambient"].get<vec3>() : vec3{};
+
+            journal::info(journal::_SCENE, "\tambient %", ambient);
+
+            l = renderer::phong::ambient_light{ambient};
+        }
+
+        if (type == "directional_light" || type == "directional") {
+            const auto diffuse = info.find("diffuse") != info.end() ? info["diffuse"].get<vec3>() : vec3{};
+            const auto specular = info.find("specular") != info.end() ? info["specular"].get<vec3>() : vec3{};
+            const auto direction = info.find("direction") != info.end() ? info["direction"].get<vec3>() : vec3{};
+
+            journal::info(journal::_SCENE, "\tdiffuse %\n\tspecular %\n\tdirection %", diffuse, specular, direction);
+
+            l = renderer::phong::directional_light{direction, diffuse, specular};
+        }
+
+        if (type == "point_light" || type == "point") {
+
+        }
+
+        return l;
+    }
 } // namespace scene

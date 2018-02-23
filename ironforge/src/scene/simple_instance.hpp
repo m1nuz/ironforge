@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ironforge_utility.hpp>
+#include <utility/hash.hpp>
 
 #include <core/journal.hpp>
 
@@ -88,7 +88,7 @@ namespace scene {
             game::journal::debug(game::journal::_SCENE, "Create entity '%' % parent '%' ID %", info.name ? info.name : "unknown", hash, parent_name, eid);
 
             if (info.flags & static_cast<uint32_t>(entity_flags::root)) {
-                bodies.push_back(create_body(body_info{}));
+                //bodies.push_back(create_body(body_info{}));
                 transforms.push_back(create_transform(0, 0));
                 cameras.push_back(create_camera(eid, camera_info{}));
                 materials.push_back(nullptr);
@@ -100,13 +100,13 @@ namespace scene {
                 names.push_back(info.name);
                 name_hashes.push_back(hash);
                 flags.push_back(info.flags);
-                scripts.push_back(info.script ? create_script(eid, *info.script, info.flags) : nullptr);
+                //scripts.push_back(info.script ? create_script(eid, *info.script, info.flags) : nullptr);
             } else {
-                bodies.push_back(info.body ? create_body(*info.body) : nullptr);
+                //bodies.push_back(info.body ? create_body(*info.body) : nullptr);
                 transforms.push_back(info.flags & static_cast<uint32_t>(entity_flags::renderable) ? create_transform(eid, info.parent) : nullptr);
                 cameras.push_back(info.camera ? create_camera(eid, *info.camera) : nullptr);
                 materials.push_back(info.material ? find_material(info.material) : nullptr);
-                inputs.push_back(info.input ? create_input(eid, find_input_source(info.input)) : nullptr);
+                //inputs.push_back(info.input ? create_input(eid, find_input_source(info.input)) : nullptr);
                 models.push_back(info.model ? find_model(info.model) : nullptr);
 
                 auto any_light = info.light ? create_light(eid, *info.light) : std::make_pair(light_type::unknown, nullptr);
@@ -136,7 +136,7 @@ namespace scene {
                 names.push_back(info.name ? info.name : std::string{});
                 name_hashes.push_back(hash);
                 flags.push_back(info.flags);
-                scripts.push_back(info.script ? create_script(eid, *info.script, info.flags) : nullptr);
+                //scripts.push_back(info.script ? create_script(eid, *info.script, info.flags) : nullptr);
             }
 
             // TODO: check if all vectors is same size

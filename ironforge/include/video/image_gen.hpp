@@ -1,16 +1,20 @@
 #pragma once
 
 #include <memory>
-#include <ironforge_common.hpp>
+#include <vector>
+#include <core/common.hpp>
 #include <video/texture.hpp>
 
 namespace video {
+    ///
+    /// \brief The image_data struct
+    ///
     struct image_data {
-        uint32_t        width;
-        uint32_t        height;
-        uint32_t        depth;
-        pixel_format    pixelformat;
-        uint8_t         *pixels; // TODO: make smart pointer
+        uint32_t                width;
+        uint32_t                height;
+        uint32_t                depth;
+        pixel_format            pixelformat;
+        std::vector<uint8_t>    pixels;
     };
 
     namespace imgen {

@@ -14,6 +14,6 @@ namespace ui {
 
     auto append(std::unique_ptr<context> &ctx, const command &com) -> void;
 
-    auto process_event(std::unique_ptr<context> &ctx, const SDL_Event &event) -> void;
+    auto process_event(context &ctx, const SDL_Event &event) -> void;
     auto present(std::unique_ptr<context> &ctx, const std::function<void (const command &c)> &dispath) -> void;
 } // namespace ui

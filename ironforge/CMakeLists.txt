@@ -4,7 +4,7 @@ project("ironforge")
 
 find_package(Lua REQUIRED)
 
-set(cpp_flags "-g -pthread -pedantic -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -Wunused-result")
+set(cpp_flags "-std=c++17 -g -pthread -pedantic -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -Wunused-result")
 
 subdirlist(subdirs ${CMAKE_CURRENT_SOURCE_DIR}/src)
 

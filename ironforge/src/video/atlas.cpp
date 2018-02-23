@@ -113,7 +113,7 @@ namespace video {
         return rect;
     }
 
-    auto insert_image(atlas &_atlas, const image_data &_image) -> SDL_Rect {
+    auto insert_image(atlas &_atlas, image_data &_image) -> SDL_Rect {
         uint32_t rmask, gmask, bmask, amask;
     #if SDL_BYTEORDER == SDL_BIG_ENDIAN
         rmask = 0xff000000;
@@ -127,7 +127,7 @@ namespace video {
         amask = 0xff000000;
     #endif
 
-        auto surface = SDL_CreateRGBSurfaceFrom(_image.pixels, _image.width, _image.height, 32, _image.width, rmask, gmask, bmask, amask);
+        auto surface = SDL_CreateRGBSurfaceFrom(reinterpret_cast<void*>(&_image.pixels[0]), _image.width, _image.height, 32, _image.width, rmask, gmask, bmask, amask);
 
         if (!surface)
             return {0, 0, 0, 0};
@@ -141,6 +141,11 @@ namespace video {
     }
 
     auto get_atlas_texture(atlas &_atlas) -> image_data {
-        return image_data{_atlas.surface->w, _atlas.surface->h, 0, pixel_format::rgba8, static_cast<uint8_t*>(_atlas.surface->pixels)};
+        std::vector<uint8_t> all_pixels;
+        all_pixels.resize(_atlas.surface->w * _atlas.surface->h * 4);
+
+        memcpy(&all_pixels[0], _atlas.surface->pixels, all_pixels.size());
+
+        return image_data{_atlas.surface->w, _atlas.surface->h, 0, pixel_format::rgba8, all_pixels};
     }
 } // namespace video

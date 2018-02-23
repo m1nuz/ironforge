@@ -1,8 +1,8 @@
 #include <glcore_330.h>
-#include <core/journal.hpp>
 #include <core/assets.hpp>
 #include <video/video.hpp>
 
+#include "journal.hpp"
 #include "texture_format.inl"
 
 namespace video {
@@ -17,7 +17,7 @@ namespace video {
             auto type = static_cast<GLenum>(0);
             auto w = static_cast<GLsizei>(info.width);
             auto h = static_cast<GLsizei>(info.height);
-            void *pixels = info.pixels;
+            void *pixels = info.pixels.empty() ? nullptr : (void*)(&info.pixels[0]);
             auto flags = info.flags;
 
             get_texture_format_from_pixelformat(info.format, internalformat, format, type);
@@ -29,13 +29,13 @@ namespace video {
 
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            game::journal::debug(game::journal::_VIDEO, "Create 2d texture %", tex);
+            journal::debug(journal::_VIDEO, "Create 2d texture %", tex);
 
             return {static_cast<uint32_t>(tex), GL_TEXTURE_2D, nullptr};
         }
 
-        auto create_texture_2d(const assets::image_data &data) -> texture {
-            uint32_t flags = 0;
+        auto create_texture_2d(const assets::image_data &data, const uint32_t flags) -> texture {
+            /*uint32_t flags = 0;
             switch (config.filtering) {
             case texture_filtering::bilinear:
                 break;
@@ -43,7 +43,7 @@ namespace video {
             case texture_filtering::anisotropic:
                 flags |= static_cast<uint32_t>(texture_flags::auto_mipmaps);
                 break;
-            }
+            }*/
 
             return create_texture_2d({data.pixelformat, 0, flags, static_cast<int32_t>(data.width), static_cast<int32_t>(data.height), 0, data.pixels});
         }
@@ -63,14 +63,14 @@ namespace video {
             get_texture_format_from_pixelformat(infos[0].format, internalformat, format, type);
 
             for (size_t i = 0; i < 6; i++)
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, w, h, 0, format, type, infos[i].pixels);
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, w, h, 0, format, type, &infos[i].pixels[0]);
 
             if (flags & static_cast<uint32_t>(texture_flags::auto_mipmaps))
                 glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
             glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-            game::journal::debug(game::journal::_VIDEO, "Create cube texture %", tex);
+            journal::debug(journal::_VIDEO, "Create cube texture %", tex);
 
             return {static_cast<uint32_t>(tex), GL_TEXTURE_CUBE_MAP, nullptr};
         }
@@ -95,7 +95,7 @@ namespace video {
 
         auto destroy_texture(texture &tex) -> void {
             if (glIsTexture(tex.id)) {
-                game::journal::debug(game::journal::_VIDEO, "Delete texture %", tex.id);
+                journal::debug(journal::_VIDEO, "Delete texture %", tex.id);
                 glDeleteTextures(1, &tex.id);
             }
 

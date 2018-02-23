@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include <ironforge_common.hpp>
+#include <core/common.hpp>
 #include <ui/ui.hpp>
 #include <ui/context.hpp>
 #include <ui/widgets.hpp>
@@ -313,7 +313,7 @@ namespace ui {
 
     window *current_window = nullptr;
 
-    auto process_event(std::unique_ptr<context> &ctx, const SDL_Event &event) -> void {
+    auto process_event(context &ctx, const SDL_Event &event) -> void {
         UNUSED(ctx);
 
         if (event.type == SDL_MOUSEBUTTONDOWN) {

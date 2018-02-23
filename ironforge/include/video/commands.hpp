@@ -1,6 +1,7 @@
 #pragma once
 
 #include <video/video.hpp>
+#include <core/journal.hpp>
 
 namespace video {
     namespace commands {
@@ -37,10 +38,14 @@ namespace video {
             }
 
             bind(const gl::program &p, const std::string &name, uint32_t unit, const gl::texture &tex) : command{gl::command_type::bind_texture} {
+                using namespace game;
+
                 _bind_texture.location = gl::get_uniform_location(p, name);
                 _bind_texture.target = tex.target;
                 _bind_texture.unit = unit;
                 _bind_texture.texture = tex.id;
+
+                //journal::debug(journal::_VIDEO, "Bind texture %", tex.id);
             }
 
             bind(uint32_t unit, const gl::sampler &s) : command{gl::command_type::bind_sampler} {

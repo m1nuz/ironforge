@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include <glcore_330.h>
-#include <ironforge_utility.hpp>
+#include <utility/hash.hpp>
 #include <core/journal.hpp>
 #include <video/video.hpp>
 #include <video/program.hpp>

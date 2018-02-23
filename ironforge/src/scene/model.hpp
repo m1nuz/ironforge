@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <video/video.hpp>
-#include <scene/scene.hpp>
 #include <scene/volume.hpp>
 
 namespace scene {
@@ -50,4 +49,6 @@ namespace scene {
     auto create_model(const model_info &info) -> model_instance*;
     auto default_model() -> model_instance*;
     auto find_model(const char *name) -> model_instance*;
+
+    auto create_model(const std::string &name, const std::vector<mesh_info> &meshes) -> model_instance;
 } // namespace scene

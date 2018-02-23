@@ -9,6 +9,7 @@
 #include <core/journal.hpp>
 #include <core/assets.hpp>
 #include <core/settings.hpp>
+#include <core/input.hpp>
 #include <core/game.hpp>
 #include <video/video.hpp>
 #include <renderer/renderer.hpp>
@@ -18,293 +19,200 @@
 
 #include "game_detail.hpp"
 
-// FIXME: remove this
-namespace scene {
-    auto do_script(const std::string &name) -> bool;
-} // namespace scene
+#include <json.hpp>
+
+using json = nlohmann::json;
 
 namespace game {
-    static instance                                 game_inst;
+
+    static auto process_events(instance_t &in) -> void {
+        //journal::debug(journal::_GAME, "%", __FUNCTION__);
+
+        SDL_Event ev = {};
+
+        while (SDL_PollEvent(&ev)) {
+            if (ev.type == SDL_KEYDOWN)
+                if (ev.key.keysym.sym == SDLK_ESCAPE)
+                    in.running = false; // Exit when esc
+
+            input::process_event(in, ev);
+            //ui::process_event(in.uic, ev);
+            scene::process_event(in.current_scene(), ev);
+        }        
+    }
+
+    static auto cleanup_all(instance_t &app) -> void {
+        app.render.reset(nullptr);
+
+        video::cleanup_once(app.vi);
+        scene::cleanup_all(app.scenes);
+        assets::cleanup(app.asset_instance);
+    }
+
+    static auto update(instance_t &in, const float dt) -> void {
+        assets::process(in.asset_instance);
+        scene::update(in.current_scene(), dt);
+        video::process(in.vi);
+        input::update(in);
+    }
+
+    static auto present(instance_t &in, const float interpolation) -> void {
+        using std::placeholders::_1;
+        //ui::present(in.uic, std::bind(&renderer::instance::dispath, in.render.get(), _1));
+        //scene::present(current_scene(), inst.render, interpolation);
+        scene::present(in.vi, in.current_scene(), in.render, interpolation);
+    }
 
     auto quit() -> void {
-        game_inst.running = false;
+        journal::critical(journal::_GAME, "%", "Unexpected exit");
+        exit(EXIT_SUCCESS);
     }
 
-    auto current_scene() -> std::unique_ptr<scene::instance>& {
-        return game_inst.current_scene();
-    }
+    auto create(std::string_view conf_path, const bool fullpath_only) -> game_result {
+        using namespace std;
 
-    auto load_scene(const std::string &path) -> bool {
-        game_inst.scenes.push_back(scene::load(path, 0));
-        game_inst.current = game_inst.scenes.size() - 1;
-
-        return true;
-    }
-
-    auto load_asset(const std::string &path) -> bool {
-        if (assets::open(game::get_base_path() + path)!= assets::result::success)
-            return false;
-
-        return true;
-    }
-
-    auto load_settings(const std::string &path) -> bool {
-        if (!application::append_settings(game::get_base_path() + path))
-            return false;
-
-        return true;
-    }
-
-    static __must_ckeck auto init(instance &inst, const std::string &title, const std::string &startup_script) -> result {
-        srand(time(nullptr));
-
-        auto video_result = video::result::failure;
-        if ((video_result = video::init(inst.vi, title, 1, 1, false, false, true)) != video::result::success) {
-            game::journal::error(game::journal::_VIDEO, "%", video::get_string(video_result));
-
-            return game::result::error_init_video;
-        }
-
-        scene::init_all(); // TODO: get result
-        scene::do_script(startup_script);
-
-        const auto w = application::int_value("video_width", 800);
-        const auto h = application::int_value("video_height", 600);
-        const auto fullscreen = application::bool_value("video_fullscreen", false);
-        const auto vsync = application::bool_value("video_vsync", false);
-
-
-        if ((video_result = video::reset(inst.vi, w, h, fullscreen, vsync, true)) != video::result::success) {
-            game::journal::error(game::journal::_VIDEO, "%", video::get_string(video_result));
-
-            return game::result::error_init_video;
-        }
-
-        video::init_resources();
-
-        game::journal::info(game::journal::_VIDEO, "%", video::get_info());
-
-        //render = renderer::create_null_renderer();
-        inst.render = renderer::create_forward_renderer();
-
-        if (!inst.render)
-            return result::error_empty_render;
-
-        if (inst.scenes.empty())
-            game::journal::warning(game::journal::_GAME, "%", "No scene loaded");
-
-
-        auto controller_db = assets::get_text("gamecontrollerdb.txt");
-        auto rw = SDL_RWFromMem(controller_db.text, controller_db.size);
-
-        if (SDL_GameControllerAddMappingsFromRW(rw, 1) == -1)
-            game::journal::error(game::journal::_INPUT, "%", SDL_GetError());
-
-        game_inst.uic = ui::create_context();
-        return result::success;
-    }
-
-    auto cleanup(instance &inst) -> void {
-        scene::cleanup_all();
-
-        for (auto& s : inst.scenes)
-            s.reset(nullptr);
-
-        inst.render.reset(nullptr);
-
-        video::cleanup();
-    }
-
-    static auto joystick_info(SDL_Joystick *joystick) -> void {
-        char guid[64];
-        SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guid, sizeof (guid));
-        game::journal::info(game::journal::_INPUT, "          name: %", SDL_JoystickName(joystick));
-        game::journal::info(game::journal::_INPUT, "          axes: %", SDL_JoystickNumAxes(joystick));
-        game::journal::info(game::journal::_INPUT, "         balls: %", SDL_JoystickNumBalls(joystick));
-        game::journal::info(game::journal::_INPUT, "          hats: %", SDL_JoystickNumHats(joystick));
-        game::journal::info(game::journal::_INPUT, "       buttons: %", SDL_JoystickNumButtons(joystick));
-        game::journal::info(game::journal::_INPUT, "   instance id: %", SDL_JoystickInstanceID(joystick));
-        game::journal::info(game::journal::_INPUT, "          guid: %", guid);
-        game::journal::info(game::journal::_INPUT, "gamecontroller: %", SDL_IsGameController(SDL_JoystickInstanceID(joystick)) ? "yes" : "no");
-    }
-
-    static auto controller_append(int dev) -> bool {
-        if (SDL_IsGameController(dev)) {
-
-            auto controller = SDL_GameControllerOpen(dev);
-            if (!controller) {
-                game::journal::error(game::journal::_INPUT, "Couldn't open controller %: %", dev, SDL_GetError());
-                return false;
-            }
-
-            game::journal::info(game::journal::_INPUT, "Controller % opened", dev);
-
-            joystick_info(SDL_GameControllerGetJoystick(controller));
-
-            return true;
-        }
-
-        const char *name = SDL_JoystickNameForIndex(dev);
-        game::journal::warning(game::journal::_INPUT, "Unknown controller %", name ? name : "Unknown joystick");
-
-        SDL_Joystick *joystick = SDL_JoystickOpen(dev);
-        if (!joystick) {
-            game::journal::error(game::journal::_INPUT, "SDL_JoystickOpen(%) failed: %", dev, SDL_GetError());
-            return false;
-        }
-
-        joystick_info(joystick);
-        SDL_JoystickClose(joystick);
-
-        return true;
-    }
-
-    auto process_event(instance &inst, const SDL_Event &e) -> void {
-        if (e.type == SDL_KEYDOWN)
-            if (e.key.keysym.sym == SDLK_ESCAPE)
-                quit();
-
-        switch (e.type) {
-        case SDL_JOYDEVICEADDED:
-            if (controller_append(e.jdevice.which))
-                game::journal::info(game::journal::_INPUT, "Joystick device % added.", e.jdevice.which);
-            break;
-        case SDL_JOYDEVICEREMOVED:
-            game::journal::info(game::journal::_INPUT, "Joystick device % removed.", e.jdevice.which);
-            break;
-        case SDL_CONTROLLERDEVICEADDED:
-            game::journal::info(game::journal::_INPUT, "Controller device % added.", e.cdevice.which);
-            break;
-        case SDL_CONTROLLERDEVICEREMOVED:
-            game::journal::info(game::journal::_INPUT, "Controller device % added.", e.cdevice.which);
-            break;
-        case SDL_CONTROLLERDEVICEREMAPPED:
-            game::journal::info(game::journal::_INPUT, "Controller device % mapped.", e.cdevice.which);
-            break;
-        }
-
-        ui::process_event(inst.uic, e);
-        scene::process_event(inst.current_scene(), e);
-    }
-
-    auto update(game::instance &inst, const float dt) -> void {
-        scene::update(inst.current_scene(), dt);
-        video::process();
-
-        SDL_JoystickUpdate();
-        SDL_GameControllerUpdate();
-    }
-
-    auto present(instance &inst, const float interpolation) -> void {
-        using std::placeholders::_1;
-        ui::present(inst.uic, std::bind(&renderer::instance::dispath, inst.render.get(), _1));
-        scene::present(current_scene(), inst.render, interpolation);
-    }
-
-    constexpr auto get_string(const result r) -> const char * {
-        switch (r) {
-        case result::success:
-            return "Success";
-            break;
-        case result::failure:
-            return "Failure";
-            break;
-        case result::error_init_video:
-            return "Can't init video";
-            break;
-        case result::error_empty_render:
-            return "Empty render";
-            break;
-        default:
-            return "Unknown error";
-            break;
-        }
-
-        return nullptr;
-    }
-
-    auto get_base_path() -> const std::string& {
-        static std::string base_path;
-        if (!base_path.empty())
-            return base_path;
-
-        auto path = SDL_GetBasePath();
-        base_path = path;
-        SDL_free(path);
-
-        return base_path;
-    }
-
-    auto get_pref_path() -> const std::string& {
-        static std::string pref_path;
-
-        if (!pref_path.empty())
-            return pref_path;
-
-        auto path = SDL_GetBasePath(); // TODO: change it to
-        pref_path = path;
-        SDL_free(path);
-
-        return pref_path;
-    }
-
-    auto exec(const std::string &startup_script) -> int {
-        auto asset_result = assets::result::failure;
-        if ((asset_result = assets::append(assets::default_readers)) != assets::result::success) {
-            game::journal::error(game::journal::_GAME, "%", "Can't append readers");
-            return EXIT_FAILURE;
-        }
+        // if releative and not fullpath_only add base_path
+        const auto cpath = (conf_path.find("..") == std::string::npos) && !fullpath_only ? string{conf_path} : get_base_path() + string{conf_path};
 
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
-            return EXIT_FAILURE;
+            return make_error_code(errc::init_platform);
 
         atexit(SDL_Quit);
 
         if (TTF_Init() < 0)
-            return EXIT_FAILURE;
+            return make_error_code(errc::init_platform);
 
         atexit(TTF_Quit);
 
-        auto game_result = game::result::failure;
-        if ((game_result = game::init(game_inst, "IRON_FORGE", startup_script)) != game::result::success) {
-            journal::error(game::journal::_GAME, "%", game::get_string(game_result));
-            return EXIT_FAILURE;
+        instance_t ctx;
+
+        auto asset_inst = assets::create_instance(assets::create_default_readers());
+        if (holds_alternative<error_code>(asset_inst)) {
+            journal::error(journal::_GAME, "%", "Can't append readers");
+            return make_error_code(errc::init_assets);
         }
 
-        SDL_Event e;
+        ctx.asset_instance = move(get<assets::instance_t>(asset_inst));
 
-        auto current = 0ull;
-        auto last = 0ull;
-        auto timesteps = 0ull;
-        auto accumulator = 0.0f;
+        auto contents = assets::readfile(cpath);
+        if (!assets::is_ok(contents))
+            return get<error_code>(contents);
 
-        while (game_inst.running) {
-            while (SDL_PollEvent(&e))
-                game::process_event(game_inst, e);
+        auto j = json::parse(get<string>(contents));
 
-            assets::process();
+        if (j.find("assets") == j.end())
+            return make_error_code(std::errc::io_error);
 
-            last = current;
-            current = SDL_GetPerformanceCounter();
-            const auto freq = SDL_GetPerformanceFrequency();
+        for (auto &a : j["assets"]) {
+            journal::debug(journal::_GAME, "%", a.get<string>());
 
-            const auto dt = static_cast<float>(static_cast<double>(current - last) / static_cast<double>(freq));
+            if (assets::open(ctx.asset_instance, get_base_path() + a.get<string>()) != assets::result::success)
+                return make_error_code(std::errc::io_error);
+        }
 
-            accumulator += glm::clamp(dt, 0.f, 0.2f);
+        if (j.find("video") == j.end())
+            return make_error_code(std::errc::io_error);
 
-            while (accumulator >= timestep) {
-                accumulator -= timestep;
+        const auto video_info = j["video"];
 
-                game::update(game_inst, timestep);
+        auto vc = video::init_once(video_info);
+        if (!video::is_ok(vc))
+            return get<error_code>(vc);        
 
-                timesteps++;
+        ctx.vi = get<video::instance_t>(vc);
+
+        journal::info(journal::_VIDEO, "%", video::get_info());
+
+        if (j.find("renderer") == j.end())
+            return make_error_code(std::errc::io_error);
+
+        const auto renderer_info = j["renderer"];
+        const auto renderer_type = renderer_info.find("type") != renderer_info.end() ? renderer_info["type"].get<string>() : "null";
+
+        ctx.render = renderer::create_renderer(renderer_type, ctx.vi, video_info);
+
+        if (j.find("scenes") == j.end())
+            return make_error_code(std::errc::io_error);
+
+        string start_scene;
+
+        if (j.find("start_scene") != j.end()) {
+            start_scene = j["start_scene"].get<string>();
+        }
+
+        if (start_scene.empty())
+            return make_error_code(errc::no_start_scene);
+
+        scene::reset_engine();
+
+        auto any_loaded = false;
+        for (auto &sc : j["scenes"])
+            if (start_scene == sc.get<string>()) {
+                auto res = scene::load(start_scene);
+
+                if (!scene::is_ok(res))
+                    return get<error_code>(res);
+
+                any_loaded = true;
+
+                ctx.scenes.push_back(get<scene::instance_t>(res));
             }
 
-            game::present(game_inst, accumulator / timestep);
+        scene::setup_bindings(ctx.current_scene());
+
+        if (!any_loaded)
+            return make_error_code(std::errc::io_error);
+
+        if (!input::init(ctx))
+            return make_error_code(errc::init_gamecontrollers);
+
+        return std::move(ctx);
+    }
+
+    auto launch(game::instance_t &app) -> int {
+        using namespace std;
+
+        auto loader = std::thread(assets::process_load, std::ref(app.asset_instance));
+
+        assets::get_text(app.asset_instance, "gamecontrollerdb.txt", [] (const std::optional<assets::text_t> res) {
+            if (res) {
+                journal::info(journal::_GAME, "%", res.value().data);
+            }
+        });
+
+        app.current_time = 0ull;
+        app.last_time = 0ull;
+        app.timesteps = 0ull;
+        app.delta_accumulator = 0.0f;
+
+        while (app.running) {
+            game::process_events(app);
+
+            app.last_time = app.current_time;
+            app.current_time = SDL_GetPerformanceCounter();
+
+            const auto freq = SDL_GetPerformanceFrequency();
+            const auto dt = static_cast<float>(static_cast<double>(app.current_time - app.last_time) / static_cast<double>(freq));
+
+            app.delta_accumulator += glm::clamp(dt, 0.f, 0.2f);
+
+            while (app.delta_accumulator >= game::timestep) {
+                app.delta_accumulator -= game::timestep;
+
+                game::update(app, game::timestep);
+
+                app.timesteps++;
+            }
+
+            game::present(app, app.delta_accumulator / timestep);
         }
 
-        game::cleanup(game_inst);
+        game::cleanup_all(app);
+
+        if (loader.joinable())
+            loader.join();
 
         return EXIT_SUCCESS;
     }
+
 } // namespace game

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 namespace video {
     struct image_data;
@@ -42,7 +43,7 @@ namespace video {
         int32_t     height = 0;
         int32_t     depth = 0;
 
-        void        *pixels = nullptr;
+        std::vector<uint8_t> pixels;
     };
 
     struct texture_desc;
@@ -61,7 +62,7 @@ namespace video {
         constexpr texture empty_texture = {0, 0, nullptr};
 
         auto create_texture_2d(const texture_info &info) -> texture;
-        auto create_texture_2d(const image_data &data) -> texture;
+        auto create_texture_2d(const image_data &data, const uint32_t flags) -> texture;
         auto create_texture_array() -> texture;
         auto create_texture_cube(const texture_info (&infos)[6]) -> texture;
         auto create_texture_cube(const image_data (&datas)[6]) -> texture;

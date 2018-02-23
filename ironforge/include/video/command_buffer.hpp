@@ -2,7 +2,7 @@
 
 #include <cstring>
 #include <vector>
-#include <ironforge_common.hpp>
+#include <core/common.hpp>
 #include <video/command.hpp>
 #include <video/state.hpp>
 

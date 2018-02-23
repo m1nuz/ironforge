@@ -1,12 +1,9 @@
-#include <ironforge_common.hpp>
 #include <core/journal.hpp>
 #include <scene/scene.hpp>
 #include "physics.hpp"
 
 namespace physics {
     using body_instance = scene::body_instance;
-
-    std::vector<body_instance> bodies;
 
     inline auto integrate(body_state &state, float dt) -> void {
         state.position += state.velocity * dt;
@@ -20,43 +17,56 @@ namespace physics {
         state.size = mix(previous.size, current.size, alpha);
     }
 
-    auto init_all() -> void {
-        bodies.reserve(scene::max_bodies);
-    }
-
-    auto cleanup() -> void {
-        for (auto i = 0ul; i < bodies.size(); ++i)
-            game::journal::debug(game::journal::_SCENE, "Destoy body (%)", i);
-
-        bodies.clear();
-    }
-
-    auto integrate_all(const float dt) -> void {
-        for (auto &b : bodies) {
+    auto integrate_all(scene::instance_t &sc, const float dt) noexcept -> void {
+        for (auto & bd : sc.bodies) {
+            auto &b = bd.second;
             b.previous = b.current;
             integrate(b.current, dt);
         }
     }
 
-    auto interpolate_all(const float interpolation) -> void {
-        for (auto &b : bodies)
-            interpolate(b.state, b.previous, b.current, interpolation);
+    auto cleanup_all(scene::instance_t &sc) noexcept -> void {
+        using namespace game;
+
+        for (auto &[ix, b] : sc.bodies) {
+            (void)b;
+            journal::debug(journal::_SCENE, "Destoy body (%)", ix);
+        }
     }
 } // namespace physics
 
 namespace scene {
-    auto create_body(const body_info &info) -> body_instance* {
+    auto create_body(const json &info) -> std::optional<body_instance> {
+        using namespace game;
+        using namespace glm;
+
         physics::body_state state;
-        state.position = info.position;
-        state.orientation = info.orientation;
-        state.size = info.size;
-        state.velocity = info.velocity;
-        state.rotation = info.rotation;
 
-        physics::bodies.push_back(body_instance{state, state, state});
+        if (info.find("position") != info.end())
+            state.position = info["position"].get<vec3>();
 
-        game::journal::debug(game::journal::_SCENE, "Create body (%)", physics::bodies.size());
+        if (info.find("orientation") != info.end())
+            state.orientation = info["orientation"].get<vec3>();
 
-        return &physics::bodies.back();
+        if (info.find("size") != info.end())
+            state.size = info["size"].get<vec3>();
+
+        if (info.find("velocity") != info.end())
+            state.velocity = info["velocity"].get<vec3>();
+
+        if (info.find("rotation") != info.end())
+            state.rotation = info["rotation"].get<vec3>();
+
+        journal::info(journal::_SCENE, "Create body:\n\tposition %\n\torientation %\n\tsize %s\n\tvelocity %\n\trotation %",
+                      state.position, state.orientation, state.size, state.velocity, state.rotation);
+
+        return body_instance{state, state, state};
+    }
+
+    auto interpolate_all(instance_t &sc, const float interpolation) -> void {
+        for (auto &sb : sc.bodies) {
+            auto& b = sb.second;
+            physics::interpolate(b.state, b.previous, b.current, interpolation);
+        }
     }
 } // namespace scene

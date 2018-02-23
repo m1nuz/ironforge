@@ -1,9 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include <cstdint>
 #include <string>
+#include <optional>
 
-#include <lua.hpp>
+#include <json.hpp>
 
 namespace scene {
     enum class script_flags : uint32_t {
@@ -37,11 +38,15 @@ namespace scene {
 
     auto call_fn(const script_instance *sc, const char *fn_name) -> int32_t;
 
-    auto init_all_scripts() -> void;
-    auto cleanup_all_scripts() -> void;
-    auto update_all_scripts(const float dt) -> void;
+    struct instance_type;
+    typedef instance_type instance_t;
 
-    auto create_script(int32_t entity, const script_info &info, uint32_t flags) -> script_instance*;
+    using json = nlohmann::json;
 
-    auto do_script(const std::string &name) -> bool;
+    auto reset_engine() -> bool;
+    auto setup_bindings(instance_t &sc) -> void;
+    auto create_script(const int32_t entity, const json &info) -> std::optional<script_instance>;
+
+    auto update_all_scripts(instance_t &sc, const float dt) -> void;
 } // namespace scene
+
