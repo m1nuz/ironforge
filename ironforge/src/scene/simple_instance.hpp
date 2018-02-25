@@ -105,7 +105,7 @@ namespace scene {
                 //bodies.push_back(info.body ? create_body(*info.body) : nullptr);
                 transforms.push_back(info.flags & static_cast<uint32_t>(entity_flags::renderable) ? create_transform(eid, info.parent) : nullptr);
                 cameras.push_back(info.camera ? create_camera(eid, *info.camera) : nullptr);
-                materials.push_back(info.material ? find_material(info.material) : nullptr);
+                //materials.push_back(info.material ? find_material(info.material) : nullptr);
                 //inputs.push_back(info.input ? create_input(eid, find_input_source(info.input)) : nullptr);
                 models.push_back(info.model ? find_model(info.model) : nullptr);
 

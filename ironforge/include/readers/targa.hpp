@@ -1,7 +1,6 @@
 #pragma once
 
-#include <core/assets.hpp>
 #include <SDL2/SDL_rwops.h>
-#include <core/common.hpp>
+#include <core/assets.hpp>
 
-[[nodiscard]] auto read_targa(SDL_RWops *rw, assets::image_data& image) -> int32_t;
+[[nodiscard]] auto read_targa(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<assets::image_data_t>;

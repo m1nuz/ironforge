@@ -1,21 +1,25 @@
 #include <readers/binary.hpp>
 
-auto read_binary(SDL_RWops *rw, assets::binary_data &data) -> int32_t {
+auto read_binary(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<assets::binary_data_t> {
+    (void)inst;
+
     assert(rw != nullptr);
 
     if (!rw)
-        return -1;
+        return {};
 
-    auto size = SDL_RWsize(rw);
+    const auto size = static_cast<size_t>(SDL_RWsize(rw));
+
+    assets::binary_data_t data;
 
     if (size > 0) {
-        data.raw_memory = operator new(size);
-        data.size = size;
+        data.resize(size);
 
-        SDL_RWread(rw, data.raw_memory, size, 1);
+        SDL_RWread(rw, &data[0], size, 1);
+        SDL_RWclose(rw);
+
+        return data;
     }
 
-    SDL_RWclose(rw);
-
-    return 0;
+    return {};
 }

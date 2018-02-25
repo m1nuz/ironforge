@@ -10,6 +10,11 @@
 
 #include <json.hpp>
 
+namespace assets {
+    struct instance_type;
+    typedef instance_type instance_t;
+}
+
 namespace scene {
     struct material_info {
         glm::vec3       emission = {0.f, 0.f, 0.f};
@@ -41,14 +46,14 @@ namespace scene {
         uint64_t name_hash = 0;
     };
 
-    auto init_all_materials() -> void;
+    /*auto init_all_materials() -> void;
     auto cleanup_all_materials() -> void;
     auto create_material(const material_info &info) -> material_instance*;
     auto default_material() -> material_instance*;
     auto find_material(const char *name) -> material_instance*;
 
-    auto process_all_materials() -> void;
+    auto process_all_materials() -> void;*/
 
     using json = nlohmann::json;
-    auto create_material(const json &info) -> std::optional<material_instance>;
+    auto create_material(assets::instance_t &asset, const json &info) -> std::optional<material_instance>;
 } // namespace scene

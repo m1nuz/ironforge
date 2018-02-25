@@ -32,6 +32,11 @@
 
 #include <json.hpp>
 
+namespace assets {
+    struct instance_type;
+    typedef instance_type instance_t;
+}
+
 namespace video {
     /* specific gl APIs */
     namespace gles2 {
@@ -132,24 +137,24 @@ namespace video {
     /*auto make_texture_2d(const video::texture_info &info) -> texture;
     auto make_texture_2d(const image_data &data) -> texture;*/
     auto make_texture_2d(const std::string &name, const image_data &data, const uint32_t flags) -> texture;
-    auto make_texture_cube(const std::string &name, const std::string (&names)[6]) -> texture;
+    auto make_texture_cube(assets::instance_t &asset, const std::string &name, const std::string (&names)[6]) -> texture;
     auto make_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc, std::vector<vertices_draw> &draws) -> vertices_source;
 
     auto default_white_texture() -> texture;
     auto default_black_texture() -> texture;
     auto default_check_texture() -> texture;
     auto default_red_texture() -> texture;
-    auto get_texture(const char *name, const texture &default_tex = default_check_texture()) -> texture;
+    auto get_texture(assets::instance_t &asset, const char *name, const texture &default_tex = default_check_texture()) -> texture;
 
     auto query_texture(texture &tex, const texture_desc *desc) -> void;
     auto query_texture(texture &tex) -> void;
 
     auto get_heightmap(const char *name) -> heightmap_t;
 
-    auto make_program(const gl::program_info &info) -> program;
+    auto make_program(assets::instance_t &asset, const gl::program_info &info) -> program;
     auto get_shader(const char *name) -> program;
 
-    auto init_resources(instance_t &inst) -> void;
+    auto init_resources(instance_t &inst, assets::instance_t &asset) -> void;
     auto cleanup_resources() -> void;
 
     using json = nlohmann::json;
@@ -159,7 +164,7 @@ namespace video {
         return std::holds_alternative<instance_t>(res);
     }
 
-    [[nodiscard]] auto init_once(const json &info) -> video_result;
+    [[nodiscard]] auto init_once(assets::instance_t &asset, const json &info) -> video_result;
     auto cleanup_once(instance_t &in) -> void;
 
     extern _config config;

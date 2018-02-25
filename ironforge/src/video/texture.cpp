@@ -34,7 +34,7 @@ namespace video {
             return {static_cast<uint32_t>(tex), GL_TEXTURE_2D, nullptr};
         }
 
-        auto create_texture_2d(const assets::image_data &data, const uint32_t flags) -> texture {
+        auto create_texture_2d(const image_data &data, const uint32_t flags) -> texture {
             /*uint32_t flags = 0;
             switch (config.filtering) {
             case texture_filtering::bilinear:

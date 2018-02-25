@@ -11,6 +11,11 @@
 
 using json = nlohmann::json;
 
+namespace assets {
+    struct instance_type;
+    typedef instance_type instance_t;
+}
+
 namespace renderer {
     // TODO: think about static dispatching
 
@@ -40,5 +45,5 @@ namespace renderer {
     ///
     /// Create renderer factory method
     ///
-    [[nodiscard]] auto create_renderer(std::string_view type, video::instance_t &in, const json &info) -> std::unique_ptr<instance>;
+    [[nodiscard]] auto create_renderer(std::string_view type, video::instance_t &in, assets::instance_t &asset, const json &info) -> std::unique_ptr<instance>;
 } // namespace renderer

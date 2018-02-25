@@ -31,9 +31,11 @@ typedef struct TargaHeader
 } TARGA_HEADER;
 #pragma pack(pop, tga_header_align)
 
-auto read_targa(SDL_RWops *rw, assets::image_data& image) -> int32_t {
+auto read_targa(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<assets::image_data_t> {
     if (!rw)
-        return -1;
+        return {};
+
+    assets::image_data_t image;
 
     Sint64 lenght = SDL_RWsize(rw);
 
@@ -97,5 +99,5 @@ auto read_targa(SDL_RWops *rw, assets::image_data& image) -> int32_t {
     image.depth = 0;
     image.pixels = data;
 
-    return 0;
+    return image;
 }

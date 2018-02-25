@@ -6,6 +6,11 @@
 
 #include <json.hpp>
 
+namespace assets {
+    struct instance_type;
+    typedef instance_type instance_t;
+}
+
 namespace scene {
     enum class script_flags : uint32_t {
         call_init,
@@ -45,7 +50,7 @@ namespace scene {
 
     auto reset_engine() -> bool;
     auto setup_bindings(instance_t &sc) -> void;
-    auto create_script(const int32_t entity, const json &info) -> std::optional<script_instance>;
+    auto create_script(assets::instance_t &asset, const int32_t entity, const json &info) -> std::optional<script_instance>;
 
     auto update_all_scripts(instance_t &sc, const float dt) -> void;
 } // namespace scene

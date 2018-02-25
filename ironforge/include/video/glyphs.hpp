@@ -7,6 +7,11 @@
 #include <video/video.hpp>
 #include <video/atlas.hpp>
 
+namespace assets {
+    struct instance_type;
+    typedef instance_type instance_t;
+}
+
 namespace video {
     struct font_info {
         std::string name;
@@ -21,7 +26,7 @@ namespace video {
         int         type;
     };
 
-    auto glyph_cache_build(const std::vector<font_info> &fonts, atlas &_atlas) -> bool;
+    auto glyph_cache_build(assets::instance_t &asset, const std::vector<font_info> &fonts, atlas &_atlas) -> bool;
     auto glyph_cache_find(uint16_t ch, int type) -> glyph;
 
     auto glyph_cache_get_font_lineskip(int type) -> int;

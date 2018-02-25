@@ -113,6 +113,8 @@ namespace scene {
         std::unordered_map<std::string, model_t>    all_models;
         std::unordered_map<std::string, material_t> all_materials;
 
+        video::texture                              skybox;
+
         auto get_script(const uint32_t index) -> script_t& {
             return scripts[index];
         }

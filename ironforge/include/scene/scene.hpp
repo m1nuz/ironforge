@@ -24,6 +24,11 @@ namespace scene {
 
 #include <scene/instance.hpp>
 
+namespace assets {
+    struct instance_type;
+    typedef instance_type instance_t;
+}
+
 namespace scene {
     using load_result = std::variant<instance_t, std::error_code>;
 
@@ -34,7 +39,7 @@ namespace scene {
     auto reset_all(instance_t &sc) -> bool;
     auto cleanup_all(std::vector<instance_t> &scenes) -> void;
     auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance>;
-    [[nodiscard]] auto load(const std::string &path) -> load_result;
+    [[nodiscard]] auto load(assets::instance_t &asset, const std::string &path) -> load_result;
     auto update(std::unique_ptr<instance> &s, const float dt) -> void;
     auto update(instance_t &sc, const float dt) -> void;
     auto process_event(std::unique_ptr<instance> &s, const SDL_Event &event) -> void;
@@ -43,7 +48,7 @@ namespace scene {
     auto present(video::instance_t &vi, instance_t &sc, std::unique_ptr<renderer::instance> &render, const float interpolation) -> void;
 
     using json = nlohmann::json;
-    auto create_entity(instance_t &sc, const json &info) -> instance_t::index_t;
+    auto create_entity(assets::instance_t &asset, instance_t &sc, const json &info) -> instance_t::index_t;
     auto find_entity(instance_t &sc, const std::string &name) -> instance_t::index_t;
 
     auto cache_model(instance_t &sc, const std::string &name, const model_instance &m) -> bool;

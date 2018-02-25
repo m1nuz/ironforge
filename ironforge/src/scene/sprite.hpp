@@ -7,7 +7,6 @@
 namespace scene {
     struct sprite_info {
         video::texture  tex;
-        std::string     tex_name;
         glm::vec2       offset;
         glm::vec2       size;
     };

@@ -159,7 +159,7 @@ namespace video {
         return nullptr;
     }
 
-    auto init_once(const json &info) -> video_result {
+    auto init_once(assets::instance_t &asset, const json &info) -> video_result {
         using namespace std;
 
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -250,7 +250,7 @@ namespace video {
         const auto tex_filtering = tf >= texture_filtering::max_filtering ? texture_filtering::trilinear : tf;
         config.filtering = tex_filtering;
         ctx.tex_filtering = tex_filtering;
-        video::init_resources(ctx);
+        video::init_resources(ctx, asset);
 
         return ctx;
     }

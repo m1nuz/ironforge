@@ -13,7 +13,7 @@ namespace game {
 }
 
 namespace scene {
-    auto load(const std::string &path) -> load_result {
+    auto load(assets::instance_t &asset, const std::string &path) -> load_result {
         using namespace std;
         using namespace game;
 
@@ -51,8 +51,10 @@ namespace scene {
                         tix++;
                     }
 
-                    video::make_texture_cube(effect_name, texs);
+                    video::make_texture_cube(asset, effect_name, texs);
                 }
+
+                sc.skybox = video::get_texture(asset, effect_name.c_str());
             }
         }
 
@@ -62,7 +64,7 @@ namespace scene {
         for (auto &mat : j["materials"]) {
             const auto material_name = mat.find("name") != mat.end() ? mat["name"].get<string>() : string{};
 
-            const auto m = create_material(mat);
+            const auto m = create_material(asset, mat);
             if (!m) {
                 journal::warning(journal::_SCENE, "Can't create '%' material", material_name);
                 continue;
@@ -181,13 +183,13 @@ namespace scene {
         json root_info;
         root_info["name"] = "root";
 
-        const auto r = create_entity(sc, root_info);
+        const auto r = create_entity(asset, sc, root_info);
 
         if (j.find("nodes") == j.end())
             return make_error_code(errc::io_error);
 
         for (auto &n : j["nodes"]) {
-            const auto e = create_entity(sc, n);
+            const auto e = create_entity(asset, sc, n);
         }        
 
         return sc;

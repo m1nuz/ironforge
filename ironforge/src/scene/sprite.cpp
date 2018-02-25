@@ -7,7 +7,7 @@ namespace scene {
 
     auto create_sprite(const sprite_info &info) -> sprite_instance* {
         sprite_instance si;
-        si.tex = info.tex == video::gl::empty_texture ? video::get_texture(info.tex_name.c_str()) : info.tex;
+        si.tex = info.tex;
 
         sprites.push_back(si);
 

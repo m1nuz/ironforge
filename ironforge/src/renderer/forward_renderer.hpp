@@ -28,7 +28,7 @@ namespace renderer {
 
     // TODO : make video api specific template
     struct forward_renderer : public instance {
-        forward_renderer(video::instance_t &in, const json &info);
+        forward_renderer(video::instance_t &in, assets::instance_t &asset, const json &info);
         ~forward_renderer();
 
         virtual auto append(const phong::ambient_light &light) -> void;
@@ -45,7 +45,7 @@ namespace renderer {
         virtual auto reset() -> void;
         virtual auto present(video::instance_t &vi, const glm::mat4 &proj, const glm::mat4 &view) -> void;
 
-        auto init_ui() -> void;
+        auto init_ui(assets::instance_t &asset) -> void;
         auto text_box_size(const char *text, size_t size, int font) -> glm::vec2;
         auto draw_text(const ui::draw_text_command &c) -> void;
         auto draw_line(const ui::draw_line_command &c) -> void;

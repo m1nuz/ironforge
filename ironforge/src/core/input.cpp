@@ -55,8 +55,11 @@ namespace game {
         }
 
         auto init(instance_t &inst) -> bool {
-            auto controller_db = assets::get_text("gamecontrollerdb.txt");
-            auto rw = SDL_RWFromMem(controller_db.text, controller_db.size);
+            auto controller_db = assets::get_text(inst.asset_instance, "gamecontrollerdb.txt");
+            if (!controller_db)
+                return false;
+
+            auto rw = SDL_RWFromMem(reinterpret_cast<void*>(&(controller_db.value())[0]), controller_db.value().size());
 
             if (!rw)
                 return false;

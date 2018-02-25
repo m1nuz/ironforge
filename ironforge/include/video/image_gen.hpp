@@ -10,10 +10,12 @@ namespace video {
     /// \brief The image_data struct
     ///
     struct image_data {
-        uint32_t                width;
-        uint32_t                height;
-        uint32_t                depth;
-        pixel_format            pixelformat;
+        image_data() = default;
+
+        uint32_t                width = 0;
+        uint32_t                height = 0;
+        uint32_t                depth = 0;
+        pixel_format            pixelformat = pixel_format::unknown;
         std::vector<uint8_t>    pixels;
     };
 

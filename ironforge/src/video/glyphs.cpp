@@ -22,11 +22,14 @@ namespace video {
         return a.ch < b.ch;
     }
 
-    static auto glyph_cache_append(const font_info &info, atlas &_atlas) -> void {
+    static auto glyph_cache_append(assets::instance_t &asset, const font_info &info, atlas &_atlas) -> void {
         const SDL_Color White = {255, 255, 255, 255};
-        auto fb = assets::get_binary(info.name);
+        auto fb = assets::get_binary(asset, info.name);
 
-        auto rw = SDL_RWFromConstMem(fb.raw_memory, fb.size);
+        if (!fb)
+            return; // TODO: error
+
+        auto rw = SDL_RWFromConstMem(&fb.value()[0], fb.value().size());
 
         auto font = TTF_OpenFontRW(rw, SDL_TRUE, info.size);
         if (!font)
@@ -56,7 +59,7 @@ namespace video {
         glyph_groups.push_back({static_cast<int>(glyph_groups.size()), TTF_FontHeight(font), TTF_FontLineSkip(font)});
     }
 
-    auto glyph_cache_build(const std::vector<font_info> &fonts, atlas &_atlas) -> bool {
+    auto glyph_cache_build(assets::instance_t &asset, const std::vector<font_info> &fonts, atlas &_atlas) -> bool {
         size_t glyph_cache_size = 0;
         int group_count = 0;
 
@@ -69,7 +72,7 @@ namespace video {
         glyph_groups.reserve(group_count);
 
         for (const auto &fn : fonts)
-            glyph_cache_append(fn, _atlas);
+            glyph_cache_append(asset, fn, _atlas);
 
         std::sort(glyphs.begin(), glyphs.end(), glyph_compare);
 

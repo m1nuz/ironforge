@@ -53,7 +53,7 @@ namespace scene {
         init_all_timers();
         //physics::init_all();
         init_all_transforms();
-        init_all_materials();
+        //init_all_materials();
         init_all_cameras();
         init_all_models();
         //init_all_scripts();
@@ -64,7 +64,7 @@ namespace scene {
         //cleanup_all_scripts();
         cleanup_all_models();
         cleanup_all_cameras();
-        cleanup_all_materials();
+        //cleanup_all_materials();
         cleanup_all_transforms();
         //physics::cleanup();
     }
@@ -78,7 +78,7 @@ namespace scene {
         }
     }
 
-    auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance> {
+    /*auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance> {
         auto t = assets::get_text(_name);
 
         auto this_scene = std::make_unique<simple_instance>(_name, flags);
@@ -543,7 +543,7 @@ namespace scene {
         // in other case use std::find
 
         return this_scene;
-    }    
+    }*/
 
     auto update(std::unique_ptr<instance>& s, const float dt) -> void {
         UNUSED(s);
@@ -574,7 +574,7 @@ namespace scene {
 
         //game::journal::debug(game::journal::_SCENE, "Present %", s->name);
 
-        process_all_materials();
+        //process_all_materials();
 
         //physics::interpolate_all(interpolation);
         scene::present_all_cameras(scn);
@@ -622,14 +622,16 @@ namespace scene {
 
 
         for (auto &mtl : sc.materials) {
-            video::query_texture(mtl.second.m0.diffuse_tex);
+            /*video::query_texture(mtl.second.m0.diffuse_tex);
             video::query_texture(mtl.second.m0.specular_tex);
             video::query_texture(mtl.second.m0.gloss_tex);
-            video::query_texture(mtl.second.m0.normal_tex);
+            video::query_texture(mtl.second.m0.normal_tex);*/
         }
 
         interpolate_all(sc, interpolation);
         scene::present_all_cameras(sc);
+
+        render->append(sc.skybox, 0);
 
         for (const auto &lt : sc.lights) {
             const auto l = lt.second;
@@ -692,7 +694,7 @@ namespace scene {
         video::stats::end(vi.stats_info);
     }
 
-    auto create_entity(instance_t &sc, const json &info) -> instance_t::index_t {
+    auto create_entity(assets::instance_t &asset, instance_t &sc, const json &info) -> instance_t::index_t {
         using namespace std;
         using namespace game;
 
@@ -758,7 +760,7 @@ namespace scene {
         }
 
         if (info.find("script") != info.end()) {
-            const auto s = create_script(ix, info["script"]);
+            const auto s = create_script(asset, ix, info["script"]);
             if (s)
                 sc.scripts[ix] = s.value();
         }

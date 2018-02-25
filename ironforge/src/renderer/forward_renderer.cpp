@@ -9,10 +9,10 @@
 #include <GL/ext_texture_filter_anisotropic.h>
 
 namespace renderer {
-    forward_renderer::forward_renderer(video::instance_t &in, const json &info) {
+    forward_renderer::forward_renderer(video::instance_t &in, assets::instance_t &asset, const json &info) {
         game::journal::debug(game::journal::_RENDER, "% % with % %", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
-        init_ui();
+        init_ui(asset);
 
         emission_shader = video::get_shader("emission-shader");
         ambient_light_shader = video::get_shader("ambient-light-shader");
@@ -94,12 +94,12 @@ namespace renderer {
         sprite_batch_info sb_info;
         sb_info.max_sprites = 1000;
         sb_info.tex = video::default_white_texture();
-        sb_info.tex = video::get_texture("glyphs-map");
+        sb_info.tex = video::get_texture(asset, "glyphs-map");
         sprites = video::create_sprite_batch(sb_info);
 
         triangles_batch_info tb_info;
         tb_info.max_triangles = 1000;
-        tb_info.tex = video::get_texture("glyphs-map");
+        tb_info.tex = video::get_texture(asset, "glyphs-map");
 
         triangles = video::create_triangles_batch(tb_info);
 
@@ -109,6 +109,9 @@ namespace renderer {
         materials.reserve(max_materials);
 
         reset();
+
+        if (skybox_map.id == 0)
+            skybox_map = video::get_texture(asset, "skybox1");
     }
 
     forward_renderer::~forward_renderer() {
@@ -310,10 +313,7 @@ namespace renderer {
     auto forward_renderer::present(video::instance_t &vi, const glm::mat4 &proj, const glm::mat4 &view) -> void {
         using namespace game;
 
-        //journal::debug(journal::_VIDEO, "Proj % View %", proj, view);
-
-        if (skybox_map.id == 0)
-            skybox_map = video::get_texture("skybox1");
+        //journal::debug(journal::_VIDEO, "Proj % View %", proj, view);        
 
         glm::mat4 cam_model = glm::translate(glm::mat4(1.f), -glm::vec3(view[3])/*glm::vec3(0.f)*/);
         cam_model = glm::scale(cam_model, glm::vec3(5.f));
@@ -468,7 +468,7 @@ namespace renderer {
         reset();
     }
 
-    auto forward_renderer::init_ui() -> void {
+    auto forward_renderer::init_ui(assets::instance_t &asset) -> void {
         std::vector<video::font_info> fonts = {
             {"Play.ttf", 22, video::default_charset()}
         };
@@ -478,7 +478,7 @@ namespace renderer {
         auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
         ui_atlas = video::create_atlas(asz, asz, 1);
         auto rc = video::insert_image(ui_atlas, white_im);
-        video::glyph_cache_build(fonts, ui_atlas);
+        video::glyph_cache_build(asset, fonts, ui_atlas);
         video::make_texture_2d("glyphs-map", get_atlas_texture(ui_atlas), static_cast<uint32_t>(video::texture_flags::auto_mipmaps));
         ui_rc = glm::vec4{rc.x / (float)asz, rc.y / (float)asz, rc.w / (float)asz, rc.h / (float)asz};
     }

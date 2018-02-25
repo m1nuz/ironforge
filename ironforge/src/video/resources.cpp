@@ -50,7 +50,7 @@ namespace video {
 
     utils::thread_pool              pool;
 
-    auto init_resources(instance_t &inst) -> void {
+    auto init_resources(instance_t &inst, assets::instance_t &asset) -> void {
         textures.reserve(100);
         programs.reserve(100);
 
@@ -82,15 +82,15 @@ namespace video {
         im = video::imgen::make_color(128, 128, {255, 0, 0}); // white
         textures.push_back({red_name, gl::create_texture_2d(im, textures_flags), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
 
-        make_program({"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
-        make_program({"ambient-light-shader", {{"forward-ambient.vert", {}}, {"forward-ambient.frag", {}}}});
-        make_program({"forward-directional-shader", {{"forward-directional.vert", {}}, {"forward-directional.frag", {}}}});
-        make_program({"postprocess-shader", {{"screenspace.vert", {}}, {"postprocess_final.frag", {}}}});
-        make_program({"hblur-shader", {{"screenspace.vert", {}}, {"filter-hblur.frag", {}}}});
-        make_program({"vblur-shader", {{"screenspace.vert", {}}, {"filter-vblur.frag", {}}}});
-        make_program({"skybox-shader", {{"skybox.vert", {}}, {"skybox.frag", {}}}});
-        make_program({"sprite-shader", {{"sprite.vert", {}}, {"sprite.frag", {}}}});
-        make_program({"terrain-shader", {{"terrain.vert", {}}, {"terrain.frag", {}}}});
+        make_program(asset, {"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
+        make_program(asset, {"ambient-light-shader", {{"forward-ambient.vert", {}}, {"forward-ambient.frag", {}}}});
+        make_program(asset, {"forward-directional-shader", {{"forward-directional.vert", {}}, {"forward-directional.frag", {}}}});
+        make_program(asset, {"postprocess-shader", {{"screenspace.vert", {}}, {"postprocess_final.frag", {}}}});
+        make_program(asset, {"hblur-shader", {{"screenspace.vert", {}}, {"filter-hblur.frag", {}}}});
+        make_program(asset, {"vblur-shader", {{"screenspace.vert", {}}, {"filter-vblur.frag", {}}}});
+        make_program(asset, {"skybox-shader", {{"skybox.vert", {}}, {"skybox.frag", {}}}});
+        make_program(asset, {"sprite-shader", {{"sprite.vert", {}}, {"sprite.frag", {}}}});
+        make_program(asset, {"terrain-shader", {{"terrain.vert", {}}, {"terrain.frag", {}}}});
     }
 
     auto cleanup_resources() -> void {
@@ -165,11 +165,14 @@ namespace video {
         return desc.tex;
     }
 
-    auto make_texture_cube(const std::string &name, const std::string (&names)[6]) -> texture {
+    auto make_texture_cube(assets::instance_t &asset, const std::string &name, const std::string (&names)[6]) -> texture {
         image_data images[6];
 
         for (size_t i = 0; i < 6; i++) {
-            images[i] = assets::get_image(names[i]);
+            auto img = assets::get_image(asset, names[i]);
+
+            if (img)
+                images[i] = img.value();
 
             // TODO: make error
         }
@@ -331,7 +334,7 @@ namespace video {
         return {va, vb, eb};
     }
 
-    auto get_texture(const char *name, const texture &default_tex) -> texture {
+    auto get_texture(assets::instance_t &asset, const char *name, const texture &default_tex) -> texture {
         uint32_t textures_flags = static_cast<uint32_t>(video::texture_flags::auto_mipmaps);
         /*switch (inst.tex_filtering) {
         case texture_filtering::bilinear:
@@ -352,14 +355,14 @@ namespace video {
             return it->tex;
         }
 
-        auto imd = /*image_future.get();/*/assets::get_image(name);
+        auto imd = /*image_future.get();/*/assets::get_image(asset, name);
 
-        if (imd.pixels.empty()) {
+        if (!imd) {
             game::journal::warning(game::journal::_GAME, "Texture % not found", name);
             return default_tex;
         }
 
-        return make_texture_2d(name, imd, textures_flags);
+        return make_texture_2d(name, imd.value(), textures_flags);
 
         // TODO: fix texture striming
         /*texture_desc desc;
@@ -433,7 +436,7 @@ namespace video {
         return {};
     }
 
-    auto make_program(const gl::program_info &info) -> program {
+    auto make_program(assets::instance_t &asset, const gl::program_info &info) -> program {
         auto inf = info;
 
         std::vector<uint64_t> hashes;
@@ -442,8 +445,7 @@ namespace video {
         for (auto &i : inf.sources) {
             // just read from file to text
             if (!i.name.empty() && i.text.empty()) {
-                auto t = assets::get_text(i.name);
-                i.text = {t.text, t.size};
+                i.text = assets::get_text(asset, i.name).value_or(std::string{});
 
                 hashes.push_back(utils::xxhash64(i.text));
             }

@@ -106,7 +106,7 @@ namespace game {
         for (auto &a : j["assets"]) {
             journal::debug(journal::_GAME, "%", a.get<string>());
 
-            if (assets::open(ctx.asset_instance, get_base_path() + a.get<string>()) != assets::result::success)
+            if (!assets::open(ctx.asset_instance, get_base_path() + a.get<string>()))
                 return make_error_code(std::errc::io_error);
         }
 
@@ -115,7 +115,7 @@ namespace game {
 
         const auto video_info = j["video"];
 
-        auto vc = video::init_once(video_info);
+        auto vc = video::init_once(ctx.asset_instance, video_info);
         if (!video::is_ok(vc))
             return get<error_code>(vc);        
 
@@ -129,7 +129,7 @@ namespace game {
         const auto renderer_info = j["renderer"];
         const auto renderer_type = renderer_info.find("type") != renderer_info.end() ? renderer_info["type"].get<string>() : "null";
 
-        ctx.render = renderer::create_renderer(renderer_type, ctx.vi, video_info);
+        ctx.render = renderer::create_renderer(renderer_type, ctx.vi, ctx.asset_instance, video_info);
 
         if (j.find("scenes") == j.end())
             return make_error_code(std::errc::io_error);
@@ -148,7 +148,7 @@ namespace game {
         auto any_loaded = false;
         for (auto &sc : j["scenes"])
             if (start_scene == sc.get<string>()) {
-                auto res = scene::load(start_scene);
+                auto res = scene::load(ctx.asset_instance, start_scene);
 
                 if (!scene::is_ok(res))
                     return get<error_code>(res);
@@ -174,9 +174,9 @@ namespace game {
 
         auto loader = std::thread(assets::process_load, std::ref(app.asset_instance));
 
-        assets::get_text(app.asset_instance, "gamecontrollerdb.txt", [] (const std::optional<assets::text_t> res) {
+        assets::get_text(app.asset_instance, "gamecontrollerdb.txt", [] (const std::optional<assets::text_data_t> res) {
             if (res) {
-                journal::info(journal::_GAME, "%", res.value().data);
+                journal::info(journal::_GAME, "%", res.value());
             }
         });
 

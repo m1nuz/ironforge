@@ -22,33 +22,9 @@
 namespace assets {
     using asset_result = std::variant<std::string, std::error_code>;
 
-    enum class result : int32_t {
-        success,
-        failure
-    };
-
-    typedef struct text_type {
-        std::string data;
-    } text_t;
-
-    typedef struct binary_type {
-        std::vector<uint8_t> data;
-    } binary_t;
-
-    struct binary_data {
-        void        *raw_memory;
-        size_t      size;
-    };
-
-    struct text_data {
-        char        *text;
-        size_t      size;
-    };
 
     struct instance_type;
     typedef instance_type instance_t;
-
-    using image_data = video::image_data;
 
     using binary_data_t = std::vector<uint8_t>;
     using text_data_t = std::string;
@@ -58,21 +34,36 @@ namespace assets {
     using text_reader_t = std::function<std::optional<text_data_t> (instance_t &inst, SDL_RWops *rw)>;
     using image_reader_t = std::function<std::optional<image_data_t> (instance_t &inst, SDL_RWops *rw)>;
 
+    using binary_responce = std::function<void (const std::optional<binary_data_t> res)>;
+    using text_responce = std::function<void (const std::optional<text_data_t> res)>;
+    using image_responce = std::function<void (const std::optional<image_data_t> res)>;
     ///
     /// \brief The readers struct
     ///
     struct readers final {
-        std::unordered_map<std::string, std::function<int32_t (SDL_RWops *rw, binary_data &)>> binary_readers;
-        std::unordered_map<std::string, std::function<int32_t (SDL_RWops *rw, text_data &)>>   text_readers;
-        std::unordered_map<std::string, std::function<int32_t (SDL_RWops *rw, image_data &)>>  image_readers;
+        std::unordered_map<std::string, binary_reader_t> binary_readers;
+        std::unordered_map<std::string, text_reader_t>   text_readers;
+        std::unordered_map<std::string, image_reader_t>  image_readers;
     };
 
-    using text_responce = std::function<void (const std::optional<text_t> res)>;
     struct text_info {
         text_info() = default;
         utility::copyable_atomic<bool> ready = false;
         std::vector<text_responce> responces;
     };
+
+    struct binart_info {
+        binart_info() = default;
+        utility::copyable_atomic<bool> ready = false;
+        std::vector<binary_responce> responces;
+    };
+
+    struct image_info {
+        image_info() = default;
+        utility::copyable_atomic<bool> ready = false;
+        std::vector<image_responce> responces;
+    };
+
 
     ///
     /// \brief The instance_type struct
@@ -81,24 +72,19 @@ namespace assets {
 
         instance_type() = default;
 
-        using binary_reader = std::function<int32_t (SDL_RWops *rw, binary_data &)>;
-        using text_reader = std::function<int32_t (SDL_RWops *rw, text_data &)>;
-        using image_reader = std::function<int32_t (SDL_RWops *rw, image_data &)>;
+        std::unordered_map<std::string, binary_reader_t>    binary_readers;
+        std::unordered_map<std::string, text_reader_t>      text_readers;
+        std::unordered_map<std::string, image_reader_t>     image_readers;
 
-        std::unordered_map<std::string, binary_reader>  binary_readers;
-        std::unordered_map<std::string, text_reader>    text_readers;
-        std::unordered_map<std::string, image_reader>   image_readers;
+        std::unordered_map<std::string, binary_data_t>      binaries;
+        std::unordered_map<std::string, text_data_t>        texts;
+        std::unordered_map<std::string, image_data_t>       images;
 
-        std::unordered_map<std::string, binary_data>    binaries;
-        std::unordered_map<std::string, text_data>      texts;
-        std::unordered_map<std::string, image_data>     images;
+        std::unordered_map<std::string, text_info>          text_processed;
 
-        std::unordered_map<std::string, text_info>      text_processed;
+        std::unordered_map<std::string, std::string>        all_files;
 
-        std::unordered_map<std::string, text_t>         all_texts;
-        std::unordered_map<std::string, std::string>    all_files;
-
-        utility::copyable_atomic<bool> active = true;
+        utility::copyable_atomic<bool>                      active = true;
 
     //private:
         //instance_type(const instance_type&) = delete;
@@ -121,9 +107,9 @@ namespace assets {
     ///
     [[nodiscard]] auto create_instance(const readers &rs) -> instance_result;
 
-    [[nodiscard]] auto append(instance_t &inst, const std::string &ext, std::function<int32_t (SDL_RWops *rw, binary_data &)> reader) -> bool;
-    [[nodiscard]] auto append(instance_t &inst, const std::string &ext, std::function<int32_t (SDL_RWops *rw, text_data &)> reader) -> bool;
-    [[nodiscard]] auto append(instance_t &inst, const std::string &ext, std::function<int32_t (SDL_RWops *rw, image_data &)> reader) -> bool;
+    [[nodiscard]] auto append(instance_t &inst, const std::string &ext, binary_reader_t reader) -> bool;
+    [[nodiscard]] auto append(instance_t &inst, const std::string &ext, text_reader_t reader) -> bool;
+    [[nodiscard]] auto append(instance_t &inst, const std::string &ext, image_reader_t reader) -> bool;
 
     ///
     /// \brief Open asset
@@ -132,17 +118,18 @@ namespace assets {
     /// \return
     /// Add all readable files to asset instance
     ///
-    [[nodiscard]] auto open(instance_t &inst, const std::string& path) -> result;
+    [[nodiscard]] auto open(instance_t &inst, const std::string& path) -> bool;
 
     auto process(instance_t &inst) -> void;
     auto cleanup(instance_t &inst) -> void;
-    auto get_text(const std::string& name) -> text_data;
-    auto get_text_absolute(const std::string& path) -> text_data;
-    auto get_image(const std::string& name) -> image_data;
-    auto get_binary(const std::string& name) -> binary_data;
 
+    auto get_text(instance_t &inst, std::string_view name) -> std::optional<text_data_t>;
+    auto get_image(instance_t &inst, std::string_view name) -> std::optional<image_data_t>;
+    auto get_binary(instance_t &inst, std::string_view name) -> std::optional<binary_data_t>;
 
     auto get_text(instance_t &inst, std::string_view name, text_responce cb) -> void;
+    auto get_image(instance_t &inst, std::string_view name, image_responce cb) -> void;
+    auto get_binary(instance_t &inst, std::string_view name, binary_responce cb) -> void;
 
     inline bool is_ok(const asset_result &res) {
         return std::holds_alternative<std::string>(res);

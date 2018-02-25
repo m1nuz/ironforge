@@ -3,26 +3,25 @@
 #include <core/journal.hpp>
 #include <core/game.hpp>
 
-auto read_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
+auto read_text(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<assets::text_data_t> {
     assert(rw != nullptr);
 
     if (!rw)
-        return -1;
+        return {};
 
-    auto lenght = SDL_RWsize(rw);
+    const auto lenght = SDL_RWsize(rw);
+
+    assets::text_data_t text;
 
     if (lenght > 0) {
-        text.text = new char [lenght];
-        text.text[lenght - 1] = 0;
-        text.size = lenght - 1;
+        text.resize(static_cast<size_t>(lenght));
 
-        // TODO: check full size
-        SDL_RWread(rw, text.text, lenght - 1, 1);
+        SDL_RWread(rw, &text[0], text.size(), 1);
     }
 
     SDL_RWclose(rw);
 
-    return 0;
+    return text;
 }
 
 #ifndef ABS
@@ -54,34 +53,47 @@ str_replace_once_fast(const char *orig, size_t orig_size, const char *rep, size_
     return buffer;
 }
 
+void replace_all(std::string& source, const std::string &find, const std::string &replace)
+{
+    using namespace std;
+
+    for(string::size_type i = 0; (i = source.find(find, i)) != string::npos;)
+    {
+        source.replace(i, find.length(), replace);
+        i += replace.length();
+    }
+}
+
 
 // TODO: rewrite this with c++
-auto read_shader_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
+auto read_shader_text(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<assets::text_data_t> {
+    using namespace game;
+
     const char include_directive[] = "#include";
     const size_t step = sizeof(include_directive) - 1;
 
-    int ret = read_text(rw, text);
+    auto text = read_text(inst, rw).value_or(std::string{});
 
-    char *p = text.text;
+    char *p = &text[0];
 
-    while (p < text.text + text.size) {
+    while (p < &text[0] + text.size()) {
         char *sp;
         if ((sp = strstr(p, include_directive)) != nullptr) {
             //printf("%s\n", text.text);
             //printf("----END\n");
 
-            size_t pos = p - text.text;
+            size_t pos = p - &text[0];
             char *end = strchr(sp, '\n');
 
             if ((size_t)(end - sp) == step) {
-                game::journal::error(game::journal::_INPUT, "%", "#include expect \"FILENAME\"");
-                game::quit();
+                journal::error(journal::_INPUT, "%", "#include expect \"FILENAME\"");
+                quit();
             }
 
             char *bracers_first = strchr(sp, '\"');
             if (bracers_first == NULL) {
-                game::journal::error(game::journal::_INPUT, "%", "#include expect \"FILENAME\"");
-                game::quit();
+                journal::error(journal::_INPUT, "%", "#include expect \"FILENAME\"");
+                quit();
             }
 
             char *space = sp + sizeof(include_directive);
@@ -89,27 +101,27 @@ auto read_shader_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
                 if (*space == ' ')
                     space++;
                 else {
-                    game::journal::error(game::journal::_INPUT, "%", "#include expect \"FILENAME\"");
-                    game::quit();
+                    journal::error(journal::_INPUT, "%", "#include expect \"FILENAME\"");
+                    quit();
                 }
 
             char *bracers_second = strchr(bracers_first + 1, '\"');
             if (bracers_second == NULL) {
-                game::journal::error(game::journal::_INPUT, "%", "#include expect \"FILENAME\"");
-                game::quit();
+                journal::error(journal::_INPUT, "%", "#include expect \"FILENAME\"");
+                quit();
             }
 
             size_t name_size = bracers_second - bracers_first - 1;
             if (name_size == 0) {
-                game::journal::error(game::journal::_INPUT, "%", "empty filename in #include");
-                game::quit();
+                journal::error(journal::_INPUT, "%", "empty filename in #include");
+                quit();
             }
 
             char name[name_size];
             memcpy(name, bracers_first + 1, name_size);
             name[name_size] = 0;
 
-            auto include_text = assets::get_text(name);
+            auto include_text = assets::get_text(inst, name).value_or(std::string{});
 
             //memset(sp, ' ', end - sp);
 
@@ -117,14 +129,16 @@ auto read_shader_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
             memcpy(origin, sp, sizeof(origin));
             origin[end - sp] = 0;
 
-            char *old_text = text.text;
+            replace_all(text, origin, include_text);
+
+            /*char *old_text = text.text;
             text.text = str_replace_once_fast(origin, strlen(origin), include_text.text, include_text.size, text.text, text.size);
             text.size = strlen(text.text);
             p = text.text + pos;
             free(old_text);
 
             // TODO: memory...
-            delete[] include_text.text;
+            delete[] include_text.text;*/
         }
 
         p += step;
@@ -132,5 +146,5 @@ auto read_shader_text(SDL_RWops *rw, assets::text_data& text) -> int32_t {
 
     //printf("%s\n", text.text);
 
-    return ret;
+    return text;
 }

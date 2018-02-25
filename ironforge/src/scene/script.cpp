@@ -129,7 +129,7 @@ namespace scene {
         bindings::init(sc, lua_state);
     }
 
-    auto create_script(const int32_t entity, const json &info) -> std::optional<script_instance> {
+    auto create_script(assets::instance_t &asset, const int32_t entity, const json &info) -> std::optional<script_instance> {
         using namespace std;
         using namespace game;
 
@@ -139,7 +139,7 @@ namespace scene {
 
         journal::debug(journal::_SCENE, "Create script %", name);
 
-        auto text_data = assets::get_text(name);
+        auto text_data = assets::get_text(asset, name);
 
         auto L = lua_state;
 
@@ -149,7 +149,7 @@ namespace scene {
             return {};
         }
 
-        if (luaL_dostring(L, text_data.text)) {
+        if (!text_data || luaL_dostring(L, text_data.value().c_str())) {
             journal::error(journal::_SCENE, "% %", "Could not load module", name);
             lua_close(L);
 
