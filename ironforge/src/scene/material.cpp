@@ -77,7 +77,7 @@ namespace scene {
         }
     }*/
 
-    auto create_material(assets::instance_t &asset, const json &info) -> std::optional<material_instance> {
+    auto create_material(video::instance_t &vi, const json &info) -> std::optional<material_instance> {
         using namespace std;
         using namespace glm;
         using namespace game;
@@ -93,11 +93,11 @@ namespace scene {
         m.m0.tr = info.find("transparency") != info.end() ? info["transparency"].get<float>() : 0.f;
         m.m0.reflectivity = info.find("reflectivity") != info.end() ? info["reflectivity"].get<float>() : 0.f;
 
-        m.m0.diffuse_tex = info.find("diffuse_map") != info.end() ? video::get_texture(asset, info["diffuse_map"].get<string>().c_str()) : video::default_check_texture();
-        m.m0.specular_tex = info.find("specular_map") != info.end() ? video::get_texture(asset, info["specular_map"].get<string>().c_str()) : video::default_white_texture();
-        m.m0.gloss_tex = info.find("gloss_map") != info.end() ? video::get_texture(asset, info["gloss_map"].get<string>().c_str()) : video::default_white_texture();
-        m.m0.emission_tex = info.find("emission_map") != info.end() ? video::get_texture(asset, info["emission_map"].get<string>().c_str()) : video::default_white_texture();
-        m.m0.normal_tex = info.find("normal_map") != info.end() ? video::get_texture(asset, info["normal_map"].get<string>().c_str()) : video::default_white_texture();
+        m.m0.diffuse_tex = info.find("diffuse_map") != info.end() ? video::get_texture(vi, info["diffuse_map"].get<string>()) : video::get_texture(vi, "check-map");
+        m.m0.specular_tex = info.find("specular_map") != info.end() ? video::get_texture(vi, info["specular_map"].get<string>()) : video::get_texture(vi, "white-map");
+        m.m0.gloss_tex = info.find("gloss_map") != info.end() ? video::get_texture(vi, info["gloss_map"].get<string>()) : video::get_texture(vi, "white-map");
+        m.m0.emission_tex = info.find("emission_map") != info.end() ? video::get_texture(vi, info["emission_map"].get<string>()) : video::get_texture(vi, "white-map");
+        m.m0.normal_tex = info.find("normal_map") != info.end() ? video::get_texture(vi, info["normal_map"].get<string>()) : video::get_texture(vi, "white-map");
 
         journal::info(journal::_SCENE, "Create '%' material", name);
 

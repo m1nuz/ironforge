@@ -9,23 +9,21 @@
 #include <GL/ext_texture_filter_anisotropic.h>
 
 namespace renderer {
-    forward_renderer::forward_renderer(video::instance_t &in, assets::instance_t &asset, const json &info) {
+    forward_renderer::forward_renderer(video::instance_t &vi, const json &info) {
         game::journal::debug(game::journal::_RENDER, "% % with % %", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
-        init_ui(asset);
-
-        emission_shader = video::get_shader("emission-shader");
-        ambient_light_shader = video::get_shader("ambient-light-shader");
-        directional_light_shader = video::get_shader("forward-directional-shader");
-        postprocess_shader = video::get_shader("postprocess-shader");
-        filter_vblur_shader = video::get_shader("vblur-shader");
-        filter_hblur_shader = video::get_shader("hblur-shader");
-        skybox_shader = video::get_shader("skybox-shader");
-        sprite_shader = video::get_shader("sprite-shader");
+        emission_shader = video::get_shader(vi, "emission-shader");
+        ambient_light_shader = video::get_shader(vi, "ambient-light-shader");
+        directional_light_shader = video::get_shader(vi, "forward-directional-shader");
+        postprocess_shader = video::get_shader(vi, "postprocess-shader");
+        filter_vblur_shader = video::get_shader(vi, "vblur-shader");
+        filter_hblur_shader = video::get_shader(vi, "hblur-shader");
+        skybox_shader = video::get_shader(vi, "skybox-shader");
+        sprite_shader = video::get_shader(vi, "sprite-shader");
 
         video::gl::sampler_info sam_info;
 
-        switch (in.tex_filtering) {
+        switch (vi.texture_filter) {
         case video::texture_filtering::bilinear:
             sam_info.mag_filter = video::gl::texture_mag_filter::linear;
             sam_info.min_filter = video::gl::texture_min_filter::linear;
@@ -52,13 +50,13 @@ namespace renderer {
 
         const auto ratio = 2;
         const auto samples = info.find("fsaa") != info.end() ? info["fsaa"].get<uint32_t>() : 0u;
-        const auto w = static_cast<uint32_t>(in.w);
-        const auto h = static_cast<uint32_t>(in.h);
+        const auto w = static_cast<uint32_t>(vi.w);
+        const auto h = static_cast<uint32_t>(vi.h);
 
-        color_map = video::gl::create_texture_2d({video::pixel_format::rgba16f, 0, 0, in.w, in.h, 0, {}});
-        depth_map = video::gl::create_texture_2d({video::pixel_format::depth, 0, 0, in.w, in.h, 0, {}});
-        glow_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, in.w / ratio, in.h / ratio, 0, {}});
-        blur_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, in.w / ratio, in.h / ratio, 0, {}});
+        color_map = video::gl::create_texture_2d({video::pixel_format::rgba16f, 0, 0, w, h, 0, {}});
+        depth_map = video::gl::create_texture_2d({video::pixel_format::depth, 0, 0, w, h, 0, {}});
+        glow_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, w / ratio, h / ratio, 0, {}});
+        blur_map = video::gl::create_texture_2d({video::pixel_format::rgb16f, 0, 0, w / ratio, h / ratio, 0, {}});
 
         blur_depth = video::gl::create_renderbuffer({video::pixel_format::depth, w / ratio, h/ ratio, 0});
         sample_color = video::gl::create_renderbuffer({video::pixel_format::rgb16f, w, h, samples});
@@ -83,25 +81,25 @@ namespace renderer {
 
         auto quad_vi = video::vertgen::make_plane(glm::mat4{1.f});
         std::vector<vertices_draw> quad_vd;
-        fullscreen_quad = video::make_vertices_source({quad_vi.data}, quad_vi.desc, quad_vd);
+        fullscreen_quad = video::make_vertices_source(vi, {quad_vi.data}, quad_vi.desc, quad_vd);
         fullscreen_draw = quad_vd[0];
 
         auto cube_vi = video::vertgen::make_cube(glm::mat4{1.f});
         std::vector<vertices_draw> cube_vd;
-        skybox_cube = video::make_vertices_source({cube_vi.data}, cube_vi.desc, cube_vd);
+        skybox_cube = video::make_vertices_source(vi, {cube_vi.data}, cube_vi.desc, cube_vd);
         skybox_draw = cube_vd[0];
 
         sprite_batch_info sb_info;
         sb_info.max_sprites = 1000;
-        sb_info.tex = video::default_white_texture();
-        sb_info.tex = video::get_texture(asset, "glyphs-map");
-        sprites = video::create_sprite_batch(sb_info);
+        sb_info.tex = video::get_texture(vi, "white-map");
+        sb_info.tex = video::get_texture(vi, "glyphs-map");
+        sprites = video::create_sprite_batch(vi, sb_info);
 
         triangles_batch_info tb_info;
         tb_info.max_triangles = 1000;
-        tb_info.tex = video::get_texture(asset, "glyphs-map");
+        tb_info.tex = video::get_texture(vi, "glyphs-map");
 
-        triangles = video::create_triangles_batch(tb_info);
+        triangles = video::create_triangles_batch(vi, tb_info);
 
         sources.reserve(max_sources);
         draws.reserve(max_draws);
@@ -109,9 +107,6 @@ namespace renderer {
         materials.reserve(max_materials);
 
         reset();
-
-        if (skybox_map.id == 0)
-            skybox_map = video::get_texture(asset, "skybox1");
     }
 
     forward_renderer::~forward_renderer() {
@@ -315,6 +310,8 @@ namespace renderer {
 
         //journal::debug(journal::_VIDEO, "Proj % View %", proj, view);        
 
+        const auto white_tex = video::get_texture(vi, "white-map");
+
         glm::mat4 cam_model = glm::translate(glm::mat4(1.f), -glm::vec3(view[3])/*glm::vec3(0.f)*/);
         cam_model = glm::scale(cam_model, glm::vec3(5.f));
         glm::mat4 projection_view = proj * view;
@@ -358,12 +355,16 @@ namespace renderer {
 
         directional_commands << vcs::uniform{directional_light_shader, "view_position", -glm::vec3(view[3])};
 
+
         for (const auto &lt : directional_lights) {
+
+
             directional_commands << vcs::uniform{directional_light_shader, "light_direction", lt.direction};
             directional_commands << vcs::uniform{directional_light_shader, "light.Ld", lt.ld};
             directional_commands << vcs::uniform{directional_light_shader, "light.Ls", lt.ls};
 
             for (size_t i = 0; i < draws.size(); i++) {
+
                 directional_commands << vcs::uniform{directional_light_shader, "model_matrix", matrices[i]};
                 directional_commands << vcs::uniform{directional_light_shader, "material.Kd", materials[i].kd};
                 directional_commands << vcs::uniform{directional_light_shader, "material.Ks", materials[i].ks};
@@ -374,16 +375,16 @@ namespace renderer {
                 directional_commands << vcs::bind{directional_light_shader, "diffuse_map", 0, materials[i].diffuse_tex};
                 directional_commands << vcs::bind{0, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "specular_map", 1, /*materials[i].specular_tex*/video::default_white_texture()};
+                directional_commands << vcs::bind{directional_light_shader, "specular_map", 1, /*materials[i].specular_tex*/white_tex};
                 directional_commands << vcs::bind{1, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "gloss_map", 2, /*materials[i].gloss_tex*/video::default_white_texture()};
+                directional_commands << vcs::bind{directional_light_shader, "gloss_map", 2, /*materials[i].gloss_tex*/white_tex};
                 directional_commands << vcs::bind{2, texture_sampler};
 
                 directional_commands << vcs::bind{directional_light_shader, "normal_map", 3, materials[i].normal_tex};
                 directional_commands << vcs::bind{3, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "environment_map", 4, /*skybox_map*/video::default_white_texture()};
+                directional_commands << vcs::bind{directional_light_shader, "environment_map", 4, /*skybox_map*/white_tex};
                 directional_commands << vcs::bind{4, filter_sampler};
 
                 directional_commands << vcs::bind{sources[i]};
@@ -402,7 +403,7 @@ namespace renderer {
             glow_commands << vcs::uniform{emission_shader, "model_matrix", matrices[i]};
             glow_commands << vcs::uniform{emission_shader, "emission_color", materials[i].ke};
 
-            glow_commands << vcs::bind{emission_shader, "emission_map", 0, video::default_white_texture()};
+            glow_commands << vcs::bind{emission_shader, "emission_map", 0, white_tex};
             glow_commands << vcs::bind{1, texture_sampler};
 
             glow_commands << vcs::bind{sources[i]};
@@ -468,21 +469,6 @@ namespace renderer {
         reset();
     }
 
-    auto forward_renderer::init_ui(assets::instance_t &asset) -> void {
-        std::vector<video::font_info> fonts = {
-            {"Play.ttf", 22, video::default_charset()}
-        };
-
-        const int asz = 512;
-
-        auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
-        ui_atlas = video::create_atlas(asz, asz, 1);
-        auto rc = video::insert_image(ui_atlas, white_im);
-        video::glyph_cache_build(asset, fonts, ui_atlas);
-        video::make_texture_2d("glyphs-map", get_atlas_texture(ui_atlas), static_cast<uint32_t>(video::texture_flags::auto_mipmaps));
-        ui_rc = glm::vec4{rc.x / (float)asz, rc.y / (float)asz, rc.w / (float)asz, rc.h / (float)asz};
-    }
-
     inline auto color_to_vec4(const uint32_t color) -> glm::vec4 {
         constexpr auto max_component = 255.0f;
         float x = static_cast<float>((color & 0xff000000) >> 24) / max_component;
@@ -525,8 +511,8 @@ namespace renderer {
         using namespace glm;
 
         // FIXME: use real texture size
-        const auto tw = 512.f;
-        const auto th = 512.f;
+        const auto tw = 1024.f;
+        const auto th = 1024.f;
 
         const int adv_y = video::glyph_cache_get_font_lineskip(c.font);
         const int fh = video::glyph_cache_get_font_size(c.font);

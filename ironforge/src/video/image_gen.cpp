@@ -83,10 +83,9 @@ namespace video {
             for (int j = 0; j < height; j++)
                 for (int i = 0; i < width; i++) {
                     unsigned c = (((i & mask) == 0) ^ ((j & mask) == 0));
-                    pixels[j * width + i] = color;
-                    pixels[j * width + i].r *= c;
-                    pixels[j * width + i].g *= c;
-                    pixels[j * width + i].b *= c;
+                    pixels[j * width + i].r = c == 0 ? color.r : 0xff;
+                    pixels[j * width + i].g = c == 0 ? color.g : 0xff;
+                    pixels[j * width + i].b = c == 0 ? color.b : 0xff;
                 }
 
             std::vector<uint8_t> all_pixels;

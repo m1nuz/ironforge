@@ -19,7 +19,7 @@ namespace video {
         vertices_source         source;
     };
 
-    auto create_triangles_batch(const triangles_batch_info &info) -> triangles_batch;
+    auto create_triangles_batch(instance_t &vi, const triangles_batch_info &info) -> triangles_batch;
     auto delete_triangles_batch(triangles_batch &tb) -> void;
 
     auto append_triangles_vertices(triangles_batch &tb, const std::vector<v3t2c4> &vertices) -> void;

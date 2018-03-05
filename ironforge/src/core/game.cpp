@@ -44,7 +44,7 @@ namespace game {
     static auto cleanup_all(instance_t &app) -> void {
         app.render.reset(nullptr);
 
-        video::cleanup_once(app.vi);
+        video::cleanup(app.vi);
         scene::cleanup_all(app.scenes);
         assets::cleanup(app.asset_instance);
     }
@@ -52,7 +52,7 @@ namespace game {
     static auto update(instance_t &in, const float dt) -> void {
         assets::process(in.asset_instance);
         scene::update(in.current_scene(), dt);
-        video::process(in.vi);
+        video::process(in.asset_instance, in.vi);
         input::update(in);
     }
 
@@ -115,21 +115,13 @@ namespace game {
 
         const auto video_info = j["video"];
 
-        auto vc = video::init_once(ctx.asset_instance, video_info);
+        auto vc = video::init(ctx.asset_instance, video_info);
         if (!video::is_ok(vc))
             return get<error_code>(vc);        
 
         ctx.vi = get<video::instance_t>(vc);
 
-        journal::info(journal::_VIDEO, "%", video::get_info());
-
-        if (j.find("renderer") == j.end())
-            return make_error_code(std::errc::io_error);
-
-        const auto renderer_info = j["renderer"];
-        const auto renderer_type = renderer_info.find("type") != renderer_info.end() ? renderer_info["type"].get<string>() : "null";
-
-        ctx.render = renderer::create_renderer(renderer_type, ctx.vi, ctx.asset_instance, video_info);
+        journal::info(journal::_VIDEO, "%", video::get_info(ctx.vi));
 
         if (j.find("scenes") == j.end())
             return make_error_code(std::errc::io_error);
@@ -148,7 +140,7 @@ namespace game {
         auto any_loaded = false;
         for (auto &sc : j["scenes"])
             if (start_scene == sc.get<string>()) {
-                auto res = scene::load(ctx.asset_instance, start_scene);
+                auto res = scene::load(ctx.asset_instance, ctx.vi, start_scene);
 
                 if (!scene::is_ok(res))
                     return get<error_code>(res);
@@ -166,19 +158,27 @@ namespace game {
         if (!input::init(ctx))
             return make_error_code(errc::init_gamecontrollers);
 
+        if (j.find("renderer") == j.end())
+            return make_error_code(std::errc::io_error);
+
+        const auto renderer_info = j["renderer"];
+        const auto renderer_type = renderer_info.find("type") != renderer_info.end() ? renderer_info["type"].get<string>() : "null";
+
+        ctx.render = renderer::create_renderer(renderer_type, ctx.vi, video_info);
+
         return std::move(ctx);
     }
 
     auto launch(game::instance_t &app) -> int {
         using namespace std;
 
-        auto loader = std::thread(assets::process_load, std::ref(app.asset_instance));
+        /*auto loader = std::thread(assets::process_load, std::ref(app.asset_instance));
 
         assets::get_text(app.asset_instance, "gamecontrollerdb.txt", [] (const std::optional<assets::text_data_t> res) {
             if (res) {
                 journal::info(journal::_GAME, "%", res.value());
             }
-        });
+        });*/
 
         app.current_time = 0ull;
         app.last_time = 0ull;
@@ -209,8 +209,8 @@ namespace game {
 
         game::cleanup_all(app);
 
-        if (loader.joinable())
-            loader.join();
+        /*if (loader.joinable())
+            loader.join();*/
 
         return EXIT_SUCCESS;
     }

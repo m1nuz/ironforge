@@ -1,3 +1,4 @@
+#include <ctime>
 #include <vector>
 #include <unordered_map>
 #include <thread>
@@ -140,7 +141,7 @@ namespace game {
             switch (v) {
             case verbosity::verbose:
             case verbosity::debug:
-                fputs("\x1b[32m", stdout);
+                fputs("\x1b[0;32m", stdout);
             case verbosity::info:
                 break;
             case verbosity::warning:
@@ -156,7 +157,11 @@ namespace game {
                 break;
             }
 
-            fprintf(stdout, "%s (%s): ", priority_names[static_cast<int>(v)], tag.c_str());
+            auto tv = std::time(NULL);
+            char timestamp[100];
+            std::strftime(timestamp, sizeof(timestamp), "%F %T", std::localtime(&tv));
+
+            fprintf(stdout, "%s %s (%s): ", timestamp, priority_names[static_cast<int>(v)], tag.c_str());
             fwrite(d, s, 1, stdout);
             fputs("\x1b[0m\n", stdout);
 

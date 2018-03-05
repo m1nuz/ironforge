@@ -12,6 +12,7 @@ namespace video {
     };
 
     struct gen_sphere_info {
+        gen_sphere_info() = default;
         uint32_t    rings;
         uint32_t    sectors;
         float       radius;

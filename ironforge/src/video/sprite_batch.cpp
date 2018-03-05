@@ -3,7 +3,7 @@
 #include <video/commands.hpp>
 
 namespace video {
-    auto create_sprite_batch(const sprite_batch_info &info) -> sprite_batch {
+    auto create_sprite_batch(instance_t &vi, const sprite_batch_info &info) -> sprite_batch {
         sprite_batch sb;
 
         sb.max_sprites = info.max_sprites;
@@ -33,7 +33,7 @@ namespace video {
         desc.vb_usage = static_cast<uint32_t>(gl::buffer_usage::dynamic_draw);
         data.push_back({nullptr, &sb.indices[0], info.max_sprites * 6, info.max_sprites * 4});
 
-        sb.source = make_vertices_source(data, desc, draws);
+        sb.source = make_vertices_source(vi, data, desc, draws);
 
         return sb;
     }
@@ -67,8 +67,6 @@ namespace video {
 
     auto submit_sprite_batch(gl::command_buffer &cb, sprite_batch &sb, const gl::program &pm, const gl::sampler &sr) -> void {
         cb << vcs::update{sb.source.vertices, 0, &sb.vertices[0], sb.vertices.size() * sizeof (sb.vertices[0])};
-
-        video::query_texture(sb.tex);
 
         cb << vcs::bind{pm};
         cb << vcs::bind{pm, "color_map", 0, sb.tex};

@@ -10,10 +10,6 @@
 #include <core/common.hpp>
 #include <renderer/renderer.hpp>
 
-namespace scene {
-    struct instance;
-}
-
 #include "../../src/scene/model.hpp"
 #include "../../src/scene/material.hpp"
 #include "../../src/scene/camera.hpp"
@@ -29,6 +25,11 @@ namespace assets {
     typedef instance_type instance_t;
 }
 
+namespace video {
+    struct instance_type;
+    typedef instance_type instance_t;
+}
+
 namespace scene {
     using load_result = std::variant<instance_t, std::error_code>;
 
@@ -38,13 +39,9 @@ namespace scene {
 
     auto reset_all(instance_t &sc) -> bool;
     auto cleanup_all(std::vector<instance_t> &scenes) -> void;
-    auto load(const std::string& _name, uint32_t flags) -> std::unique_ptr<instance>;
-    [[nodiscard]] auto load(assets::instance_t &asset, const std::string &path) -> load_result;
-    auto update(std::unique_ptr<instance> &s, const float dt) -> void;
+    [[nodiscard]] auto load(assets::instance_t &asset, video::instance_t &vi, const std::string &path) -> load_result;
     auto update(instance_t &sc, const float dt) -> void;
-    auto process_event(std::unique_ptr<instance> &s, const SDL_Event &event) -> void;
     auto process_event(instance_t &sc, const SDL_Event &ev) -> void;
-    auto present(std::unique_ptr<instance> &s, std::unique_ptr<renderer::instance> &render, const float interpolation) -> void;
     auto present(video::instance_t &vi, instance_t &sc, std::unique_ptr<renderer::instance> &render, const float interpolation) -> void;
 
     using json = nlohmann::json;

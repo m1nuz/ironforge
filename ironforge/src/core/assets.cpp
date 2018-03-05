@@ -93,6 +93,7 @@ namespace assets {
                     auto data = get_textdata(inst, name);
                     ti.ready = true;
 
+                    // TODO: make callback from main thread
                     for (auto cb : ti.responces)
                         cb(data);
                 }
@@ -202,6 +203,10 @@ namespace assets {
                 inst.texts.insert({p.filename().string(), res.value()});
                 return res.value();
             }
+
+            game::journal::warning(game::journal::_GAME, "No reader for '%'", p.extension().string());
+
+            return {};
         }        
 
         game::journal::warning(game::journal::_GAME, "File '%' not found", _name);
@@ -257,6 +262,10 @@ namespace assets {
                 inst.images.insert({p.filename().string(), res.value()}); // TODO: free memory
                 return res.value();
             }
+
+            game::journal::warning(game::journal::_GAME, "No reader for '%'", p.extension().string());
+
+            return {};
         }
 
         return {};
@@ -289,6 +298,10 @@ namespace assets {
                 inst.binaries.insert({p.filename().string(), res.value()});
                 return res.value();
             }
+
+            game::journal::warning(game::journal::_GAME, "No reader for '%'", p.extension().string());
+
+            return {};
         }
 
         return {};

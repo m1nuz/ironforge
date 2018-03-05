@@ -22,7 +22,7 @@ namespace video {
         vertices_source         source;
     };
 
-    auto create_sprite_batch(const sprite_batch_info &info) -> sprite_batch;
+    auto create_sprite_batch(instance_t &vi, const sprite_batch_info &info) -> sprite_batch;
     auto delete_sprite_batch(sprite_batch &sb) -> void;
 
     auto append_sprite_vertices(sprite_batch &sb, const v3t2c4 (&vertices)[4]) -> void;

@@ -6,7 +6,6 @@ namespace scene {
     instance_type::instance_type() {
         names.reserve(initial_name);
         materials.reserve(initial_material);
-        meshes.reserve(initial_mesh);
         models.reserve(initial_model);
         cameras.reserve(initial_camera);
         scripts.reserve(initial_script);

@@ -6,11 +6,7 @@
 #include <video/glyphs.hpp>
 
 namespace video {
-    struct glyph_group {
-        int         type;
-        int         size;
-        int         lineskip;
-    };
+
 
     std::vector<glyph>          glyphs;
     std::vector<glyph_group>    glyph_groups;
@@ -45,7 +41,7 @@ namespace video {
 
             if (TTF_GlyphMetrics(font, ch[0], &minx, &maxx, &miny, &maxy, &advance) != -1) {
                 //SDL_Surface *glyph = TTF_RenderUNICODE_Blended(font, (Uint16*)&ch[0], White);
-                SDL_Surface *glyph = TTF_RenderText_Blended(font, ch, White);
+                SDL_Surface *glyph = TTF_RenderUTF8_Blended(font, ch, White);
 
                 SDL_Surface *rgba_glyph = SDL_ConvertSurfaceFormat(glyph, SDL_PIXELFORMAT_RGBA8888, 0);
 
@@ -59,7 +55,7 @@ namespace video {
         glyph_groups.push_back({static_cast<int>(glyph_groups.size()), TTF_FontHeight(font), TTF_FontLineSkip(font)});
     }
 
-    auto glyph_cache_build(assets::instance_t &asset, const std::vector<font_info> &fonts, atlas &_atlas) -> bool {
+    auto glyph_cache_build(instance_t &vi, assets::instance_t &asset, const std::vector<font_info> &fonts, atlas &_atlas) -> bool {
         size_t glyph_cache_size = 0;
         int group_count = 0;
 

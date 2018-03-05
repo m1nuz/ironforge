@@ -8,24 +8,21 @@
 #include <scene/instance.hpp>
 #include <scene/entity.hpp>
 
-namespace game {
-    auto get_base_path() -> const std::string&;
-}
-
 namespace scene {
-    auto load(assets::instance_t &asset, const std::string &path) -> load_result {
+    auto load(assets::instance_t &asset, video::instance_t &vi, const std::string &path) -> load_result {
         using namespace std;
         using namespace game;
 
-        auto scene_path = game::get_base_path() + path;
+        auto scene_contents = assets::get_text(asset, path);
 
-        journal::debug(journal::_SCENE, "Load scene %", scene_path);
+        if (!scene_contents)
+            return make_error_code(errc::io_error);
 
-        auto contents = assets::readfile(scene_path);
-        if (!assets::is_ok(contents))
-            return get<error_code>(contents);
+        journal::debug(journal::_SCENE, "Load scene %", path);
 
-        auto j = json::parse(get<string>(contents));
+        auto contents = scene_contents.value();
+
+        auto j = json::parse(contents);
 
         instance_t sc;
 
@@ -33,6 +30,12 @@ namespace scene {
         const auto version = j.find("version") != j.end() ? j["version"].get<string>() : "unknown";
 
         journal::info(journal::_SCENE, "Create scene :\n\tname '%'\n\tversion: %", name, version);
+
+        if (j.find("textures") != j.end()) {
+            for (const auto &tex_info : j["textures"]) {
+                video::create_texture(asset, vi, tex_info);
+            }
+        }
 
         if (j.find("effects") == j.end())
             return make_error_code(errc::io_error);
@@ -42,19 +45,13 @@ namespace scene {
             const auto effect_type = eff.find("type") != eff.end() ? eff["type"].get<string>() : string{};
 
             if (effect_type == "skybox") {
-                if (eff.find("textures") != eff.end()) {
-                    std::string texs[6];
+                const auto cubemap = eff.find("cubemap") != eff.end() ? eff["cubemap"].get<string>() : string{};
 
-                    int tix = 0;
-                    for (const auto &t : eff["textures"]) {
-                        texs[tix] = t.get<string>();
-                        tix++;
-                    }
+                sc.skybox = video::get_texture(vi, cubemap);
+            }
 
-                    video::make_texture_cube(asset, effect_name, texs);
-                }
-
-                sc.skybox = video::get_texture(asset, effect_name.c_str());
+            if (effect_type == "shader") {
+                video::create_program(asset, vi, eff);
             }
         }
 
@@ -64,7 +61,7 @@ namespace scene {
         for (auto &mat : j["materials"]) {
             const auto material_name = mat.find("name") != mat.end() ? mat["name"].get<string>() : string{};
 
-            const auto m = create_material(asset, mat);
+            const auto m = create_material(vi, mat);
             if (!m) {
                 journal::warning(journal::_SCENE, "Can't create '%' material", material_name);
                 continue;
@@ -76,9 +73,6 @@ namespace scene {
         if (j.find("models") == j.end())
             return make_error_code(errc::io_error);
 
-        //vector<instance_t::model_t> all_models;
-        //all_models.reserve(j["models"].size());
-
         for (auto &md : j["models"]) {
             const auto model_name = md.find("name") != md.end() ? md["name"].get<string>() : string{};
 
@@ -87,58 +81,24 @@ namespace scene {
                 continue;
             }
 
-            vector<mesh_info> meshe_infos;
-            meshe_infos.reserve(md["meshes"].size());
-
-            for (auto &msh : md["meshes"]) {
-                mesh_info mi;
-
-                if (msh.find("type") == msh.end()) {
-                    journal::warning(journal::_SCENE, "Mesh of '%' not contain type", model_name);
-                    continue;
-                }
-
-                const auto mesh_type = msh["type"].get<string>();
-
-                // TODO: rework as variant state
-                if (mesh_type == "gen_sphere") {
-                    mi.source = mesh_source::gen_sphere;
-                    mi.sphere.radius = msh.find("radius") != msh.end() ? msh["radius"].get<float>() : 1.f;
-                    mi.sphere.rings = msh.find("rings") != msh.end() ? msh["rings"].get<uint32_t>() : 8;
-                    mi.sphere.sectors = msh.find("sectors") != msh.end() ? msh["sectors"].get<uint32_t>() : 8;
-                }
-
-                if (mesh_type == "gen_cube") {
-                    mi.source = mesh_source::gen_cube;
-                }
-
-                if (mesh_type == "gen_plane") {
-                    mi.source = mesh_source::gen_plane;
-                }
-
-                if (mesh_type == "gen_grid") {
-                    const auto horizontal_extend = msh["horizontal_extend"].get<float>();
-                    const auto vertical_extend = msh["vertical_extend"].get<float>();
-                    const auto rows = msh["rows"].get<uint32_t>();
-                    const auto columns = msh["columns"].get<uint32_t>();
-                    const auto triangle_strip = msh["triangle_strip"].get<bool>();
-                    //const auto height_map = msh["height_map"].get<string>();
-
-                    mi.source = mesh_source::gen_grid;
-                    mi.grid.horizontal_extend = horizontal_extend;
-                    mi.grid.vertical_extend = vertical_extend;
-                    mi.grid.rows = rows;
-                    mi.grid.columns = columns;
-                    mi.grid.triangle_strip = triangle_strip;
-                    mi.height_map = nullptr;
-                }
-
-                meshe_infos.push_back(mi);
+            if (auto it = sc.all_models.find(model_name); it != sc.all_models.end()) {
+                journal::info(journal::_SCENE, "Dublicate '%' model", model_name);
+                continue;
             }
 
-            const auto model = create_model(model_name, meshe_infos);
-            if (!cache_model(sc, model_name, model))
-                journal::info(journal::_SCENE, "Model '%' already in cache", model_name);
+            vector<video::mesh> meshes;
+            meshes.reserve(md["meshes"].size());
+            for (auto &msh : md["meshes"]) {
+                auto m = video::create_mesh(asset, vi, msh);
+                if (m)
+                    meshes.push_back(m.value());
+            }
+
+            if (!meshes.empty()) {
+                auto m = create_model(meshes);
+                if (m)
+                    sc.all_models.emplace(model_name, m.value());
+            }
         }
 
         // create input objects

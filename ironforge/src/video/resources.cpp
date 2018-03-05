@@ -4,58 +4,20 @@
 #include <core/journal.hpp>
 #include <core/assets.hpp>
 #include <video/video.hpp>
+#include <video/glyphs.hpp>
 #include <utility/thread_pool.hpp>
 
-// this api depend from used general video api
 namespace video {
-    struct texture_desc {
-        std::string name;
-        gl::texture tex;
-        uint32_t    usage;
-        uint64_t    hash;
-        uint64_t    name_hash;
-        bool        ready; // TODO: make atomic
-        std::shared_future<image_data> imd_future;
+    auto init_resources(instance_t &inst, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void {
+        using namespace game;
 
-        // std::vector<gl::texture> lods;
-        // std::vector<std::string> names;
-        // std::vector<uint64_t> hashes;
-        // std::vector<uint64_t> name_hashes;
-        // std::vector<bool> ready;
-        // std::vector<std::shared_future<image_data>> futures;
-    };
-
-    struct buffer_desc {
-        gl::buffer  buf;
-        uint32_t    usage;
-        uint64_t    hash;
-    };
-
-    struct vertex_array_desc {
-        gl::vertex_array va;
-    };
-
-    struct program_desc {
-        gl::program pro;
-        uint32_t    usage;
-        uint64_t    hash;
-        uint64_t    name_hash;
-    };
-
-    // TODO: make resource cash instance
-    std::vector<texture_desc>       textures;
-    std::vector<buffer_desc>        buffers;
-    std::vector<vertex_array_desc>  vertex_arrays;
-    std::vector<program_desc>       programs;
-
-    utils::thread_pool              pool;
-
-    auto init_resources(instance_t &inst, assets::instance_t &asset) -> void {
-        textures.reserve(100);
-        programs.reserve(100);
+        inst.textures.reserve(100);
+        inst.programs.reserve(100);
+        inst.arrays.reserve(100);
+        inst.buffers.reserve(100);
 
         uint32_t textures_flags = 0;
-        switch (inst.tex_filtering) {
+        switch (inst.texture_filter) {
         case texture_filtering::bilinear:
             break;
         case texture_filtering::trilinear:
@@ -64,56 +26,46 @@ namespace video {
             break;
         }
 
-        game::journal::debug(game::journal::_VIDEO, "%", "Init resources");
+        journal::debug(journal::_VIDEO, "%", "Init resources");
 
-        const auto white_name = "white-map";
-        auto im = video::imgen::make_color(128, 128, {255, 255, 255}); // white
-        textures.push_back({white_name, gl::create_texture_2d(im, textures_flags), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
+        inst.textures.emplace("white-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 255, 255}), textures_flags));
+        inst.textures.emplace("black-map", gl::create_texture_2d(imgen::make_color(128, 128, {0, 0, 0}), textures_flags));
+        inst.textures.emplace("check-map", gl::create_texture_2d(imgen::make_check(128, 128, 0x10, {24, 24, 24}), textures_flags));
+        inst.textures.emplace("red-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 0, 0}), textures_flags));
 
-        const auto black_name = "black-map";
-        im = video::imgen::make_color(128, 128, {0, 0, 0}); // black
-        textures.push_back({black_name, gl::create_texture_2d(im, textures_flags), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(black_name, strlen(black_name)), true});
 
-        const auto check_name = "check-map";
-        im = video::imgen::make_check(128, 128, 0x10, {255, 255, 255}); // check
-        textures.push_back({check_name, gl::create_texture_2d(im, textures_flags), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(check_name, strlen(check_name)), true});
+        const int asz = 1024;
 
-        const auto red_name = "red-map";
-        im = video::imgen::make_color(128, 128, {255, 0, 0}); // white
-        textures.push_back({red_name, gl::create_texture_2d(im, textures_flags), 1, utils::xxhash64(im.pixels, im.width * im.height * 3), utils::xxhash64(white_name, strlen(white_name)), true});
-
-        make_program(asset, {"emission-shader", {{"forward-emission.vert", {}}, {"forward-emission.frag", {}}}});
-        make_program(asset, {"ambient-light-shader", {{"forward-ambient.vert", {}}, {"forward-ambient.frag", {}}}});
-        make_program(asset, {"forward-directional-shader", {{"forward-directional.vert", {}}, {"forward-directional.frag", {}}}});
-        make_program(asset, {"postprocess-shader", {{"screenspace.vert", {}}, {"postprocess_final.frag", {}}}});
-        make_program(asset, {"hblur-shader", {{"screenspace.vert", {}}, {"filter-hblur.frag", {}}}});
-        make_program(asset, {"vblur-shader", {{"screenspace.vert", {}}, {"filter-vblur.frag", {}}}});
-        make_program(asset, {"skybox-shader", {{"skybox.vert", {}}, {"skybox.frag", {}}}});
-        make_program(asset, {"sprite-shader", {{"sprite.vert", {}}, {"sprite.frag", {}}}});
-        make_program(asset, {"terrain-shader", {{"terrain.vert", {}}, {"terrain.frag", {}}}});
+        auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
+        auto ui_atlas = video::create_atlas(asz, asz, 1);
+        auto rc = video::insert_image(ui_atlas, white_im);
+        video::glyph_cache_build(inst, asset, fonts, ui_atlas);
+        video::make_texture_2d(inst, "glyphs-map", get_atlas_texture(ui_atlas), static_cast<uint32_t>(video::texture_flags::auto_mipmaps));
+        //auto ui_rc = glm::vec4{rc.x / (float)asz, rc.y / (float)asz, rc.w / (float)asz, rc.h / (float)asz};
     }
 
-    auto cleanup_resources() -> void {
-        for (auto &td : textures)
-            gl::destroy_texture(td.tex);
+    auto cleanup_resources(instance_t &in) -> void {
+        using namespace game;
 
-        for (auto &bd : buffers)
-            gl::destroy_buffer(bd.buf);
+        for (auto &b : in.buffers)
+            gl::destroy_buffer(b);
 
-        for (auto &arr : vertex_arrays)
-            gl::destroy_vertex_array(arr.va);
+        for (auto &a : in.arrays)
+            gl::destroy_vertex_array(a);
 
-        for (auto &p : programs)
-            gl::destroy_program(p.pro);
+        for (auto &[name, t] : in.textures) {
+            journal::debug(journal::_VIDEO, "Destroy texture %", name);
+            gl::destroy_texture(t);
+        }
 
-        textures.clear();
-        buffers.clear();
-        vertex_arrays.clear();
-        programs.clear();
+        for (auto &[name, p] : in.programs) {
+            journal::debug(journal::_VIDEO, "Destroy program %", name);
+            gl::destroy_program(p);
+        }
     }
 
-    auto process(instance_t &inst) -> void {
-        uint32_t textures_flags = 0;
+    auto process(assets::instance_t &asset, instance_t &inst) -> void {
+        /*uint32_t textures_flags = 0;
         switch (inst.tex_filtering) {
         case texture_filtering::bilinear:
             break;
@@ -134,7 +86,7 @@ namespace video {
                     // FIXME: ok, for now
                     //t.imd_future.get().pixels = NULL;
                 }
-        }
+        }*/
     }
 
     /*auto make_texture_2d(const texture_info &info) -> texture {
@@ -152,20 +104,223 @@ namespace video {
         return make_texture_2d({}, data);
     }*/
 
-    auto make_texture_2d(const std::string &name, const image_data &data, const uint32_t flags) -> texture {
-        texture_desc desc;
-        desc.tex = gl::create_texture_2d(data, flags);
-        desc.name_hash = name.empty() ? 0 : utils::xxhash64(name);
-        desc.hash = 0; // TODO: calc it
-        desc.usage = 0;
-        desc.ready = true;
+    auto create_texture(assets::instance_t &asset, instance_t &inst, const json &info) -> texture {
+        using namespace game;
+        using namespace std;
 
-        textures.push_back(desc);
+        auto textures_flags = static_cast<uint32_t>(video::texture_flags::auto_mipmaps);
 
-        return desc.tex;
+        switch (inst.texture_filter) {
+        case texture_filtering::bilinear:
+            break;
+        case texture_filtering::trilinear:
+        case texture_filtering::anisotropic:
+            textures_flags |= static_cast<uint32_t>(texture_flags::auto_mipmaps);
+            break;
+        default:
+            break;
+        }
+
+        const auto name = info.find("name") != info.end() ? info["name"].get<string>() : string{};
+        const auto type = info.find("type") != info.end() ? info["type"].get<string>() : string{};
+
+        if (auto it = inst.textures.find(name); it != inst.textures.end())
+            return it->second;
+
+        if (type == "2d") {
+            const auto levels = info.find("levels") != info.end() ? info["levels"].get<vector<string>>() : vector<string>{};
+
+            if (levels.empty()) {
+                journal::error(journal::_VIDEO, "No levels for texture %", name);
+                return {};
+            }
+
+            const auto texture_name = levels.size() < inst.texture_level ? levels.back() : levels[inst.texture_level];
+
+            auto imd = assets::get_image(asset, texture_name);
+
+            if (!imd) {
+                journal::warning(journal::_GAME, "Texture % not found", name);
+                return {};
+            }
+
+            auto tex = gl::create_texture_2d(imd.value(), textures_flags);
+            inst.textures.emplace(name, tex);
+
+            journal::info(journal::_VIDEO, "Create texture '%'", name);
+
+            return tex;
+        }
+
+        if (type == "cubemap") {
+            const auto levels = info.find("levels") != info.end() ? info["levels"].get<vector<vector<string>>>() : vector<vector<string>>{};
+
+            if (levels.empty()) {
+                journal::error(journal::_VIDEO, "No levels for texture %", name);
+                return {};
+            }
+
+            const auto level = levels.size() < inst.texture_level ? levels.back() : levels[inst.texture_level];
+
+            if (level.empty()) {
+                journal::error(journal::_VIDEO, "No levels for texture %", name);
+                return {};
+            }
+
+            if (level.size() != 6) {
+                journal::error(journal::_VIDEO, "Not enough sides for texture %", name);
+                return {};
+            }
+
+            image_data images[6];
+
+            for (size_t i = 0; i < 6; i++) {
+                auto img = assets::get_image(asset, level[i]);
+
+                if (img)
+                    images[i] = img.value();
+
+                // TODO: make error
+            }
+
+            auto tex = gl::create_texture_cube(images, textures_flags);
+            inst.textures.emplace(name, tex);
+
+            journal::info(journal::_VIDEO, "Create texture '%'", name);
+
+            return tex;
+        }
+
+        journal::error(journal::_VIDEO, "Unknown texture type '%'", type);
+
+        return {};
     }
 
-    auto make_texture_cube(assets::instance_t &asset, const std::string &name, const std::string (&names)[6]) -> texture {
+    auto create_program(assets::instance_t &asset, instance_t &inst, const json &info) -> program {
+        using namespace game;
+        using namespace std;
+
+        const auto name = info.find("name") != info.end() ? info["name"].get<string>() : string{};
+        const auto programs = info.find("programs") != info.end() ? info["programs"].get<vector<string>>() : vector<string>{};
+
+        if (!programs.empty()) {
+            std::vector<gl::shader_source> sources;
+
+            for (const auto &p : programs) {
+                auto ps = assets::get_text(asset, p);
+
+                if (!ps)
+                    continue;
+
+                gl::shader_source source;
+                source.name = p;
+                source.text = ps.value();
+
+                sources.push_back(source);
+            }
+
+            if (!sources.empty()) {
+                gl::program_info pi;
+                pi.name = name;
+                pi.sources = sources;
+
+                auto p = gl::create_program(pi);
+                inst.programs.emplace(name, p);
+
+                journal::info(journal::_VIDEO, "Create program '%'", name);
+
+                return p;
+            }
+
+            journal::error(journal::_VIDEO, "Empty shader sources '%'", name);
+
+            return {};
+        }
+
+        journal::error(journal::_VIDEO, "Empty shader programs '%'", name);
+
+        return {};
+    }
+
+    static auto create_vertices_info(assets::instance_t &asset, const json &info) -> std::optional<vertices_info> {
+        using namespace game;
+        using namespace std;
+
+        const auto type = info.find("type") != info.end() ? info["type"].get<string>() : string{};
+
+        if (type == "gen_sphere") {
+            const auto radius = info.find("radius") != info.end() ? info["radius"].get<float>() : 1.f;
+            const auto rings = info.find("rings") != info.end() ? info["rings"].get<uint32_t>() : 8;
+            const auto sectors = info.find("sectors") != info.end() ? info["sectors"].get<uint32_t>() : 8;
+
+            const auto sphere_info = gen_sphere_info{rings, sectors, radius};
+
+            return vertgen::make_sphere(&sphere_info, glm::mat4(1.f));
+        }
+
+        if (type == "gen_cube") {
+            //const auto cube_info = gen_cube_info{1.f};
+
+            return vertgen::make_cube(glm::mat4(1.f));
+        }
+
+        if (type == "gen_plane") {
+            return vertgen::make_plane(glm::mat4{1.f});
+        }
+
+        if (type == "gen_grid") {
+            const auto horizontal_extend = info["horizontal_extend"].get<float>();
+            const auto vertical_extend = info["vertical_extend"].get<float>();
+            const auto rows = info["rows"].get<uint32_t>();
+            const auto columns = info["columns"].get<uint32_t>();
+            const auto triangle_strip = info["triangle_strip"].get<bool>();
+            //const auto height_map = msh["height_map"].get<string>();
+
+            video::heightmap_t height_map;
+
+            const auto grid_info = gen_grid_plane_info{horizontal_extend, vertical_extend, rows, columns, triangle_strip, height_map};
+
+            return vertgen::make_grid_plane(&grid_info, glm::mat4(1.f), height_map);
+        }
+
+        if (type == "file") {
+            return {};
+        }
+
+        return {};
+    }
+
+    auto create_mesh(assets::instance_t &asset, instance_t &vi, const json &info) -> std::optional<mesh> {
+        using namespace game;
+        using namespace std;
+
+        const auto type = info.find("type") != info.end() ? info["type"].get<string>() : string{};
+
+        auto vsi = create_vertices_info(asset, info);
+        if (!vsi) {
+            journal::error(journal::_VIDEO, "%", "Can't create vertices for mesh");
+            return {};
+        }
+
+        mesh m;
+        std::vector<vertices_draw> draws;
+
+        m.desc = vsi.value().desc;
+        m.source = make_vertices_source(vi, {vsi.value().data}, vsi.value().desc, draws);
+        m.draw = draws[0];
+
+        journal::info(journal::_VIDEO, "Create mesh '%'", type);
+
+        return m;
+    }
+
+    auto make_texture_2d(instance_t &vi, const std::string &name, const image_data &data, const uint32_t flags) -> texture {
+        auto tex = gl::create_texture_2d(data, flags);
+        vi.textures.emplace(name, tex);
+        return tex;
+    }
+
+    /*auto make_texture_cube(assets::instance_t &asset, const std::string &name, const std::string (&names)[6]) -> texture {
         image_data images[6];
 
         for (size_t i = 0; i < 6; i++) {
@@ -187,10 +342,10 @@ namespace video {
         textures.push_back(desc);
 
         return desc.tex;
-    }
+    }*/
 
     // TODO: make return value optional
-    auto make_vertices_source(const std::vector<vertices_data> &data, const vertices_desc &desc, std::vector<vertices_draw> &draws) -> vertices_source {
+    auto make_vertices_source(instance_t &vi, const std::vector<vertices_data> &data, const vertices_desc &desc, std::vector<vertices_draw> &draws) -> vertices_source {
         struct buffer_size_info {
             size_t vb_size;
             size_t ib_size;
@@ -283,13 +438,13 @@ namespace video {
         }
 
         auto va = gl::create_vertex_array();
-        vertex_arrays.push_back({va});
+        vi.arrays.push_back({va});
 
         gl::bind_vertex_array(va);
 
         // TODO : seaarch other buffer with same hash
         auto vb = gl::create_buffer(gl::buffer_target::array, vertices_data_size, vertex_data, static_cast<gl::buffer_usage>(desc.vb_usage));
-        buffers.push_back({vb, 0, utils::xxhash64(vertex_data, vertices_data_size)});
+        vi.buffers.push_back(vb);
 
         // transfer to video memory
         switch (desc.vf) {
@@ -323,7 +478,7 @@ namespace video {
         if (index_data)
         {
             eb = gl::create_buffer(gl::buffer_target::element_array, indices_data_size, index_data, static_cast<gl::buffer_usage>(desc.eb_usage));
-            buffers.push_back({eb, 0, utils::xxhash64(index_data, indices_data_size)});
+            vi.buffers.push_back(eb);
         }
 
         gl::unbind_vertex_array(va);
@@ -334,109 +489,25 @@ namespace video {
         return {va, vb, eb};
     }
 
-    auto get_texture(assets::instance_t &asset, const char *name, const texture &default_tex) -> texture {
-        uint32_t textures_flags = static_cast<uint32_t>(video::texture_flags::auto_mipmaps);
-        /*switch (inst.tex_filtering) {
-        case texture_filtering::bilinear:
-            break;
-        case texture_filtering::trilinear:
-        case texture_filtering::anisotropic:
-            textures_flags |= static_cast<uint32_t>(video::texture_flags::auto_mipmaps);
-            break;
-        }*/
+    auto get_texture(instance_t &vi, const std::string &name) -> texture {
+        using namespace game;
 
-        const auto hash = utils::xxhash64(name, strlen(name));
-        auto it = std::find_if(textures.begin(), textures.end(), [hash](const texture_desc &td) {
-            return td.name_hash == hash;
-        });
-
-        if (it != textures.end()) {
-            game::journal::info(game::journal::_GAME, "Texture % found", name);
-            return it->tex;
+        if (auto it = vi.textures.find(name); it != vi.textures.end()) {
+            return it->second;
         }
 
-        auto imd = /*image_future.get();/*/assets::get_image(asset, name);
-
-        if (!imd) {
-            game::journal::warning(game::journal::_GAME, "Texture % not found", name);
-            return default_tex;
-        }
-
-        return make_texture_2d(name, imd.value(), textures_flags);
-
-        // TODO: fix texture striming
-        /*texture_desc desc;
-        desc.name = name;
-        desc.tex = default_check_texture();
-        desc.name_hash = utils::xxhash64(name, strlen(name));//name.empty() ? 0 : utils::xxhash64(name);
-        desc.hash = 0; // TODO: calc it
-        desc.usage = 0;
-        desc.ready = false;
-        desc.imd_future = pool.enqueue(assets::get_image, name);
-
-        game::journal::debug(game::journal::_GAME, "Texture % LOADING", name);
-
-        // FIXME: dont modif desc
-        textures.push_back(desc);
-        textures.back().tex.desc = &textures.back();
-        return textures.back().tex;*/
-    }
-
-    auto query_texture(texture &tex, const texture_desc *desc) -> void {
-        if (desc) {
-            if (desc->ready)
-                tex = desc->tex;
-        }
-    }
-
-    auto query_texture(texture &tex) -> void {
-        if (tex.desc) {
-            if (tex.desc->ready)
-                tex = tex.desc->tex;
-        }
-    }
-
-    auto default_white_texture() -> texture {
-        return textures[0].tex;
-    }
-
-    auto default_black_texture() -> texture {
-        return textures[1].tex;
-    }
-
-    auto default_check_texture() -> texture {
-        return textures[2].tex;
-    }
-
-    auto default_red_texture() -> texture {
-        return textures[3].tex;
-    }
-
-    auto get_heightmap(const char *name) -> heightmap_t {
-        UNUSED(name);
-        /*const auto hash = utils::xxhash64(name, strlen(name));
-        auto it = std::find_if(textures.begin(), textures.end(), [hash](const texture_desc &td) {
-            return td.name_hash == hash;
-        });
-
-        if (it != textures.end()) {
-            game::journal::info(game::journal::_GAME, "Texture % found", name);
-            return it->tex;
-        }
-
-        auto imd = assets::get_image(name);
-
-        if (!imd.pixels) {
-            game::journal::warning(game::journal::_GAME, "Texture % not found", name);
-            return default_tex;
-        }
-
-        make_texture_2d(name, imd);*/
+        journal::error(journal::_VIDEO, "Texture % not found", name);
 
         return {};
     }
 
-    auto make_program(assets::instance_t &asset, const gl::program_info &info) -> program {
+    auto get_heightmap(const std::string &name) -> heightmap_t {
+        UNUSED(name);
+
+        return {};
+    }
+
+    /*auto make_program(assets::instance_t &asset, const gl::program_info &info) -> program {
         auto inf = info;
 
         std::vector<uint64_t> hashes;
@@ -469,9 +540,9 @@ namespace video {
         programs.push_back({p, 1, hash, utils::xxhash64(info.name)});
 
         return p;
-    }
+    }*/
 
-    auto get_shader(const char *name) -> program {
+    /*auto get_shader(const char *name) -> program {
         auto hash = utils::xxhash64(name, strlen(name));
 
         auto it = std::find_if(programs.begin(), programs.end(), [hash](const program_desc &desc) {
@@ -484,5 +555,16 @@ namespace video {
             return (*it).pro;
 
         return {0, {}, {}, {}};
+    }*/
+
+    auto get_shader(instance_t &vi, const std::string &name) -> program {
+        using namespace game;
+
+        if (auto it = vi.programs.find(name); it != vi.programs.end())
+            return it->second;
+
+        journal::error(journal::_VIDEO, "Shader % not found", name);
+
+        return {};
     }
 } // namespace video

@@ -11,7 +11,8 @@
 #include <SDL2/SDL_events.h>
 
 namespace scene {
-    struct instance;
+    struct instance_type;
+    typedef instance_type instance_t;
 
     struct input_action {
         std::string                 key_down;

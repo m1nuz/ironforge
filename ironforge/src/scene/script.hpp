@@ -26,7 +26,7 @@ namespace scene {
         std::string name;
         std::string source;
         std::string table;
-        int32_t     entity;
+        uint32_t    entity;
         uint32_t    flags;
 
         //script_type type; but now only Lua supported
@@ -50,7 +50,7 @@ namespace scene {
 
     auto reset_engine() -> bool;
     auto setup_bindings(instance_t &sc) -> void;
-    auto create_script(assets::instance_t &asset, const int32_t entity, const json &info) -> std::optional<script_instance>;
+    auto create_script(assets::instance_t &asset, const uint32_t entity, const json &info) -> std::optional<script_instance>;
 
     auto update_all_scripts(instance_t &sc, const float dt) -> void;
 } // namespace scene

@@ -34,7 +34,9 @@ namespace video {
         };
 
         struct program {
-            uint32_t pid;
+            program() = default;
+
+            uint32_t                    pid = 0;
             std::vector<shader_source>  sources;
             std::vector<uniform>        uniforms;
             std::vector<attribute>      attributes;

@@ -9,11 +9,13 @@ namespace video {
         command_buffer::command_buffer(size_t mem_size) : memory_offset{0} {
             assert(video::max_uniform_components != 0);
 
-            if (mem_size == 0)
-                mem_size = static_cast<size_t>(video::max_uniform_components * sizeof (float));
+            const auto uniform_buffer_size = static_cast<size_t>(video::max_uniform_components) * sizeof (float);
 
-            if (mem_size > static_cast<size_t>(video::max_uniform_components * sizeof (float)))
-                game::journal::error(game::journal::_VIDEO, "No uniforms memory % needed %", video::max_uniform_components * sizeof (float), mem_size);
+            if (mem_size == 0)
+                mem_size = uniform_buffer_size;
+
+            if (mem_size > uniform_buffer_size)
+                game::journal::error(game::journal::_VIDEO, "No uniforms memory % needed %", uniform_buffer_size, mem_size);
 
             memory_size = mem_size;
             raw_memory = malloc(memory_size);
@@ -156,5 +158,6 @@ namespace video {
                 break;
             }
         }
+
     } // namespace gl330
 } // namespace video

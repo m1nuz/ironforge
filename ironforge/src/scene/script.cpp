@@ -129,7 +129,7 @@ namespace scene {
         bindings::init(sc, lua_state);
     }
 
-    auto create_script(assets::instance_t &asset, const int32_t entity, const json &info) -> std::optional<script_instance> {
+    auto create_script(assets::instance_t &asset, const uint32_t entity, const json &info) -> std::optional<script_instance> {
         using namespace std;
         using namespace game;
 

@@ -31,20 +31,10 @@ namespace video {
 
             journal::debug(journal::_VIDEO, "Create 2d texture %", tex);
 
-            return {static_cast<uint32_t>(tex), GL_TEXTURE_2D, nullptr};
+            return {static_cast<uint32_t>(tex), GL_TEXTURE_2D};
         }
 
         auto create_texture_2d(const image_data &data, const uint32_t flags) -> texture {
-            /*uint32_t flags = 0;
-            switch (config.filtering) {
-            case texture_filtering::bilinear:
-                break;
-            case texture_filtering::trilinear:
-            case texture_filtering::anisotropic:
-                flags |= static_cast<uint32_t>(texture_flags::auto_mipmaps);
-                break;
-            }*/
-
             return create_texture_2d({data.pixelformat, 0, flags, static_cast<int32_t>(data.width), static_cast<int32_t>(data.height), 0, data.pixels});
         }
 
@@ -63,7 +53,7 @@ namespace video {
             get_texture_format_from_pixelformat(infos[0].format, internalformat, format, type);
 
             for (size_t i = 0; i < 6; i++)
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, w, h, 0, format, type, &infos[i].pixels[0]);
+                glTexImage2D(static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i), 0, internalformat, w, h, 0, format, type, &infos[i].pixels[0]);
 
             if (flags & static_cast<uint32_t>(texture_flags::auto_mipmaps))
                 glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
@@ -72,20 +62,10 @@ namespace video {
 
             journal::debug(journal::_VIDEO, "Create cube texture %", tex);
 
-            return {static_cast<uint32_t>(tex), GL_TEXTURE_CUBE_MAP, nullptr};
+            return {static_cast<uint32_t>(tex), GL_TEXTURE_CUBE_MAP};
         }
 
-        auto create_texture_cube(const image_data (&datas)[6]) -> texture {
-            uint32_t flags = 0;
-            switch (config.filtering) {
-            case texture_filtering::bilinear:
-                break;
-            case texture_filtering::trilinear:
-            case texture_filtering::anisotropic:
-                flags |= static_cast<uint32_t>(texture_flags::auto_mipmaps);
-                break;
-            }
-
+        auto create_texture_cube(const image_data (&datas)[6], const uint32_t flags) -> texture {
             texture_info infos[6];
             for (size_t i = 0; i < 6; i++)
                 infos[i] = {datas[i].pixelformat, 0, flags, static_cast<int32_t>(datas[i].width), static_cast<int32_t>(datas[i].height), 0, datas[i].pixels};

@@ -21,7 +21,7 @@
 
 namespace assets {
     using asset_result = std::variant<std::string, std::error_code>;
-
+    using instance_result = std::variant<instance_t, std::error_code>;
 
     struct instance_type;
     typedef instance_type instance_t;
@@ -64,7 +64,6 @@ namespace assets {
         std::vector<image_responce> responces;
     };
 
-
     ///
     /// \brief The instance_type struct
     ///
@@ -90,8 +89,6 @@ namespace assets {
         //instance_type(const instance_type&) = delete;
         //instance_type& operator=(const instance_type&) = delete;
     } instance_t;
-
-    using instance_result = std::variant<instance_t, std::error_code>;
 
     ///
     /// \brief Create default readers

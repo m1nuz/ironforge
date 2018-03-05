@@ -3,7 +3,7 @@
 #include <video/triangles_batch.hpp>
 
 namespace video {
-    auto create_triangles_batch(const triangles_batch_info &info) -> triangles_batch {
+    auto create_triangles_batch(instance_t &vi, const triangles_batch_info &info) -> triangles_batch {
         triangles_batch tb;
 
         tb.max_triangles = info.max_triangles;
@@ -21,7 +21,7 @@ namespace video {
         data.push_back({nullptr, nullptr, info.max_triangles * 3, 0});
 
         // TODO: check creation
-        tb.source = make_vertices_source(data, desc, draws);
+        tb.source = make_vertices_source(vi, data, desc, draws);
 
         return tb;
     }
@@ -40,8 +40,6 @@ namespace video {
 
     auto submit_triangles_batch(gl::command_buffer &cb, triangles_batch &tb, const gl::program &pm, const gl::sampler &sr) -> void {
         cb << vcs::update{tb.source.vertices, 0, &tb.vertices[0], tb.vertices.size() * sizeof (tb.vertices[0])};
-
-        video::query_texture(tb.tex);
 
         cb << vcs::bind{pm};
         cb << vcs::bind{pm, "color_map", 0, tb.tex};

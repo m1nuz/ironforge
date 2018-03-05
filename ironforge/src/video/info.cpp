@@ -26,29 +26,26 @@ namespace video {
         return false;
     }
 
-    auto get_info() -> const char * {
-        static auto vendor = static_cast<const GLubyte *>(nullptr);
-        static auto renderer = static_cast<const GLubyte *>(nullptr);
-        static auto version = static_cast<const GLubyte *>(nullptr);
-        static auto shading_language_version = static_cast<const GLubyte *>(nullptr);
-        static std::string info;
+    auto get_info(instance_t &inst) -> std::string {
+        if (inst.vendor.empty())
+            inst.vendor = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
 
-        if (!vendor || !renderer || !version || !shading_language_version) {
-            vendor = glGetString(GL_VENDOR);
-            renderer = glGetString(GL_RENDERER);
-            version = glGetString(GL_VERSION);
-            shading_language_version = glGetString(GL_SHADING_LANGUAGE_VERSION);
+        if (inst.renderer.empty())
+            inst.renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
 
-            std::stringstream s;
-            s << std::endl
-              << "\tVendor: " << vendor << std::endl
-              << "\tRender: " << renderer << std::endl
-              << "\tVersion: " << version << std::endl
-              << "\tShading language version: " << shading_language_version;
+        if (inst.version.empty())
+            inst.version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
 
-            info = s.str();
-        }
+        if (inst.shading_language_version.empty())
+            inst.shading_language_version = reinterpret_cast<const char *>(glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-        return info.c_str();
+        std::stringstream s;
+        s << std::endl
+          << "\tVendor: " << inst.vendor << std::endl
+          << "\tRender: " << inst.renderer << std::endl
+          << "\tVersion: " << inst.version << std::endl
+          << "\tShading language version: " << inst.shading_language_version;
+
+        return s.str();
     }
 } // namespace video

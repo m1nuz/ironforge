@@ -104,7 +104,7 @@ namespace video {
                 glAttachShader(pid, s.id);
 
             if (!link_program(pid))
-                return {0};
+                return {};
 
             for (const auto &s : shaders) {
                 glDetachShader(pid, s.id);

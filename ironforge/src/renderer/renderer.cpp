@@ -4,7 +4,7 @@
 #include "forward_renderer.hpp"
 
 namespace renderer {
-    auto create_renderer(std::string_view type, video::instance_t &in, assets::instance_t &asset, const json &info) -> std::unique_ptr<instance> {
+    auto create_renderer(std::string_view type, video::instance_t &vi, const json &info) -> std::unique_ptr<instance> {
         using namespace game;
 
         if (type.empty())
@@ -14,7 +14,7 @@ namespace renderer {
             return std::make_unique<null_instance>();
 
         if (type == "forward")
-            return std::make_unique<forward_renderer>(in, asset, info);
+            return std::make_unique<forward_renderer>(vi, info);
 
         if (type == "deffered") {
             journal::warning(journal::_RENDER, "%", "Unsupported");

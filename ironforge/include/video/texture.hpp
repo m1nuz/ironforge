@@ -46,26 +46,22 @@ namespace video {
         std::vector<uint8_t> pixels;
     };
 
-    struct texture_desc;
-
     namespace gl330 {
         struct texture {
-            uint32_t        id;
-            uint32_t        target;
-            texture_desc    *desc;
+            texture() = default;
+            uint32_t        id = 0;
+            uint32_t        target = 0;
         };
 
         inline bool operator==(const texture& lhs, const texture& rhs) {
             return lhs.id == rhs.id;
         }
 
-        constexpr texture empty_texture = {0, 0, nullptr};
-
         auto create_texture_2d(const texture_info &info) -> texture;
         auto create_texture_2d(const image_data &data, const uint32_t flags) -> texture;
         auto create_texture_array() -> texture;
         auto create_texture_cube(const texture_info (&infos)[6]) -> texture;
-        auto create_texture_cube(const image_data (&datas)[6]) -> texture;
+        auto create_texture_cube(const image_data (&datas)[6], const uint32_t flags) -> texture;
 
         auto destroy_texture(texture &tex) -> void;
     } // namespace gl330

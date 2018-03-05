@@ -45,5 +45,5 @@ namespace renderer {
     ///
     /// Create renderer factory method
     ///
-    [[nodiscard]] auto create_renderer(std::string_view type, video::instance_t &in, assets::instance_t &asset, const json &info) -> std::unique_ptr<instance>;
+    [[nodiscard]] auto create_renderer(std::string_view type, video::instance_t &vi, const json &info) -> std::unique_ptr<instance>;
 } // namespace renderer

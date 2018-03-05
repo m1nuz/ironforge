@@ -5,12 +5,14 @@
 #include <optional>
 
 #include <core/common.hpp>
-#include <video/video.hpp>
 #include <renderer/renderer.hpp>
 
 #include <json.hpp>
 
 namespace scene {
+    struct instance_type;
+    typedef instance_type instance_t;
+
     enum class light_type : uint32_t {
         unknown,
         ambient,
@@ -71,12 +73,8 @@ namespace scene {
 
     typedef std::variant<renderer::phong::ambient_light, renderer::phong::directional_light, renderer::phong::point_light> light_t;
 
-    auto init_all_lights() -> void;
-    auto cleanup_all_lights() -> void;
-    auto create_light(int32_t entity, const light_info &info) -> std::pair<light_type, void*>;
-    auto present_all_lights(std::unique_ptr<instance>& s, std::unique_ptr<renderer::instance> &r) -> void;
-
     using json = nlohmann::json;
 
     auto create_light(const json &info) -> std::optional<light_t>;
+    auto present_all_lights(instance_t& sc, std::unique_ptr<renderer::instance> &renderer) -> void;
 } // namespace scene

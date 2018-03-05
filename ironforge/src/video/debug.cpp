@@ -5,29 +5,37 @@
 namespace video {
     static void APIENTRY debug_output(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
         (void)source, (void)type, (void)id, (void)severity, (void)length, (void)userParam;
-        /*auto type_name = static_cast<const char*>(nullptr);
+
+        using namespace game;
+
         switch (type) {
         case GL_DEBUG_TYPE_ERROR:
-            type_name = "ERROR";
+            //type_name = "ERROR";
+            journal::error(journal::_VIDEO, "%", message);
             break;
         case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-            type_name = "DEPRECATED_BEHAVIOR";
+            //type_name = "DEPRECATED_BEHAVIOR";
+            journal::warning(journal::_VIDEO, "%", message);
             break;
         case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-            type_name = "UNDEFINED_BEHAVIOR";
+            //type_name = "UNDEFINED_BEHAVIOR";
+            journal::warning(journal::_VIDEO, "%", message);
             break;
         case GL_DEBUG_TYPE_PORTABILITY:
-            type_name = "PORTABILITY";
+            journal::warning(journal::_VIDEO, "%", message);
+            //type_name = "PORTABILITY";
             break;
         case GL_DEBUG_TYPE_PERFORMANCE:
-            type_name = "PERFORMANCE";
+            journal::warning(journal::_VIDEO, "%", message);
+            //type_name = "PERFORMANCE";
             break;
         case GL_DEBUG_TYPE_OTHER:
-            type_name = "OTHER";
+            journal::warning(journal::_VIDEO, "%", message);
+            //type_name = "OTHER";
             break;
-        }*/
-
-        game::journal::error(game::journal::_VIDEO, "%", message);
+        default:
+            journal::debug(journal::_VIDEO, "%", message);
+        }
     }
 
     auto setup_debug() -> void {
