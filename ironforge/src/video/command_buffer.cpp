@@ -6,18 +6,8 @@
 
 namespace video {
     namespace gl330 {
-        command_buffer::command_buffer(size_t mem_size) : memory_offset{0} {
-            assert(video::max_uniform_components != 0);
-
-            const auto uniform_buffer_size = static_cast<size_t>(video::max_uniform_components) * sizeof (float);
-
-            if (mem_size == 0)
-                mem_size = uniform_buffer_size;
-
-            if (mem_size > uniform_buffer_size)
-                game::journal::error(game::journal::_VIDEO, "No uniforms memory % needed %", uniform_buffer_size, mem_size);
-
-            memory_size = mem_size;
+        command_buffer::command_buffer(size_t uniform_components) : memory_offset{0} {
+            memory_size = uniform_components == 0 ? (sizeof (float) * 1024) : (sizeof (float) * uniform_components);
             raw_memory = malloc(memory_size);
             memset(raw_memory, 0, memory_size);
         }

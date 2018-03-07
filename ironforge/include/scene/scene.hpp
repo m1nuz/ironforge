@@ -31,6 +31,7 @@ namespace video {
 }
 
 namespace scene {
+
     using load_result = std::variant<instance_t, std::error_code>;
 
     inline auto is_ok(const load_result &res) noexcept -> bool {

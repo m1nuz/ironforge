@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <functional>
 
+#include <video/glyphs.hpp>
+
 namespace ui {
     struct button;
     struct slider;
@@ -51,7 +53,7 @@ namespace ui {
         //float                   r;
         float                   border_width;
         uint32_t                align;
-        int32_t                 font;
+        video::font_t           *font = nullptr;
         size_t                  text_size;
         const char              *text;
         uint32_t                text_color;

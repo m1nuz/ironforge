@@ -6,7 +6,6 @@
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
-#include <scene/entity.hpp>
 #include <renderer/renderer.hpp>
 #include <ui/ui.hpp>
 
@@ -87,8 +86,8 @@ namespace scene {
         dt.text.align = 0;
         dt.text.w = video::screen.width;
         dt.text.h = video::screen.height;
-        dt.text.color = 0x1f1f1fff;
-        dt.text.font = 0;
+        dt.text.color = 0x1a1a1aff;
+        dt.text.font = vi.fonts.find("roboto") == vi.fonts.end() ? nullptr : &vi.fonts["roboto"];
         dt.text.x = -0.98;
         dt.text.y = 0.92;
         dt.text.text = vi.stats_info.info;

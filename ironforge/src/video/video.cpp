@@ -8,8 +8,6 @@
 int max_supported_anisotropy = 0;
 
 namespace video {
-    int32_t max_uniform_components = 0;
-
     _screen screen;
 
     auto setup_debug() -> void;
@@ -93,7 +91,6 @@ namespace video {
 
         // get constants
         glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &ctx.max_uniform_components);
-        glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &max_uniform_components);
         glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &ctx.max_supported_anisotropy);
         glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_supported_anisotropy);
 
@@ -116,12 +113,13 @@ namespace video {
         std::vector<font_info> fonts;
         if (info.find("fonts") != info.end()) {
             for (const auto& f : info["fonts"]) {
-                const auto name = f.find("name") != f.end() ? f["name"].get<string>() : string{};
+                const auto filename = f.find("filename") != f.end() ? f["filename"].get<string>() : string{};
+                const auto fontname = f.find("fontname") != f.end() ? f["fontname"].get<string>() : string{};
                 const auto size = f.find("size") != f.end() ? f["size"].get<int>() : default_size;
                 const auto charset = f.find("charset") != f.end() ? f["charset"].get<string>() : video::default_charset();
 
-                if (!name.empty() && !charset.empty() && size > 0)
-                    fonts.emplace_back(name, size, charset == "default" ? video::default_charset() : charset);
+                if (!filename.empty() && !charset.empty() && size > 0)
+                    fonts.emplace_back(filename, fontname.empty() ? filename : fontname, size, charset == "default" ? video::default_charset() : charset);
             }
         }
 

@@ -6,7 +6,6 @@
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
-#include <scene/entity.hpp>
 
 namespace scene {
     auto load(assets::instance_t &asset, video::instance_t &vi, const std::string &path) -> load_result {

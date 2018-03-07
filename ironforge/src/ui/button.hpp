@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <functional>
 
+#include <video/glyphs.hpp>
+
 #include "widget.hpp"
 
 namespace ui {
@@ -11,7 +13,7 @@ namespace ui {
         //float                   r;
         float                   border_width = 0;
         uint32_t                align = 0;
-        int32_t                 font = 0;
+        video::font_t           *font = nullptr;
         size_t                  text_size = 0;
         const char              *text = nullptr;
         uint32_t                text_color = 0;

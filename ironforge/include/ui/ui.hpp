@@ -6,6 +6,11 @@
 #include <ui/command.hpp>
 #include <ui/widgets.hpp>
 
+namespace video {
+    struct instance_type;
+    typedef instance_type instance_t;
+}
+
 namespace ui {
     struct context;
     struct renderer;
@@ -15,5 +20,5 @@ namespace ui {
     auto append(std::unique_ptr<context> &ctx, const command &com) -> void;
 
     auto process_event(context &ctx, const SDL_Event &event) -> void;
-    auto present(std::unique_ptr<context> &ctx, const std::function<void (const command &c)> &dispath) -> void;
+    auto present(std::unique_ptr<context> &ctx, const video::instance_t &vi, const std::function<void (const command &c)> &dispath) -> void;
 } // namespace ui

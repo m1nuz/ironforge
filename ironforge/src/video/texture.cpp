@@ -8,17 +8,17 @@
 namespace video {
     namespace gl330 {
         auto create_texture_2d(const texture_info &info) -> texture {
-            auto tex = static_cast<GLuint>(0);
+            auto tex = 0u;
             glGenTextures(1, &tex);
             glBindTexture(GL_TEXTURE_2D, tex);
 
             auto internalformat = static_cast<GLint >(0);
             auto format = static_cast<GLenum>(0);
             auto type = static_cast<GLenum>(0);
-            auto w = static_cast<GLsizei>(info.width);
-            auto h = static_cast<GLsizei>(info.height);
-            void *pixels = info.pixels.empty() ? nullptr : (void*)(&info.pixels[0]);
-            auto flags = info.flags;
+            const auto w = static_cast<GLsizei>(info.width);
+            const auto h = static_cast<GLsizei>(info.height);
+            const auto pixels = info.pixels.empty() ? nullptr : reinterpret_cast<const void*>(&info.pixels[0]);
+            const auto flags = info.flags;
 
             get_texture_format_from_pixelformat(info.format, internalformat, format, type);
 
@@ -39,7 +39,7 @@ namespace video {
         }
 
         auto create_texture_cube(const texture_info (&infos)[6]) -> texture {
-            auto tex = static_cast<GLuint>(0);
+            auto tex = 0u;
             glGenTextures(1, &tex);
             glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
 
@@ -52,8 +52,10 @@ namespace video {
 
             get_texture_format_from_pixelformat(infos[0].format, internalformat, format, type);
 
-            for (size_t i = 0; i < 6; i++)
-                glTexImage2D(static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i), 0, internalformat, w, h, 0, format, type, &infos[i].pixels[0]);
+            for (size_t i = 0; i < 6; i++) {
+                const auto pixels = infos[i].pixels.empty() ? nullptr : reinterpret_cast<const void*>(&infos[i].pixels[0]);
+                glTexImage2D(static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i), 0, internalformat, w, h, 0, format, type, pixels);
+            }
 
             if (flags & static_cast<uint32_t>(texture_flags::auto_mipmaps))
                 glGenerateMipmap(GL_TEXTURE_CUBE_MAP);

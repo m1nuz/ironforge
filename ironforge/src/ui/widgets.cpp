@@ -5,6 +5,7 @@
 #include <ui/context.hpp>
 #include <ui/widgets.hpp>
 #include <video/screen.hpp>
+#include <video/glyphs.hpp>
 
 #include "button.hpp"
 #include "label.hpp"
@@ -130,7 +131,7 @@ namespace ui {
         return b.id;
     }
 
-    static auto push_widget(std::unique_ptr<context> &ctx, const button &b) -> void {
+    static auto push_widget(std::unique_ptr<context> &ctx, const video::instance_t &vi, const button &b) -> void {
         if (!(b.flags & wf_visible))
             return;        
 
@@ -378,7 +379,7 @@ namespace ui {
         }
     }
 
-    auto present(std::unique_ptr<context> &ctx, const std::function<void (const command &)> &dispath) -> void {
+    auto present(std::unique_ptr<context> &ctx, const video::instance_t &vi, const std::function<void (const command &)> &dispath) -> void {
         for (const auto &wnd : windows) {
             for (size_t i = 0; i < wnd.widgets.size(); i++) {
                 auto pv = i == 0 ? nullptr : wnd.widgets[i - 1];
@@ -435,7 +436,7 @@ namespace ui {
         }
 
         for (const auto &b : buttons)
-            push_widget(ctx, b);
+            push_widget(ctx, vi, b);
 
         for (const auto &w : windows)
             push_widget(ctx, w);

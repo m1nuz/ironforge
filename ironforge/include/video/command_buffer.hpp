@@ -13,7 +13,7 @@ namespace video {
         };*/
 
         struct command_buffer {
-            command_buffer(size_t mem_size = 0);
+            command_buffer(size_t uniform_components = 0);
             ~command_buffer();
 
             command_buffer(command_buffer const&) = delete;

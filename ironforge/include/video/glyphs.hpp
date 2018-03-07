@@ -1,10 +1,10 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 #include <string>
 
 #include <SDL2/SDL_rect.h>
-#include <video/video.hpp>
 #include <video/atlas.hpp>
 
 namespace assets {
@@ -19,36 +19,62 @@ namespace video {
     struct font_info {
         font_info() = default;
 
-        font_info(const std::string &font_name, const int sz, const std::string &charset)
-            : name{font_name}, size{sz}, cache{charset} {
+        font_info(const std::string &_filename, const std::string &_fontname, const int sz, const std::string &charset)
+            : filename{_filename}, fontname{_fontname}, size{sz}, cache{charset} {
 
         }
 
-        std::string name;
+        std::string filename;
+        std::string fontname;
         int         size;
         std::string cache;
     };
 
-    struct glyph {
-        glyph() = default;
-        uint16_t    ch = 0;
-        SDL_Rect    rc = {};
+    typedef struct glyph_rect {
+        glyph_rect() = default;
+        int         x = 0;
+        int         y = 0;
+        int         w = 0;
+        int         h = 0;
         int         advance = 0;
-        int         type = 0;
+    } glyph_rect_t;
+
+    struct font_type {
+        int                                         size = 0;
+        int                                         lineskip = 0;
+        std::unordered_map<uint16_t, glyph_rect_t>  glyphs;
     };
 
-    struct glyph_group {
-        glyph_group() = default;
-        int         type = 0;
-        int         size = 0;
-        int         lineskip = 0;
-    };
+    typedef font_type font_t;
 
-    auto glyph_cache_build(instance_t &vi, assets::instance_t &asset, const std::vector<font_info> &fonts, atlas &_atlas) -> bool;
-    auto glyph_cache_find(uint16_t ch, int type) -> glyph;
+    ///
+    /// \brief build_fonts
+    /// \param vi
+    /// \param asset
+    /// \param fonts_info
+    /// \param _atlas
+    /// \return
+    ///
+    [[nodiscard]] auto build_fonts(instance_t &vi, assets::instance_t &asset, const std::vector<font_info> &fonts_info, atlas &_atlas) -> bool;
 
-    auto glyph_cache_get_font_lineskip(int type) -> int;
-    auto glyph_cache_get_font_size(int type) -> int;
+    ///
+    /// \brief get_glyph_rect
+    /// \param font
+    /// \param ch
+    /// \return
+    ///
+    [[nodiscard]] auto get_glyph_rect(const font_t &font, const uint16_t ch) -> std::optional<glyph_rect>;
 
-    auto default_charset() -> const char *;
+    ///
+    /// \brief get_text_length
+    /// \param font
+    /// \param text
+    /// \return
+    ///
+    [[nodiscard]] auto get_text_length(const font_t &font, std::string_view text) -> std::tuple<float, float>;
+
+    ///
+    /// \brief default_charset
+    ///
+    [[nodiscard]] auto default_charset() noexcept -> const char *;
 } // namespace video

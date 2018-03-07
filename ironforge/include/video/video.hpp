@@ -30,6 +30,8 @@
 #include <video/state.hpp>
 #include <video/framerate.hpp>
 #include <video/stats.hpp>
+#include <video/glyphs.hpp>
+#include <video/atlas.hpp>
 
 #include <json.hpp>
 
@@ -138,6 +140,7 @@ namespace video {
         int32_t                                         max_supported_anisotropy = 0;
         int32_t                                         max_uniform_components = 0;
 
+        std::unordered_map<std::string, font_t>         fonts;
         std::unordered_map<std::string, texture>        textures;
         std::unordered_map<std::string, program>        programs;
         std::unordered_map<std::string, mesh>           meshes;
@@ -202,6 +205,4 @@ namespace video {
     inline bool is_ok(const video_result &res) {
         return std::holds_alternative<instance_t>(res);
     }
-
-    extern int32_t max_uniform_components;    
 } // namespace video

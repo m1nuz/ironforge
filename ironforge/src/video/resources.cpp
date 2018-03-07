@@ -33,14 +33,16 @@ namespace video {
         inst.textures.emplace("check-map", gl::create_texture_2d(imgen::make_check(128, 128, 0x10, {24, 24, 24}), textures_flags));
         inst.textures.emplace("red-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 0, 0}), textures_flags));
 
-
         const int asz = 1024;
 
         auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
-        auto ui_atlas = video::create_atlas(asz, asz, 1);
-        auto rc = video::insert_image(ui_atlas, white_im);
-        video::glyph_cache_build(inst, asset, fonts, ui_atlas);
-        video::make_texture_2d(inst, "glyphs-map", get_atlas_texture(ui_atlas), static_cast<uint32_t>(video::texture_flags::auto_mipmaps));
+        auto font_atlas = video::create_atlas(asz, asz, 1);
+        auto rc = video::insert_image(font_atlas, white_im);
+        if (!build_fonts(inst, asset, fonts, font_atlas)) {
+            journal::error(journal::_VIDEO, "%", "Fonts isn't built");
+        }
+
+        video::make_texture_2d(inst, "glyphs-map", get_atlas_texture(font_atlas), static_cast<uint32_t>(video::texture_flags::auto_mipmaps));
         //auto ui_rc = glm::vec4{rc.x / (float)asz, rc.y / (float)asz, rc.w / (float)asz, rc.h / (float)asz};
     }
 

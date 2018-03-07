@@ -35,7 +35,7 @@ namespace renderer {
         case video::texture_filtering::anisotropic:
             sam_info.mag_filter = video::gl::texture_mag_filter::linear;
             sam_info.min_filter = video::gl::texture_min_filter::linear_mipmap_linear;
-            sam_info.anisotropy = max_supported_anisotropy;
+            sam_info.anisotropy = vi.max_supported_anisotropy;
             break;
         }
 
@@ -158,14 +158,14 @@ namespace renderer {
         skybox_map = cubemap;
     }
 
-    auto forward_renderer::append(int32_t font, const std::string &text, const glm::vec2 &pos, const glm::vec4 &color) -> void {
+    /*auto forward_renderer::append(const video::font_t &font, const std::string &text, const glm::vec2 &pos, const glm::vec4 &color) -> void {
         using namespace glm;
 
         const auto tw = 512.f;
         const auto th = 512.f;
 
-        const int adv_y = video::glyph_cache_get_font_lineskip(font);
-        const int fh = video::glyph_cache_get_font_size(font);
+        const int adv_y = font.lineskip;
+        const int fh = font.size;
         const float spt = 2.f / video::screen.width;
 
         vec2 p = pos;
@@ -208,7 +208,7 @@ namespace renderer {
 
             p[0] += glyph.advance * spt;
         }
-    }
+    }*/
 
     auto forward_renderer::dispath(const ui::command &c) -> void {
         using namespace ui;
@@ -479,61 +479,39 @@ namespace renderer {
         return glm::vec4(x, y, z, w);
     }
 
-    auto forward_renderer::text_box_size(const char *text, size_t size, int font) -> glm::vec2 {
-        using namespace glm;
-
-        const int adv_y = video::glyph_cache_get_font_lineskip(font);
-        const float spt = 2.f / video::screen.width;
-
-        vec2 p{0};
-
-        for (size_t i = 0; i < size; i++) {
-            auto ch = text[i];
-            if (ch == '\n') {
-                p[0] = 0;
-                p[1] += spt * adv_y * video::screen.aspect;
-                continue;
-            }
-
-            auto glyph = video::glyph_cache_find(ch, font);
-            if (glyph.ch == 0) {
-                game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
-                continue;
-            }
-
-            p[0] += glyph.advance * spt;
-        }
-
-        return vec2{p.x, p.y == 0 ? (float)adv_y / video::screen.height * 2.f : p.y};
-    }
-
     auto forward_renderer::draw_text(const ui::draw_text_command &c) -> void {
         using namespace glm;
+        using namespace game;
+
+        if (!c.font) {
+            journal::error(journal::_VIDEO, "%", "Empty font");
+            return;
+        }
 
         // FIXME: use real texture size
         const auto tw = 1024.f;
         const auto th = 1024.f;
 
-        const int adv_y = video::glyph_cache_get_font_lineskip(c.font);
-        const int fh = video::glyph_cache_get_font_size(c.font);
+        const int adv_y = c.font->lineskip;
+        const int fh = c.font->size;
         const float spt = 2.f / video::screen.width;
         const float correction = video::screen.aspect;
         const auto color = color_to_vec4(c.color);
 
-        vec2 bs = text_box_size(c.text, c.size, c.font);
+        auto [bsx, bsy] = video::get_text_length(*c.font, c.text);
         vec2 p = vec2(c.x, c.y);
 
         if (c.align & ui::align_horizontal_right)
-             p.x += c.w * 2.f - bs.x * 2.f;
+             p.x += c.w * 2.f - bsx * 2.f;
         else if (c.align & ui::align_horizontal_center)
-            p.x += c.w - bs.x * 0.5;
+            p.x += c.w - bsx * 0.5;
         else
             p.x += 0;
 
         if (c.align & ui::align_vertical_top)
-            p.y += c.h * 2.f - bs.y;
+            p.y += c.h * 2.f - bsy;
         else if (c.align & ui::align_vertical_center)
-            p.y += c.h - bs.y * 0.5;
+            p.y += c.h - bsy * 0.5;
         else
             p.y += 0;
 
@@ -545,18 +523,18 @@ namespace renderer {
                 continue;
             }
 
-            auto glyph = video::glyph_cache_find(ch, c.font);
-            if (glyph.ch == 0) {
+            auto glyph = video::get_glyph_rect(*c.font, ch);
+            if (!glyph) {
                 game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
                 continue;
             }
 
-            vec2 size = {glyph.advance * spt, fh * spt};
+            vec2 size = {glyph.value().advance * spt, fh * spt};
             vec4 offset;
-            offset[0] = (float)glyph.rc.x / tw;
-            offset[1] = (float)glyph.rc.y / th;
-            offset[2] = (float)glyph.rc.w / tw;
-            offset[3] = (float)glyph.rc.h / th;
+            offset[0] = (float)glyph.value().x / tw;
+            offset[1] = (float)glyph.value().y / th;
+            offset[2] = (float)glyph.value().w / tw;
+            offset[3] = (float)glyph.value().h / th;
 
             const video::v3t2c4 vertices[6] = {
                 {{p[0], p[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
@@ -569,7 +547,7 @@ namespace renderer {
 
             video::append_triangles_vertices(triangles, vertices, 6);
 
-            p[0] += glyph.advance * spt;
+            p[0] += glyph.value().advance * spt;
         }
     }
 

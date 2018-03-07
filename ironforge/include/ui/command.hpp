@@ -2,6 +2,14 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
+
+#include <video/glyphs.hpp>
+
+/*namespace video {
+    struct font_type;
+    typedef font_type font_t;
+}*/
 
 namespace ui {
     enum aligment : uint32_t {
@@ -54,9 +62,9 @@ namespace ui {
         float       w;
         float       h;
         uint32_t    align;
-        int32_t     font;
         const char  *text;
         size_t      size;
+        video::font_t *font;
         uint32_t    color;
     };
 

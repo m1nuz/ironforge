@@ -3,37 +3,28 @@
 
 #include <SDL2/SDL_ttf.h>
 #include <core/assets.hpp>
+#include <video/video.hpp>
 #include <video/glyphs.hpp>
 
 namespace video {
-
-
-    std::vector<glyph>          glyphs;
-    std::vector<glyph_group>    glyph_groups;
-
-    static bool glyph_compare(const glyph &a, const glyph &b) {
-        if (a.ch == b.ch)
-            return a.type < b.type;
-
-        return a.ch < b.ch;
-    }
-
-    static auto glyph_cache_append(assets::instance_t &asset, const font_info &info, atlas &_atlas) -> void {
+    static auto append_font(assets::instance_t &asset, std::unordered_map<std::string, font_t> &fonts, const font_info &info, atlas &_atlas) -> bool {
         const SDL_Color White = {255, 255, 255, 255};
-        auto fb = assets::get_binary(asset, info.name);
+        auto fb = assets::get_binary(asset, info.filename);
 
         if (!fb)
-            return; // TODO: error
+            return false;
 
         auto rw = SDL_RWFromConstMem(&fb.value()[0], fb.value().size());
 
         auto font = TTF_OpenFontRW(rw, SDL_TRUE, info.size);
         if (!font)
-            return;
+            return false;
 
-        // TODO: check font for null
+        const auto count = info.cache.size(); // TODO: make support utf8
 
-        auto count = info.cache.size(); // TODO: make support utf8
+        std::unordered_map<uint16_t, glyph_rect_t> glyph_rects;
+        glyph_rects.reserve(count);
+
         for (size_t i = 0; i < count; i++) {
             char ch[2] = {info.cache[i], 0};
 
@@ -45,68 +36,73 @@ namespace video {
 
                 SDL_Surface *rgba_glyph = SDL_ConvertSurfaceFormat(glyph, SDL_PIXELFORMAT_RGBA8888, 0);
 
-                glyphs.push_back({static_cast<Uint16>(ch[0]), insert_surface(_atlas, rgba_glyph), advance, static_cast<int>(glyph_groups.size())});
+                const auto rc = insert_surface(_atlas, rgba_glyph);
+
+                glyph_rects.insert({static_cast<Uint16>(ch[0]), {rc.x, rc.y, rc.w, rc.h, advance}});
 
                 SDL_FreeSurface(glyph);
                 SDL_FreeSurface(rgba_glyph);
             }
         }
 
-        glyph_groups.push_back({static_cast<int>(glyph_groups.size()), TTF_FontHeight(font), TTF_FontLineSkip(font)});
-    }
-
-    auto glyph_cache_build(instance_t &vi, assets::instance_t &asset, const std::vector<font_info> &fonts, atlas &_atlas) -> bool {
-        size_t glyph_cache_size = 0;
-        int group_count = 0;
-
-        for (const auto &f : fonts) {
-            glyph_cache_size += f.cache.size();
-            group_count++;
-        }
-
-        glyphs.reserve(glyph_cache_size);
-        glyph_groups.reserve(group_count);
-
-        for (const auto &fn : fonts)
-            glyph_cache_append(asset, fn, _atlas);
-
-        std::sort(glyphs.begin(), glyphs.end(), glyph_compare);
+        fonts.insert({info.fontname, {TTF_FontHeight(font), TTF_FontLineSkip(font), glyph_rects}});
 
         return true;
     }
 
-    auto glyph_cache_find(uint16_t ch, int type) -> glyph {
-        glyph v = {ch, {0, 0, 0, 0}, 0, type};
+    auto build_fonts(instance_t &vi, assets::instance_t &asset, const std::vector<font_info> &fonts_info, atlas &_atlas) -> bool {
+        if (fonts_info.empty())
+            return false;
 
-        /*auto it = std::find_if(glyphs.cbegin(), glyphs.cend(), [&v] (const glyph &g) {
-            return v.ch == g.ch && v.type == g.type;
-        });*/
+        std::unordered_map<std::string, font_t> fonts;
+        fonts.reserve(fonts_info.size());
 
-        auto it = std::lower_bound(glyphs.cbegin(), glyphs.cend(), v, glyph_compare);
+        for (const auto &f : fonts_info) {
+            append_font(asset, fonts, f, _atlas);
+        }
 
-        if (it != glyphs.end())
-            return *it;
+        if (fonts.empty())
+            return false;
 
-        return {0, {0, 0, 0, 0}, 0, 0};
+        vi.fonts = fonts;
+
+        return true;
     }
 
-    auto glyph_cache_get_font_lineskip(int type) -> int {
-        for (const auto &g : glyph_groups)
-            if (g.type == type)
-                return g.lineskip;
+    auto get_glyph_rect(const font_t &font, const uint16_t ch) -> std::optional<glyph_rect> {
+        if (auto it = font.glyphs.find(ch); it != font.glyphs.end())
+            return it->second;
 
-        return 0;
+        return {};
     }
 
-    auto glyph_cache_get_font_size(int type) -> int {
-        for (const auto &g : glyph_groups)
-            if (g.type == type)
-                return g.size;
+    auto get_text_length(const font_t &font, std::string_view text) -> std::tuple<float, float> {
+        const int adv_y = font.lineskip;
+        const float spt = 2.f / video::screen.width;
 
-        return 0;
+        float px = 0, py = 0;
+
+        for (size_t i = 0; i < text.size(); i++) {
+            auto ch = text[i];
+            if (ch == '\n') {
+                px = 0;
+                py += spt * adv_y * video::screen.aspect;
+                continue;
+            }
+
+            auto glyph = get_glyph_rect(font, static_cast<uint16_t>(ch));
+            if (!glyph) {
+                game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
+                continue;
+            }
+
+            px += glyph.value().advance * spt;
+        }
+
+        return {px, py == 0 ? (float)adv_y / video::screen.height * 2.f : py};
     }
 
-    auto default_charset() -> const char * {
+    auto default_charset() noexcept -> const char * {
         return " !\"#$%&'()*+,-./0123456789:;<=>?"
                "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"
                "`abcdefghijklmnopqrstuvwxyz{|}~";

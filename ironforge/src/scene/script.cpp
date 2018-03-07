@@ -1,7 +1,6 @@
 #include <core/journal.hpp>
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
-#include <scene/entity.hpp>
 #include <lua.hpp>
 
 #include "script.hpp"
@@ -182,7 +181,7 @@ namespace scene {
     auto update_all_scripts(instance_t &sc, const float dt) -> void {
         for (const auto &[ix, s] : sc.scripts) {
             (void)ix;
-            if (s.flags & static_cast<uint32_t>(entity_flags::call_update))
+            if (s.flags & static_cast<uint32_t>(script_flags::call_update))
                 call_with_args(&s, "_update", dt);
         }
     }
