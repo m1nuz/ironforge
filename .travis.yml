@@ -1,0 +1,64 @@
+# Ubuntu 14.04 Trusty support
+sudo: required
+dist: trusty
+
+# Enable C++ support
+language: cpp
+
+# Compiler selection
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-7"
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0
+      env:
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+        - EXTRA_FLAGS="-stdlib=libc++"
+
+before_install:
+  - eval "${MATRIX_EVAL}"
+
+# Install dependencies
+install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libc++-dev
+  - sudo apt-get install -qq libc++abi-dev
+  - sudo apt-get install -qq libsdl2-dev libsdl2-ttf-dev
+# install cmake
+  - CMAKE_VERSION="3.9.6"
+  - CMAKE_INSTALL_DIR=${HOME}/cmake-${CMAKE_VERSION}
+  - mkdir ${CMAKE_INSTALL_DIR}/
+  - wget --no-check-certificate "http://cmake.org/files/v3.9/cmake-${CMAKE_VERSION}-Linux-x86_64.sh"
+  - chmod +x cmake-${CMAKE_VERSION}-Linux-x86_64.sh
+  - ./cmake-${CMAKE_VERSION}-Linux-x86_64.sh --prefix=${CMAKE_INSTALL_DIR} --skip-license
+  - export PATH=${CMAKE_INSTALL_DIR}/bin:$PATH
+# verify installed versions
+  - which cmake
+  - cmake --version
+  
+# Only watch the master branch
+branches:
+  only:
+    - master
+
+# Build steps
+script:
+  - uname -a
+  - $CXX --version
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" .. && cmake --build .
