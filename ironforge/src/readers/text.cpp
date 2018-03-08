@@ -3,6 +3,8 @@
 #include <readers/text.hpp>
 
 auto read_text(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<assets::text_data_t> {
+    (void)inst;
+
     if (!rw)
         return {};
 

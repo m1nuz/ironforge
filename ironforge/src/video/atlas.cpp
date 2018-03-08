@@ -146,6 +146,6 @@ namespace video {
 
         memcpy(&all_pixels[0], _atlas.surface->pixels, all_pixels.size());
 
-        return image_data{_atlas.surface->w, _atlas.surface->h, 0, pixel_format::rgba8, all_pixels};
+        return image_data{static_cast<uint32_t>(_atlas.surface->w), static_cast<uint32_t>(_atlas.surface->h), 0, pixel_format::rgba8, all_pixels};
     }
 } // namespace video

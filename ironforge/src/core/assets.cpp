@@ -76,6 +76,8 @@ namespace assets {
                 return res.value();
             }
         }
+
+        return {};
     }
 
     auto process_load(instance_t &inst) -> void {
@@ -170,6 +172,7 @@ namespace assets {
     }
 
     auto process(instance_t &inst) -> void {
+        (void)inst;
         // TODO: process file queue, thread loading
     }
 

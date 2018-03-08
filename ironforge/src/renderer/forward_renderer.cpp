@@ -33,6 +33,7 @@ namespace renderer {
             sam_info.min_filter = video::gl::texture_min_filter::linear_mipmap_linear;
             break;
         case video::texture_filtering::anisotropic:
+        case video::texture_filtering::max_filtering:
             sam_info.mag_filter = video::gl::texture_mag_filter::linear;
             sam_info.min_filter = video::gl::texture_min_filter::linear_mipmap_linear;
             sam_info.anisotropy = vi.max_supported_anisotropy;
@@ -606,10 +607,10 @@ namespace renderer {
     }
 
     auto forward_renderer::draw_roundrect(const ui::draw_round_rect_command &c) -> void {
-
+        (void)c;
     }
 
     auto forward_renderer::draw_icon(const ui::draw_icon_command &c) -> void {
-
+        (void)c;
     }
 } // namespace renderer

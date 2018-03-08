@@ -22,7 +22,7 @@ namespace video {
 
             get_texture_format_from_pixelformat(info.format, internalformat, format, type);
 
-            glTexImage2D(GL_TEXTURE_2D, 0, internalformat, w, h, 0, format, type, pixels);
+            glTexImage2D(GL_TEXTURE_2D, 0, internalformat, static_cast<int32_t>(w), static_cast<int32_t>(h), 0, format, type, pixels);
 
             if (flags & static_cast<uint32_t>(texture_flags::auto_mipmaps))
                 glGenerateMipmap(GL_TEXTURE_2D);
@@ -35,7 +35,7 @@ namespace video {
         }
 
         auto create_texture_2d(const image_data &data, const uint32_t flags) -> texture {
-            return create_texture_2d({data.pixelformat, 0, flags, static_cast<int32_t>(data.width), static_cast<int32_t>(data.height), 0, data.pixels});
+            return create_texture_2d({data.pixelformat, 0, flags, data.width, data.height, 0, data.pixels});
         }
 
         auto create_texture_cube(const texture_info (&infos)[6]) -> texture {
@@ -70,7 +70,7 @@ namespace video {
         auto create_texture_cube(const image_data (&datas)[6], const uint32_t flags) -> texture {
             texture_info infos[6];
             for (size_t i = 0; i < 6; i++)
-                infos[i] = {datas[i].pixelformat, 0, flags, static_cast<int32_t>(datas[i].width), static_cast<int32_t>(datas[i].height), 0, datas[i].pixels};
+                infos[i] = {datas[i].pixelformat, 0, flags, datas[i].width, datas[i].height, 0, datas[i].pixels};
 
             return create_texture_cube(infos);
         }

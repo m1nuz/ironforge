@@ -31,7 +31,7 @@ auto read_shader_text(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<
             //printf("%s\n", text.text);
             //printf("----END\n");
 
-            size_t pos = p - &text[0];
+            //size_t pos = p - &text[0];
             char *end = strchr(sp, '\n');
 
             if ((size_t)(end - sp) == step) {
@@ -66,17 +66,11 @@ auto read_shader_text(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<
                 quit();
             }
 
-            char name[name_size];
-            memcpy(name, bracers_first + 1, name_size);
-            name[name_size] = 0;
+            std::string name{bracers_first + 1, name_size};
 
             auto include_text = assets::get_text(inst, name).value_or(std::string{});
 
-            //memset(sp, ' ', end - sp);
-
-            char origin[end - sp];
-            memcpy(origin, sp, sizeof(origin));
-            origin[end - sp] = 0;
+            std::string origin{sp, static_cast<size_t>(end - sp)};
 
             replace_all(text, origin, include_text);
         }

@@ -32,6 +32,8 @@ typedef struct TargaHeader
 #pragma pack(pop, tga_header_align)
 
 auto read_targa(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<assets::image_data_t> {
+    (void)inst;
+
     if (!rw)
         return {};
 

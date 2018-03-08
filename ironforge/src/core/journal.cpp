@@ -32,8 +32,8 @@ namespace game {
         }
 
         auto add_storage(std::function<int (const std::string &, const verbosity, const void *, size_t)> cb) -> void {
-            for (auto &[tag, storages] : tags_storage)
-                storages.emplace_back(cb);
+            for (auto &storage : tags_storage)
+                storage.second.emplace_back(cb);
         }
         auto add_storage(const std::string &tag, storage_fn cb) -> void {
             if (auto it = tags_storage.find(tag); it != tags_storage.end())
@@ -102,6 +102,8 @@ namespace game {
                 all_stats.critical++;
                 break;
             }
+
+            return 0;
         }
 
         auto setup_default(const std::string &log_path) -> void {

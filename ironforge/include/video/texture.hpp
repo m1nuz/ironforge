@@ -39,9 +39,9 @@ namespace video {
         int32_t     mipmaps = 0;
         uint32_t    flags = 0;
 
-        int32_t     width = 0;
-        int32_t     height = 0;
-        int32_t     depth = 0;
+        uint32_t    width = 0;
+        uint32_t    height = 0;
+        uint32_t    depth = 0;
 
         std::vector<uint8_t> pixels;
     };

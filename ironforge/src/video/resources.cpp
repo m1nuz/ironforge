@@ -22,6 +22,7 @@ namespace video {
             break;
         case texture_filtering::trilinear:
         case texture_filtering::anisotropic:
+        case texture_filtering::max_filtering:
             textures_flags |= static_cast<uint32_t>(texture_flags::auto_mipmaps);
             break;
         }
@@ -37,7 +38,7 @@ namespace video {
 
         auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
         auto font_atlas = video::create_atlas(asz, asz, 1);
-        auto rc = video::insert_image(font_atlas, white_im);
+        /*auto rc = */video::insert_image(font_atlas, white_im);
         if (!build_fonts(inst, asset, fonts, font_atlas)) {
             journal::error(journal::_VIDEO, "%", "Fonts isn't built");
         }
@@ -67,6 +68,8 @@ namespace video {
     }
 
     auto process(assets::instance_t &asset, instance_t &inst) -> void {
+        (void)asset, (void)inst;
+
         /*uint32_t textures_flags = 0;
         switch (inst.tex_filtering) {
         case texture_filtering::bilinear:
@@ -245,6 +248,8 @@ namespace video {
     }
 
     static auto create_vertices_info(assets::instance_t &asset, const json &info) -> std::optional<vertices_info> {
+        (void)asset;
+
         using namespace game;
         using namespace std;
 

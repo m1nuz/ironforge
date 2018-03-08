@@ -15,6 +15,8 @@ namespace video {
         }
 
         auto create_vertex_array(std::vector<vertex_attribute> &attribs, const binding_buffer &vb, const binding_buffer &eb) -> vertex_array {
+            (void)attribs, (void)vb, (void)eb;
+
             auto va = create_vertex_array();
 
             return va;

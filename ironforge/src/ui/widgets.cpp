@@ -132,6 +132,8 @@ namespace ui {
     }
 
     static auto push_widget(std::unique_ptr<context> &ctx, const video::instance_t &vi, const button &b) -> void {
+        (void)vi;
+
         if (!(b.flags & wf_visible))
             return;        
 
@@ -265,6 +267,7 @@ namespace ui {
     }
 
     auto create_label(const label_info &info) -> int32_t {
+        (void)info;
         return 0;
     }
 
@@ -382,7 +385,7 @@ namespace ui {
     auto present(std::unique_ptr<context> &ctx, const video::instance_t &vi, const std::function<void (const command &)> &dispath) -> void {
         for (const auto &wnd : windows) {
             for (size_t i = 0; i < wnd.widgets.size(); i++) {
-                auto pv = i == 0 ? nullptr : wnd.widgets[i - 1];
+                //auto pv = i == 0 ? nullptr : wnd.widgets[i - 1];
                 auto w = wnd.widgets[i];
                 const auto coeff = wnd.grows[i] / wnd.widgets.size();
                 const auto coeff2 = (i == 0 ? 0 : wnd.grows[i - 1] / wnd.widgets.size());
