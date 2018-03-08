@@ -1,4 +1,6 @@
 # ironforge
+[![Build Status](https://travis-ci.org/m1nuz/ironforge.svg?branch=master)](https://travis-ci.org/m1nuz/ironforge)
+
 Game engine
 
 ## Features ##
