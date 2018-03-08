@@ -1,14 +1,15 @@
-include_directories(../../include)
-include_directories(../../../lib/GLcore/include)
-include_directories(../../../lib/GL/include)
-include_directories(../../../lib/glm)
+set(LIB_NAME ironforge-renderer)
 
-file(GLOB_RECURSE headers "../../include/renderer/*.hpp")
-file(GLOB_RECURSE detail_headers "./*.hpp")
-file(GLOB_RECURSE sources "./*.cpp")
+file(GLOB_RECURSE HEADERS "../../include/renderer/*.hpp")
+file(GLOB_RECURSE DETAIL_HEADERS "./*.hpp")
+file(GLOB_RECURSE SOURCES "./*.cpp")
 
-set(renderer_lib "ironforge-null-renderer")
+add_library(${LIB_NAME} ${HEADERS} ${DETAIL_HEADERS} ${SOURCES})
+set_property(TARGET ${LIB_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
 
-add_library(${renderer_lib} ${headers} ${detail_headers} ${sources})
-#set_property(TARGET ${renderer_lib} PROPERTY CXX_STANDARD 14)
-set_property(TARGET ${renderer_lib} APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
+target_include_directories(${LIB_NAME} PUBLIC
+    ${GLCORE_INCLUDE_PATH}
+    ${GL_INCLUDE_PATH}
+    ${GLM_INCLUDE_PATH}
+    ../../include
+)

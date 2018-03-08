@@ -1,14 +1,17 @@
-include_directories(../../include)
-include_directories(../../../lib/glm)
-include_directories(${LUA_INCLUDE_DIR})
+set(LIB_NAME ironforge-readers)
 
-file(GLOB_RECURSE headers "../../include/readers/*.hpp")
-file(GLOB_RECURSE detail_headers "./*.hpp")
-file(GLOB_RECURSE sources "./*.cpp")
+file(GLOB_RECURSE HEADERS "../../include/readers/*.hpp")
+file(GLOB_RECURSE DETAIL_HEADERS "./*.hpp")
+file(GLOB_RECURSE SOURCES "./*.cpp")
 
-set(readers_lib "ironforge-readers")
+add_library(${LIB_NAME} ${HEADERS} ${DETAIL_HEADERS} ${SOURCES})
+set_property(TARGET ${LIB_NAME}  APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
 
-add_library(${readers_lib} ${headers} ${detail_headers} ${sources})
-#set_property(TARGET ${readers_lib} PROPERTY CXX_STANDARD 14)
-set_property(TARGET ${readers_lib} APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
-target_link_libraries(${readers_lib} -lSDL2 -lSDL2_ttf -lstdc++fs)
+target_include_directories(${LIB_NAME} PUBLIC
+    ../../include
+)
+
+target_link_libraries(${LIB_NAME} PUBLIC
+    -lSDL2
+    -lstdc++fs
+)

@@ -1,13 +1,20 @@
-include_directories(../../include)
-include_directories(../../../lib/glm)
+set(LIB_NAME ironforge-ui)
 
-file(GLOB_RECURSE headers "../../include/ui/*.hpp")
-file(GLOB_RECURSE detail_headers "./*.hpp")
-file(GLOB_RECURSE sources "./*.cpp")
+file(GLOB_RECURSE HEADERS "../../include/ui/*.hpp")
+file(GLOB_RECURSE DETAIL_HEADERS "./*.hpp")
+file(GLOB_RECURSE SOURCES "./*.cpp")
 
-set(ui_lib "ironforge-ui")
+add_library(${LIB_NAME} ${HEADERS} ${DETAIL_HEADERS} ${SOURCES})
+set_property(TARGET ${LIB_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
 
-add_library(${ui_lib} ${headers} ${detail_headers} ${sources})
-#set_property(TARGET ${ui_lib} PROPERTY CXX_STANDARD 14)
-set_property(TARGET ${ui_lib} APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
-target_link_libraries(${ui_lib} -lSDL2 -lSDL2_ttf)
+target_include_directories(${LIB_NAME} PUBLIC
+    ${GLCORE_INCLUDE_PATH}
+    ${GL_INCLUDE_PATH}
+    ${GLM_INCLUDE_PATH}
+    ../../include
+)
+
+target_link_libraries(${LIB_NAME} PUBLIC
+    -lSDL2
+    -lSDL2_ttf
+)

@@ -1,16 +1,21 @@
-include_directories(../../include)
-include_directories(../../../lib/GLcore/include)
-include_directories(../../../lib/GL/include)
-include_directories(../../../lib/glm)
-include_directories(${LUA_INCLUDE_DIR})
+set(LIB_NAME ironforge-core)
 
-file(GLOB_RECURSE headers "../../include/core/*.hpp")
-file(GLOB_RECURSE detail_headers "./*.hpp")
-file(GLOB_RECURSE sources "./*.cpp")
+file(GLOB_RECURSE HEADERS "../../include/core/*.hpp")
+file(GLOB_RECURSE DETAIL_HEADERS "./*.hpp")
+file(GLOB_RECURSE SOURCES "./*.cpp")
 
-set(core_lib "ironforge-core")
+add_library(${LIB_NAME} ${HEADERS} ${DETAIL_HEADERS} ${SOURCES})
+set_property(TARGET ${LIB_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
 
-add_library(${core_lib} ${headers} ${detail_headers} ${sources})
-#set_property(TARGET ${core_lib} PROPERTY CXX_STANDARD 14)
-set_property(TARGET ${core_lib} APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
-target_link_libraries(${core_lib} -lSDL2 -lSDL2_ttf)
+target_include_directories(${LIB_NAME} PUBLIC
+    ${GLCORE_INCLUDE_PATH}
+    ${GL_INCLUDE_PATH}
+    ${GLM_INCLUDE_PATH}
+    ${LUA_INCLUDE_DIR}
+    ../../include
+)
+
+target_link_libraries(${LIB_NAME} PUBLIC
+    -lSDL2
+    -lSDL2_ttf
+)
