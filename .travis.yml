@@ -34,7 +34,7 @@ install:
   - sudo apt-get install -qq libc++-dev
   - sudo apt-get install -qq libc++abi-dev
   - sudo apt-get install -qq libsdl2-dev libsdl2-ttf-dev libegl1-mesa-dev libgles2-mesa-dev
-  - sudo apt-get install -qq liblua5.3-dev
+  - sudo apt-get install -qq liblua5.2-dev
 # install cmake
   - CMAKE_VERSION="3.9.6"
   - CMAKE_INSTALL_DIR=${HOME}/cmake-${CMAKE_VERSION}
