@@ -3,15 +3,22 @@
 #include <system_error>
 
 namespace game {
+
     namespace errc {
+
         enum game_errors {
             init_platform,
             init_assets,
             read_assets,
+            init_video,
+            read_scenes,
             no_start_scene,
             init_gamecontrollers
         };
 
+        ///
+        /// \brief Game errors category
+        ///
         class game_category : public std::error_category {
         public:
             game_category() = default;
@@ -29,7 +36,9 @@ namespace game {
         inline std::error_code make_error_code(game_errors e) noexcept {
             return std::error_code(static_cast<int>(e), game_category::get());
         }
+
     } // namespace errc
+
 } // namespace game
 
 namespace std {

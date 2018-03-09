@@ -3,12 +3,17 @@
 #include <system_error>
 
 namespace video {
+
     namespace errc {
+
         enum video_errors {
             init_sdl,
             init_opengl,
         };
 
+        ///
+        /// \brief Video errors category
+        ///
         class video_category : public std::error_category {
         public:
             video_category() = default;
@@ -37,7 +42,9 @@ namespace video {
         inline std::error_code make_error_code(video_errors e) {
             return std::error_code(static_cast<int>(e), video_category::get());
         }
-    }
+
+    } // namespace errc
+
 } // namespace video
 
 namespace std {

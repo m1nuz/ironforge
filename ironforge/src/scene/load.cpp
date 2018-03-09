@@ -5,6 +5,7 @@
 #include <core/journal.hpp>
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
+#include <scene/errors.hpp>
 #include <scene/instance.hpp>
 
 namespace scene {
@@ -15,7 +16,7 @@ namespace scene {
         auto scene_contents = assets::get_text(asset, path);
 
         if (!scene_contents)
-            return make_error_code(errc::io_error);
+            return make_error_code(errc::load_scene);
 
         journal::debug(journal::_SCENE, "Load scene %", path);
 
@@ -36,67 +37,64 @@ namespace scene {
             }
         }
 
-        if (j.find("effects") == j.end())
-            return make_error_code(errc::io_error);
+        if (j.find("effects") != j.end()) {
+            for (auto &eff : j["effects"]) {
+                const auto effect_name = eff.find("name") != eff.end() ? eff["name"].get<string>() : string{};
+                const auto effect_type = eff.find("type") != eff.end() ? eff["type"].get<string>() : string{};
 
-        for (auto &eff : j["effects"]) {
-            const auto effect_name = eff.find("name") != eff.end() ? eff["name"].get<string>() : string{};
-            const auto effect_type = eff.find("type") != eff.end() ? eff["type"].get<string>() : string{};
+                if (effect_type == "skybox") {
+                    const auto cubemap = eff.find("cubemap") != eff.end() ? eff["cubemap"].get<string>() : string{};
 
-            if (effect_type == "skybox") {
-                const auto cubemap = eff.find("cubemap") != eff.end() ? eff["cubemap"].get<string>() : string{};
+                    sc.skybox = video::get_texture(vi, cubemap);
+                }
 
-                sc.skybox = video::get_texture(vi, cubemap);
-            }
-
-            if (effect_type == "shader") {
-                video::create_program(asset, vi, eff);
+                if (effect_type == "shader") {
+                    video::create_program(asset, vi, eff);
+                }
             }
         }
 
-        if (j.find("materials") == j.end())
-            return make_error_code(errc::io_error);
+        if (j.find("materials") != j.end()) {
+            for (auto &mat : j["materials"]) {
+                const auto material_name = mat.find("name") != mat.end() ? mat["name"].get<string>() : string{};
 
-        for (auto &mat : j["materials"]) {
-            const auto material_name = mat.find("name") != mat.end() ? mat["name"].get<string>() : string{};
+                const auto m = create_material(vi, mat);
+                if (!m) {
+                    journal::warning(journal::_SCENE, "Can't create '%' material", material_name);
+                    continue;
+                }
 
-            const auto m = create_material(vi, mat);
-            if (!m) {
-                journal::warning(journal::_SCENE, "Can't create '%' material", material_name);
-                continue;
+                cache_material(sc, material_name, m.value());
             }
-
-            cache_material(sc, material_name, m.value());
         }
 
-        if (j.find("models") == j.end())
-            return make_error_code(errc::io_error);
+        if (j.find("models") != j.end()) {
+            for (auto &md : j["models"]) {
+                const auto model_name = md.find("name") != md.end() ? md["name"].get<string>() : string{};
 
-        for (auto &md : j["models"]) {
-            const auto model_name = md.find("name") != md.end() ? md["name"].get<string>() : string{};
+                if (md.find("meshes") == md.end()) {
+                    journal::warning(journal::_SCENE, "Model '%' not contain meshes", model_name);
+                    continue;
+                }
 
-            if (md.find("meshes") == md.end()) {
-                journal::warning(journal::_SCENE, "Model '%' not contain meshes", model_name);
-                continue;
-            }
+                if (auto it = sc.all_models.find(model_name); it != sc.all_models.end()) {
+                    journal::info(journal::_SCENE, "Dublicate '%' model", model_name);
+                    continue;
+                }
 
-            if (auto it = sc.all_models.find(model_name); it != sc.all_models.end()) {
-                journal::info(journal::_SCENE, "Dublicate '%' model", model_name);
-                continue;
-            }
+                vector<video::mesh> meshes;
+                meshes.reserve(md["meshes"].size());
+                for (auto &msh : md["meshes"]) {
+                    auto m = video::create_mesh(asset, vi, msh);
+                    if (m)
+                        meshes.push_back(m.value());
+                }
 
-            vector<video::mesh> meshes;
-            meshes.reserve(md["meshes"].size());
-            for (auto &msh : md["meshes"]) {
-                auto m = video::create_mesh(asset, vi, msh);
-                if (m)
-                    meshes.push_back(m.value());
-            }
-
-            if (!meshes.empty()) {
-                auto m = create_model(meshes);
-                if (m)
-                    sc.all_models.emplace(model_name, m.value());
+                if (!meshes.empty()) {
+                    auto m = create_model(meshes);
+                    if (m)
+                        sc.all_models.emplace(model_name, m.value());
+                }
             }
         }
 
@@ -135,8 +133,6 @@ namespace scene {
                 }
 
             }
-        } else {
-            //journal::warning(journal::_SCENE, "%", "No inputs");
         }
 
         json root_info;
@@ -145,14 +141,15 @@ namespace scene {
         const auto r = create_entity(asset, sc, root_info);
         journal::info(journal::_SCENE, "Create root entity %", r);
 
-        if (j.find("nodes") == j.end())
-            return make_error_code(errc::io_error);
+        if (j.find("nodes") != j.end()) {
+            for (auto &n : j["nodes"]) {
+                const auto e = create_entity(asset, sc, n);
 
-        for (auto &n : j["nodes"]) {
-            const auto e = create_entity(asset, sc, n);
-
-            journal::info(journal::_SCENE, "Create entity %", e);
-        }        
+                journal::info(journal::_SCENE, "Create entity %", e);
+            }
+        } else {
+            journal::warning(journal::_SCENE, "%", "Empty scene");
+        }
 
         return sc;
     }

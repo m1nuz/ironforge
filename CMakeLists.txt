@@ -15,5 +15,6 @@ add_subdirectory(lib/GLcore)
 add_subdirectory(lib/xxhash)
 add_subdirectory(ironforge)
 add_subdirectory(sandbox)
+add_subdirectory(worldeditor)
 
 message(${GLCORE_INCLUDE_PATH})

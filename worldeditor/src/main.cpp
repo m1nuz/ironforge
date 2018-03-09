@@ -19,7 +19,7 @@ extern int main(int argc, char* argv[]) {
     //set_verbosity(_SCENE, verbosity::verbose);
 
     // Create game application
-    auto res = create("../assets/sandbox/game.conf");
+    auto res = create("../assets/editor/editor.conf");
     if (!is_ok(res)) {
         error(_GAME, "%", what(res));
         return EXIT_FAILURE;

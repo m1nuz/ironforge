@@ -11,10 +11,13 @@ namespace game {
             case game_errors::init_assets:
                 return "Assets initialization failed";
             case game_errors::read_assets:
-                return "Read asset failed";
+                return "Read assets failed";
+            case game_errors::init_video:
+                return "Init video failed";
+            case game_errors::read_scenes:
+                return "Init scenes";
             case game_errors::no_start_scene:
                 return "No start scene";
-
             case game_errors::init_gamecontrollers:
                 return "Init gamecontrollerdb";
             }

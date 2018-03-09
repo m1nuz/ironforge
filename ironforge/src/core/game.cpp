@@ -101,7 +101,7 @@ namespace game {
         auto j = json::parse(get<string>(contents));
 
         if (j.find("assets") == j.end())
-            return make_error_code(std::errc::io_error);
+            return make_error_code(errc::read_assets);
 
         for (auto &a : j["assets"]) {
             journal::debug(journal::_GAME, "%", a.get<string>());
@@ -111,7 +111,7 @@ namespace game {
         }
 
         if (j.find("video") == j.end())
-            return make_error_code(std::errc::io_error);
+            return make_error_code(errc::init_video);
 
         const auto video_info = j["video"];
 
@@ -124,7 +124,7 @@ namespace game {
         journal::info(journal::_VIDEO, "%", video::get_info(ctx.vi));
 
         if (j.find("scenes") == j.end())
-            return make_error_code(std::errc::io_error);
+            return make_error_code(errc::read_scenes);
 
         string start_scene;
 
