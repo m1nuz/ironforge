@@ -24,7 +24,7 @@ namespace ui {
         return (px) >= (x) && (px) <= (w) + (x) && (py) >= (y) && (py) <= (h) + (y);
     }
 
-    auto push(std::unique_ptr<context> &ctx, const draw_rect_command &dr, int32_t level) -> void {
+    /*auto push(std::unique_ptr<context> &ctx, const draw_rect_command &dr, int32_t level) -> void {
         command c;
         c.type = command_type::rect;
         c.rect = dr;
@@ -51,11 +51,11 @@ namespace ui {
         append(ctx, c);
     }
 
-    auto append(std::unique_ptr<context> &ctx, const command &com) -> void {
+    auto append(std::unique_ptr<context> &ctx, const draw_command_t &com) -> void {
         ctx->commands.push_back(com);
-    }
+    }*/
 
-    std::vector<button> buttons;
+    /*std::vector<button> buttons;
     std::vector<window> windows;
 
     static int32_t button_id = 1;
@@ -455,5 +455,5 @@ namespace ui {
 
             ctx->commands.pop_back();
         }
-    }
+    }*/
 } // namespace ui

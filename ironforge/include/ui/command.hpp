@@ -1,96 +1,60 @@
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
 #include <string>
+#include <variant>
 
-#include <video/glyphs.hpp>
-
-/*namespace video {
-    struct font_type;
-    typedef font_type font_t;
-}*/
 
 namespace ui {
+    typedef uint32_t color_t;
+
     enum aligment : uint32_t {
         align_none              = 0,
-        align_horizontal_center = 0x0001,
-        align_horizontal_left   = 0x0002,
-        align_horizontal_right  = 0x0004,
-        align_vertical_top      = 0x0010,
-        align_vertical_center   = 0x0020,
-        align_vertical_bottom   = 0x0040,
+        align_horizontal_center = 1 << 0,
+        align_horizontal_left   = 1 << 1,
+        align_horizontal_right  = 1 << 2,
+        align_vertical_top      = 1 << 3,
+        align_vertical_center   = 1 << 4,
+        align_vertical_bottom   = 1 << 5,
+        align_center            = align_horizontal_center | align_vertical_center,
     };
 
-    enum class command_type : uint32_t {
-        line,
-        rect,
-        rounded_rect,
-        text,
-        icon
-    };
+    namespace draw_commands {
+        struct draw_line {
+            draw_line() = default;
 
-    struct draw_line_command {
-        float       x0;
-        float       y0;
-        float       x1;
-        float       y1;
-        float       w;
-        uint32_t    color;
-    };
-
-    struct draw_rect_command {
-        float       x;
-        float       y;
-        float       w;
-        float       h;
-        uint32_t    color;
-    };
-
-    struct draw_round_rect_command {
-        float       x;
-        float       y;
-        float       w;
-        float       h;
-        float       r;
-        uint32_t    color;
-    };
-
-    struct draw_text_command {
-        float       x;
-        float       y;
-        float       w;
-        float       h;
-        uint32_t    align;
-        const char  *text;
-        size_t      size;
-        video::font_t *font;
-        uint32_t    color;
-    };
-
-    struct draw_icon_command {
-        float       x;
-        float       y;
-        float       w;
-        float       h;
-        uint32_t    color;
-        int32_t     icon;
-    };
-
-    struct command {
-        command_type                type;
-        int32_t                     level;
-
-        union {
-            draw_line_command       line;
-            draw_rect_command       rect;
-            draw_round_rect_command roundrect;
-            draw_text_command       text;
-            draw_icon_command       icon;
+            float       x0 = 0.f;
+            float       y0 = 0.f;
+            float       x1 = 0.f;
+            float       y1 = 0.f;
+            float       w = 0.f;
+            color_t     color = color_t{0};
         };
-    };
 
-    inline bool operator < (const command &lhs, const command &rhs) {
-        return lhs.level < rhs.level;
-    }
+        struct draw_rect {
+            draw_rect() = default;
+
+            float       x = 0.f;
+            float       y = 0.f;
+            float       w = 0.f;
+            float       h = 0.f;
+            color_t     color = color_t{0};
+        };
+
+        struct draw_text {
+            draw_text() = default;
+
+            float       x = 0.f;
+            float       y = 0.f;
+            float       w = 0.f;
+            float       h = 0.f;
+            color_t     color = color_t{0};
+            uint32_t    align = 0;
+            size_t      pt_size = 0;
+            uint32_t    font = static_cast<uint32_t>(-1);
+            std::string text;
+        };
+    } // namespace draw_commands
+
+    typedef std::variant<draw_commands::draw_line, draw_commands::draw_rect, draw_commands::draw_text> draw_command_t;
 } // namespace ui

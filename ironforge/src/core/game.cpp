@@ -8,13 +8,11 @@
 
 #include <core/journal.hpp>
 #include <core/assets.hpp>
-#include <core/settings.hpp>
 #include <core/input.hpp>
 #include <core/game.hpp>
 #include <video/video.hpp>
 #include <renderer/renderer.hpp>
 #include <scene/scene.hpp>
-#include <scene/instance.hpp>
 #include <ui/ui.hpp>
 
 #include "game_detail.hpp"
@@ -25,7 +23,7 @@ using json = nlohmann::json;
 
 namespace game {
 
-    static auto process_events(instance_t &in) -> void {
+    static auto process_events(instance_t &app) -> void {
         //journal::debug(journal::_GAME, "%", __FUNCTION__);
 
         SDL_Event ev = {};
@@ -33,11 +31,11 @@ namespace game {
         while (SDL_PollEvent(&ev)) {
             if (ev.type == SDL_KEYDOWN)
                 if (ev.key.keysym.sym == SDLK_ESCAPE)
-                    in.running = false; // Exit when esc
+                    app.running = false; // Exit when esc
 
-            input::process_event(in, ev);
+            input::process_event(app, ev);
             //ui::process_event(in.uic, ev);
-            scene::process_event(in.current_scene(), ev);
+            scene::process_event(app.current_scene(), ev);
         }        
     }
 
@@ -49,18 +47,18 @@ namespace game {
         assets::cleanup(app.asset_instance);
     }
 
-    static auto update(instance_t &in, const float dt) -> void {
-        assets::process(in.asset_instance);
-        scene::update(in.current_scene(), dt);
-        video::process(in.asset_instance, in.vi);
-        input::update(in);
+    static auto update(instance_t &app, const float dt) -> void {
+        input::update(app);
+        assets::process(app.asset_instance);
+        scene::update(app.current_scene(), dt);
+        video::process(app.asset_instance, app.vi);
     }
 
-    static auto present(instance_t &in, const float interpolation) -> void {
+    static auto present(instance_t &app, const float interpolation) -> void {
         using std::placeholders::_1;
         //ui::present(in.uic, std::bind(&renderer::instance::dispath, in.render.get(), _1));
         //scene::present(current_scene(), inst.render, interpolation);
-        scene::present(in.vi, in.current_scene(), in.render, interpolation);
+        scene::present(app.vi, app.current_scene(), app.render, interpolation);
     }
 
     auto quit() -> void {
@@ -186,7 +184,7 @@ namespace game {
         app.delta_accumulator = 0.0f;
 
         while (app.running) {
-            game::process_events(app);
+            process_events(app);
 
             app.last_time = app.current_time;
             app.current_time = SDL_GetPerformanceCounter();
@@ -196,18 +194,18 @@ namespace game {
 
             app.delta_accumulator += glm::clamp(dt, 0.f, 0.2f);
 
-            while (app.delta_accumulator >= game::timestep) {
-                app.delta_accumulator -= game::timestep;
+            while (app.delta_accumulator >= timestep) {
+                app.delta_accumulator -= timestep;
 
-                game::update(app, game::timestep);
+                update(app, timestep);
 
                 app.timesteps++;
             }
 
-            game::present(app, app.delta_accumulator / timestep);
+            present(app, app.delta_accumulator / timestep);
         }
 
-        game::cleanup_all(app);
+        cleanup_all(app);
 
         /*if (loader.joinable())
             loader.join();*/

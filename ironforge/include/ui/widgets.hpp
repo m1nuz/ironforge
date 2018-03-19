@@ -53,7 +53,7 @@ namespace ui {
         //float                   r;
         float                   border_width;
         uint32_t                align;
-        video::font_t           *font = nullptr;
+        uint32_t                font;
         size_t                  text_size;
         const char              *text;
         uint32_t                text_color;

@@ -5,6 +5,7 @@
 #include <video/video.hpp>
 #include <video/vertices.hpp>
 #include <ui/command.hpp>
+#include <ui/imgui.hpp>
 #include <renderer/phong_model.hpp>
 
 #include <json.hpp>
@@ -36,7 +37,7 @@ namespace renderer {
         virtual auto reset() -> void = 0;
         virtual auto present(video::instance_t &in, const glm::mat4 &proj, const glm::mat4 &view) -> void = 0;
 
-        virtual auto dispath(const ui::command &c) -> void = 0;
+        virtual auto dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void = 0;
 
         virtual ~instance() = default;
     };

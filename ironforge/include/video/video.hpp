@@ -140,7 +140,9 @@ namespace video {
         int32_t                                         max_supported_anisotropy = 0;
         int32_t                                         max_uniform_components = 0;
 
-        std::unordered_map<std::string, font_t>         fonts;
+        std::unordered_map<std::string, size_t>         fonts_mapping;
+        std::vector<font_t>                             fonts;
+
         std::unordered_map<std::string, texture>        textures;
         std::unordered_map<std::string, program>        programs;
         std::unordered_map<std::string, mesh>           meshes;
@@ -200,7 +202,8 @@ namespace video {
 
     auto get_texture(instance_t &vi, const std::string &name) -> texture;
     auto get_heightmap(const std::string &name) -> heightmap_t;
-    auto get_shader(instance_t &vi, const std::string &name) -> program;    
+    auto get_shader(instance_t &vi, const std::string &name) -> program;
+    auto get_font(instance_t &vi, const std::string &name) -> uint32_t;
 
     inline bool is_ok(const video_result &res) {
         return std::holds_alternative<instance_t>(res);

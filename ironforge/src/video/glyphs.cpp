@@ -7,18 +7,18 @@
 #include <video/glyphs.hpp>
 
 namespace video {
-    static auto append_font(assets::instance_t &asset, std::unordered_map<std::string, font_t> &fonts, const font_info &info, atlas &_atlas) -> bool {
+    static auto make_font(assets::instance_t &asset, const font_info &info, atlas &_atlas) -> std::optional<font_t> {
         const SDL_Color White = {255, 255, 255, 255};
         auto fb = assets::get_binary(asset, info.filename);
 
         if (!fb)
-            return false;
+            return {};
 
         auto rw = SDL_RWFromConstMem(&fb.value()[0], fb.value().size());
 
         auto font = TTF_OpenFontRW(rw, SDL_TRUE, info.size);
         if (!font)
-            return false;
+            return {};
 
         const auto count = info.cache.size(); // TODO: make support utf8
 
@@ -45,26 +45,33 @@ namespace video {
             }
         }
 
-        fonts.insert({info.fontname, {TTF_FontHeight(font), TTF_FontLineSkip(font), glyph_rects}});
-
-        return true;
+        return font_t{TTF_FontHeight(font), TTF_FontLineSkip(font), glyph_rects};
     }
 
     auto build_fonts(instance_t &vi, assets::instance_t &asset, const std::vector<font_info> &fonts_info, atlas &_atlas) -> bool {
         if (fonts_info.empty())
             return false;
 
-        std::unordered_map<std::string, font_t> fonts;
+        std::unordered_map<std::string, size_t> fonts_map;
+        std::vector<font_t> fonts;
+        fonts_map.reserve(fonts_info.size());
         fonts.reserve(fonts_info.size());
 
-        for (const auto &f : fonts_info) {
-            append_font(asset, fonts, f, _atlas);
+        for (const auto &fi : fonts_info) {
+            const auto f = make_font(asset, fi, _atlas);
+
+            if (f)
+            {
+                fonts_map.emplace(fi.fontname, fonts.size());
+                fonts.push_back(f.value());
+            }
         }
 
-        if (fonts.empty())
+        if (fonts_map.empty())
             return false;
 
         vi.fonts = fonts;
+        vi.fonts_mapping = fonts_map;
 
         return true;
     }
@@ -78,15 +85,15 @@ namespace video {
 
     auto get_text_length(const font_t &font, std::string_view text) -> std::tuple<float, float> {
         const int adv_y = font.lineskip;
-        const float spt = 2.f / video::screen.width;
+        const float spt = 1.f / video::screen.height;
+        const auto correction = video::screen.aspect;
 
         float px = 0, py = 0;
 
-        for (size_t i = 0; i < text.size(); i++) {
-            auto ch = text[i];
+        for (const auto ch : text) {
             if (ch == '\n') {
                 px = 0;
-                py += spt * adv_y * video::screen.aspect;
+                py += spt * adv_y * correction;
                 continue;
             }
 

@@ -49,8 +49,9 @@ namespace renderer {
             UNUSED(cubemap), UNUSED(flags);
         }
 
-        virtual auto dispath(const ui::command &c) -> void {
-            UNUSED(c);
+
+        auto dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void {
+            UNUSED(vi), UNUSED(c);
         }
 
         virtual auto reset() -> void {

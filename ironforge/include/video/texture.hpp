@@ -51,6 +51,10 @@ namespace video {
             texture() = default;
             uint32_t        id = 0;
             uint32_t        target = 0;
+
+            uint32_t        width = 0;
+            uint32_t        height = 0;
+            uint32_t        depth = 0;
         };
 
         inline bool operator==(const texture& lhs, const texture& rhs) {

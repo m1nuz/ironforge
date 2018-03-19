@@ -8,8 +8,11 @@
 
 #include <GL/ext_texture_filter_anisotropic.h>
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
 namespace renderer {
-    forward_renderer::forward_renderer(video::instance_t &vi, const json &info) {
+    forward_renderer::forward_renderer(video::instance_t &vi, const json &info) : aspect_ratio{vi.aspect_ratio} {
         game::journal::debug(game::journal::_RENDER, "% % with % %", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
         emission_shader = video::get_shader(vi, "emission-shader");
@@ -90,15 +93,16 @@ namespace renderer {
         skybox_cube = video::make_vertices_source(vi, {cube_vi.data}, cube_vi.desc, cube_vd);
         skybox_draw = cube_vd[0];
 
+        glyphs_map = video::get_texture(vi, "glyphs-map");
+
         sprite_batch_info sb_info;
         sb_info.max_sprites = 1000;
-        sb_info.tex = video::get_texture(vi, "white-map");
-        sb_info.tex = video::get_texture(vi, "glyphs-map");
+        sb_info.tex = glyphs_map;
         sprites = video::create_sprite_batch(vi, sb_info);
 
         triangles_batch_info tb_info;
         tb_info.max_triangles = 1000;
-        tb_info.tex = video::get_texture(vi, "glyphs-map");
+        tb_info.tex = glyphs_map;
 
         triangles = video::create_triangles_batch(vi, tb_info);
 
@@ -159,78 +163,23 @@ namespace renderer {
         skybox_map = cubemap;
     }
 
-    /*auto forward_renderer::append(const video::font_t &font, const std::string &text, const glm::vec2 &pos, const glm::vec4 &color) -> void {
-        using namespace glm;
+    auto forward_renderer::dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void {
+        using namespace imgui;
 
-        const auto tw = 512.f;
-        const auto th = 512.f;
-
-        const int adv_y = font.lineskip;
-        const int fh = font.size;
-        const float spt = 2.f / video::screen.width;
-
-        vec2 p = pos;
-
-        for (const auto &c : text) {
-            if (c == '\n') {
-                p[0] = pos[0];
-                p[1] -= spt * adv_y * video::screen.aspect;
-                continue;
-            }
-
-            auto glyph = video::glyph_cache_find(c, font);
-            if (glyph.ch == 0)
-            {
-                game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
-                continue;
-            }
-
-            vec2 size = {glyph.advance * spt, fh * spt};
-            vec4 offset;
-            offset[0] = (float)glyph.rc.x / tw;
-            offset[1] = (float)glyph.rc.y / th;
-            offset[2] = (float)glyph.rc.w / tw;
-            offset[3] = (float)glyph.rc.h / th;
-
-            //video::append_sprite(sprites, vec3{p, 0}, size, offset, color);
-
-            const float correction = video::screen.aspect;
-
-            const video::v3t2c4 vertices[6] = {
-                {{p[0], p[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0] + size[0], p[1] + size[1] * correction, 0}, {offset[0] + offset[2], offset[1]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0] + size[0], p[1], 0}, {offset[0] + offset[2], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0] + size[0], p[1], 0}, {offset[0] + offset[2], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0], p[1], 0}, {offset[0], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0], p[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
-            };
-
-            video::append_triangles_vertices(triangles, vertices, 6);
-
-            p[0] += glyph.advance * spt;
-        }
-    }*/
-
-    auto forward_renderer::dispath(const ui::command &c) -> void {
-        using namespace ui;
-
-        switch (c.type) {
-        case command_type::line:
-            draw_line(c.line);
-            break;
-        case command_type::rect:
-            draw_rect(c.rect);
-            break;
-        case command_type::rounded_rect:
-            draw_roundrect(c.roundrect);
-            break;
-        case command_type::text:
-            draw_text(c.text);
-            break;
-        case command_type::icon:
-            draw_icon(c.icon);
-            break;
-        }
+        std::visit(overloaded {
+                       [this](const ui::draw_commands::draw_line &line) {
+                           draw_line(line.x0, line.y0, line.x1, line.y1, line.w, line.color);
+                       },
+                       [this](const ui::draw_commands::draw_rect &rect) {
+                           draw_rect(rect.x, rect.y, rect.w, rect.h, rect.color);
+                       },
+                       [this, vi](const ui::draw_commands::draw_text &text) {
+                           if (text.font < vi.fonts.size()) {
+                               const auto &font = vi.fonts[text.font];
+                               draw_text(font, text.x, text.y, text.w, text.h, text.text, text.align, text.color);
+                           }
+                       }
+                   }, c);
     }
 
     auto forward_renderer::reset() -> void {
@@ -472,65 +421,70 @@ namespace renderer {
 
     inline auto color_to_vec4(const uint32_t color) -> glm::vec4 {
         constexpr auto max_component = 255.0f;
-        float x = static_cast<float>((color & 0xff000000) >> 24) / max_component;
-        float y = static_cast<float>((color & 0x00ff0000) >> 16) / max_component;
-        float z = static_cast<float>((color & 0x0000ff00) >> 8) / max_component;
-        float w = static_cast<float>(color & 0x000000ff) / max_component;
+        const float x = static_cast<float>((color & 0xff000000) >> 24) / max_component;
+        const float y = static_cast<float>((color & 0x00ff0000) >> 16) / max_component;
+        const float z = static_cast<float>((color & 0x0000ff00) >> 8) / max_component;
+        const float w = static_cast<float>(color & 0x000000ff) / max_component;
 
-        return glm::vec4(x, y, z, w);
+        return {x, y, z, w};
     }
 
-    auto forward_renderer::draw_text(const ui::draw_text_command &c) -> void {
+    auto forward_renderer::draw_text(const video::font_t &font, float _x, float _y, float _w, float _h, const std::string &text, uint32_t _align, uint32_t _color) -> void {
         using namespace glm;
         using namespace game;
 
-        if (!c.font) {
-            journal::error(journal::_VIDEO, "%", "Empty font");
-            return;
+        const auto tw = static_cast<float>(glyphs_map.width);
+        const auto th = static_cast<float>(glyphs_map.height);
+
+        //const float screen_pt_x = 1.f / video::screen.width;
+        const float screen_pt_y = 1.f / video::screen.height;
+        const int adv_y = font.lineskip;
+        const float fh = font.size * screen_pt_y;
+        const auto correction = aspect_ratio;
+        const auto color = color_to_vec4(_color);
+
+        const auto x = _x * 2.f;
+        const auto w = _w * 2.f;
+        const auto y = _y * 2.f;
+        const auto h = _h * 2.f;
+
+
+        auto p = vec2{x, y};
+
+        (void)font, (void)_align, (void)_w, (void)_h, (void)_x, (void)_y, (void)text;
+
+        if (_align != 0) {
+            auto [bsw, bsh] = video::get_text_length(font, text);
+
+            if (_align & ui::align_horizontal_right)
+                 p.x += w - bsw;
+            else if (_align & ui::align_horizontal_center)
+                p.x += w * 0.5f - bsw * 0.5f;
+            else
+                p.x += 0.f;
+
+            if (_align & ui::align_vertical_top)
+                p.y += h - bsh;
+            else if (_align & ui::align_vertical_center)
+                p.y += h * 0.5f - bsh * 0.5f;
+            else
+                p.y += 0.f;
         }
 
-        // FIXME: use real texture size
-        const auto tw = 1024.f;
-        const auto th = 1024.f;
-
-        const int adv_y = c.font->lineskip;
-        const int fh = c.font->size;
-        const float spt = 2.f / video::screen.width;
-        const float correction = video::screen.aspect;
-        const auto color = color_to_vec4(c.color);
-
-        auto [bsx, bsy] = video::get_text_length(*c.font, c.text);
-        vec2 p = vec2(c.x, c.y);
-
-        if (c.align & ui::align_horizontal_right)
-             p.x += c.w * 2.f - bsx * 2.f;
-        else if (c.align & ui::align_horizontal_center)
-            p.x += c.w - bsx * 0.5;
-        else
-            p.x += 0;
-
-        if (c.align & ui::align_vertical_top)
-            p.y += c.h * 2.f - bsy;
-        else if (c.align & ui::align_vertical_center)
-            p.y += c.h - bsy * 0.5;
-        else
-            p.y += 0;
-
-        for (size_t i = 0; i < c.size; i++) {
-            auto ch = c.text[i];
+        for (const auto ch : text) {
             if (ch == '\n') {
-                p[0] = c.x;
-                p[1] -= spt * adv_y * video::screen.aspect;
+                p.x = x;
+                p.y -= screen_pt_y * adv_y * correction;
                 continue;
             }
 
-            auto glyph = video::get_glyph_rect(*c.font, ch);
+            const auto glyph = video::get_glyph_rect(font, ch);
             if (!glyph) {
                 game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
                 continue;
             }
 
-            vec2 size = {glyph.value().advance * spt, fh * spt};
+            vec2 size = {glyph.value().advance * screen_pt_y, fh * correction};
             vec4 offset;
             offset[0] = (float)glyph.value().x / tw;
             offset[1] = (float)glyph.value().y / th;
@@ -538,37 +492,37 @@ namespace renderer {
             offset[3] = (float)glyph.value().h / th;
 
             const video::v3t2c4 vertices[6] = {
-                {{p[0], p[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0] + size[0], p[1] + size[1] * correction, 0}, {offset[0] + offset[2], offset[1]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0] + size[0], p[1], 0}, {offset[0] + offset[2], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0] + size[0], p[1], 0}, {offset[0] + offset[2], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0], p[1], 0}, {offset[0], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
-                {{p[0], p[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
+                {{p.x         , p.y + size.y, 0}, {offset[0]            , offset[1]}            , color},
+                {{p.x + size.x, p.y + size.y, 0}, {offset[0] + offset[2], offset[1]}            , color},
+                {{p.x + size.x, p.y,          0}, {offset[0] + offset[2], offset[1] + offset[3]}, color},
+                {{p.x + size.x, p.y,          0}, {offset[0] + offset[2], offset[1] + offset[3]}, color},
+                {{p.x         , p.y,          0}, {offset[0]            , offset[1] + offset[3]}, color},
+                {{p.x         , p.y + size.y, 0}, {offset[0]            , offset[1]}            , color},
             };
 
             video::append_triangles_vertices(triangles, vertices, 6);
 
-            p[0] += glyph.value().advance * spt;
+            p.x += glyph.value().advance * screen_pt_y;
         }
     }
 
-    auto forward_renderer::draw_line(const ui::draw_line_command &c) -> void {
+    auto forward_renderer::draw_line(float _x0, float _y0, float _x1, float _y1, float _w, uint32_t _color) -> void {
         using namespace glm;
 
-        const auto color = color_to_vec4(c.color);
+        const auto color = color_to_vec4(_color);
 
-        const auto p = normalize(vec2{c.x1 - c.x0, c.y1 - c.y0});
-        const auto n = normalize(vec2{c.y1 - c.y0, -(c.x1 - c.x0)});
-        const auto e = vec2{c.w * n.x, c.w * n.y * video::screen.aspect};
-        const auto z = vec2{c.w * p.x, c.w * p.y * video::screen.aspect};
+        const auto p = normalize(vec2{_x1 - _x0, _y1 - _y0});
+        const auto n = normalize(vec2{_y1 - _y0, -(_x1 - _x0)});
+        const auto e = vec2{_w * n.x, _w * n.y * aspect_ratio};
+        const auto z = vec2{_w * p.x, _w * p.y * aspect_ratio};
 
-        const auto coords = vec4{0.f, 0, 63.f / 512.f, 63.f / 512.f};
+        const auto coords = vec4{0.f, 0, 63.f / static_cast<float>(glyphs_map.width), 63.f / static_cast<float>(glyphs_map.height)};
         const auto offset = vec2{1.f / 64.f, 1.f / 64.f};
 
-        const auto x0 = c.x0 * 2.f;
-        const auto x1 = c.x1 * 2.f;
-        const auto y0 = c.y0 * 2.f/* video::screen.aspect*/;
-        const auto y1 = c.y1 * 2.f/* video::screen.aspect*/;
+        const auto x0 = _x0 * 2.f;
+        const auto x1 = _x1 * 2.f;
+        const auto y0 = _y0 * 2.f;
+        const auto y1 = _y1 * 2.f;
 
         const video::v3t2c4 vertices[6] = {
             {{x0 - e.x - z.x, y0 - e.y - z.y, 0.f}, {coords.x            + offset.x, coords.y            + offset.y}, color}, // 0
@@ -582,16 +536,16 @@ namespace renderer {
         video::append_triangles_vertices(triangles, vertices, 6);
     }
 
-    auto forward_renderer::draw_rect(const ui::draw_rect_command &c) -> void {
+    auto forward_renderer::draw_rect(const float _x, const float _y, const float _w, const float _h, const uint32_t _color) -> void {
         using namespace glm;
 
-        const auto color = color_to_vec4(c. color);
-        const auto x = c.x * 2;
-        const auto w = c.w * 2;
-        const auto y = c.y * 2;
-        const auto h = c.h * 2/* video::screen.aspect*/;
+        const auto color = color_to_vec4(_color);
+        const auto x = _x * 2.f;
+        const auto w = _w * 2.f;
+        const auto y = _y * 2.f;
+        const auto h = _h * 2.f;
 
-        const auto coords = vec4{0.f, 0, 63.f / 512.f, 63.f / 512.f};
+        const auto coords = vec4{0.f, 0, 63.f / static_cast<float>(glyphs_map.width), 63.f / static_cast<float>(glyphs_map.height)};
         const auto offset = vec2{1.f / 64.f, 1.f / 64.f};
 
         const video::v3t2c4 vertices[6] = {
@@ -604,13 +558,5 @@ namespace renderer {
         };
 
         video::append_triangles_vertices(triangles, vertices, 6);
-    }
-
-    auto forward_renderer::draw_roundrect(const ui::draw_round_rect_command &c) -> void {
-        (void)c;
-    }
-
-    auto forward_renderer::draw_icon(const ui::draw_icon_command &c) -> void {
-        (void)c;
     }
 } // namespace renderer

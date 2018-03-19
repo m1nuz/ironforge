@@ -39,16 +39,16 @@ namespace renderer {
         virtual auto append(const glm::mat4 &model) -> void;
         virtual auto append(const video::texture &cubemap, uint32_t flags) -> void;
 
-        virtual auto dispath(const ui::command &c) -> void;
+        virtual auto dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void override;
 
         virtual auto reset() -> void;
         virtual auto present(video::instance_t &vi, const glm::mat4 &proj, const glm::mat4 &view) -> void;
 
-        auto draw_text(const ui::draw_text_command &c) -> void;
-        auto draw_line(const ui::draw_line_command &c) -> void;
-        auto draw_rect(const ui::draw_rect_command &c) -> void;
-        auto draw_roundrect(const ui::draw_round_rect_command &c) -> void;
-        auto draw_icon(const ui::draw_icon_command &c) -> void;
+        auto draw_text(const video::font_t &font, float _x, float _y, float _w, float _h, const std::string &text, uint32_t _align, uint32_t _color) -> void;
+        auto draw_line(float _x0, float _y0, float _x1, float _y1, float _w, uint32_t _color) -> void;
+        auto draw_rect(const float _x, const float _y, const float _w, const float _h, const uint32_t _color) -> void;
+
+        float                                   aspect_ratio;
 
         std::vector<video::vertices_source>     sources;
         std::vector<video::vertices_draw>       draws; // TODO: use raw_draw
@@ -73,6 +73,7 @@ namespace renderer {
         video::gl::renderbuffer                 blur_depth;
 
         video::texture                          skybox_map;
+        video::texture                          glyphs_map;
 
         video::gl::framebuffer                  sample_framebuffer;
         video::gl::framebuffer                  color_framebuffer;

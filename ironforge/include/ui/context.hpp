@@ -1,13 +1,11 @@
 #pragma once
 
-#include <queue>
-#include <list>
+#include <vector>
 #include <ui/command.hpp>
 #include <ui/widgets.hpp>
 
 namespace ui {
     struct context {
-        std::list<command> commands;
-        //std::priority_queue<command> commands;
+        std::vector<draw_command_t> commands;
     };
 } // namespace ui

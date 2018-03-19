@@ -80,27 +80,23 @@ namespace scene {
             }
         });
 
-        ui::command dt;
-        dt.level = 0;
-        dt.type = ui::command_type::text;
-        dt.text.align = 0;
-        dt.text.w = video::screen.width;
-        dt.text.h = video::screen.height;
-        dt.text.color = 0x1a1a1aff;
-        dt.text.font = vi.fonts.find("roboto") == vi.fonts.end() ? nullptr : &vi.fonts["roboto"];
-        dt.text.x = -0.98;
-        dt.text.y = 0.92;
-        dt.text.text = vi.stats_info.info;
-        dt.text.size = vi.stats_info.info_size;
+        ui::draw_commands::draw_text dt;
+        dt.align = 0;//ui::align_horizontal_left/* | ui::align_vertical_center*/;
+        dt.w = 0.0f;//video::screen.width;
+        dt.h = 0.f;//video::screen.height;
+        dt.color = 0x1a1a1aff;
+        dt.font = video::get_font(vi, "roboto");
+        dt.x = -0.48;
+        dt.y = 0.42;
+        dt.text = vi.stats_info.info;
 
-        ui::command dt2 = dt;
-        dt2.text.y = 0.4;
-        dt2.text.text = video::video_stats.info;
-        dt2.text.size = video::video_stats.info_size;
+        ui::draw_commands::draw_text dt2 = dt;
+        dt2.y = 0.4;
+        dt2.text = video::video_stats.info;
 
         video::stats::begin(vi.stats_info);
-        render->dispath(dt);
-        render->dispath(dt2);
+        render->dispath(vi, dt);
+        render->dispath(vi, dt2);
         render->present(vi, sc.current_camera().projection, sc.current_camera().view);
         video::stats::end(vi.stats_info);
     }

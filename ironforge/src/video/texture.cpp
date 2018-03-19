@@ -31,7 +31,7 @@ namespace video {
 
             journal::debug(journal::_VIDEO, "Create 2d texture %", tex);
 
-            return {static_cast<uint32_t>(tex), GL_TEXTURE_2D};
+            return {static_cast<uint32_t>(tex), GL_TEXTURE_2D, info.width, info.height, 0};
         }
 
         auto create_texture_2d(const image_data &data, const uint32_t flags) -> texture {
@@ -64,7 +64,7 @@ namespace video {
 
             journal::debug(journal::_VIDEO, "Create cube texture %", tex);
 
-            return {static_cast<uint32_t>(tex), GL_TEXTURE_CUBE_MAP};
+            return {static_cast<uint32_t>(tex), GL_TEXTURE_CUBE_MAP, infos[0].width, infos[0].height, 6};
         }
 
         auto create_texture_cube(const image_data (&datas)[6], const uint32_t flags) -> texture {

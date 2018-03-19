@@ -36,6 +36,7 @@ namespace video {
 
         const int asz = 1024;
 
+        // White texture needs for ui drawing
         auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
         auto font_atlas = video::create_atlas(asz, asz, 1);
         /*auto rc = */video::insert_image(font_atlas, white_im);
@@ -573,5 +574,12 @@ namespace video {
         journal::error(journal::_VIDEO, "Shader % not found", name);
 
         return {};
+    }
+
+    auto get_font(instance_t &vi, const std::string &name) -> uint32_t {
+        if (auto it = vi.fonts_mapping.find(name); it != vi.fonts_mapping.end())
+            return it->second;
+
+        return static_cast<uint32_t>(-1);
     }
 } // namespace video

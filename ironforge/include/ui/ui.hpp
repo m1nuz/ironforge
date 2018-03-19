@@ -15,10 +15,10 @@ namespace ui {
     struct context;
     struct renderer;
 
-    auto create_context() -> std::unique_ptr<context>;
+    /*auto create_context() -> std::unique_ptr<context>;
 
-    auto append(std::unique_ptr<context> &ctx, const command &com) -> void;
+    auto append(std::unique_ptr<context> &ctx, const draw_command_t &com) -> void;
 
     auto process_event(context &ctx, const SDL_Event &event) -> void;
-    auto present(std::unique_ptr<context> &ctx, const video::instance_t &vi, const std::function<void (const command &c)> &dispath) -> void;
+    auto present(std::unique_ptr<context> &ctx, const video::instance_t &vi, const std::function<void (const command &c)> &dispath) -> void;*/
 } // namespace ui
