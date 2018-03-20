@@ -3,6 +3,9 @@
 
 Game engine
 
+## Task board ##
+[Engine development board](https://trello.com/b/Yzl4Byew/ironforge-engine-develop)
+
 ## Features ##
 * OpenGL 3.3 support
 * Forward rendering
