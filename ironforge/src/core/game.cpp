@@ -66,6 +66,11 @@ namespace game {
         exit(EXIT_SUCCESS);
     }
 
+    static auto setup_locale(const char *locale) -> void {
+        std::setlocale(LC_ALL, locale);
+        std::locale::global(std::locale(locale));
+    }
+
     auto create(std::string_view conf_path, const bool fullpath_only) -> game_result {
         using namespace std;
 
@@ -163,6 +168,9 @@ namespace game {
         const auto renderer_type = renderer_info.find("type") != renderer_info.end() ? renderer_info["type"].get<string>() : "null";
 
         ctx.render = renderer::create_renderer(renderer_type, ctx.vi, video_info);
+
+        //setup_locale("en_US.utf8");
+        setup_locale("");
 
         return std::move(ctx);
     }

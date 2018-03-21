@@ -4,6 +4,7 @@
 #include <video/screen.hpp>
 #include <core/journal.hpp>
 #include <core/settings.hpp>
+#include <utility/utf.hpp>
 #include "forward_renderer.hpp"
 
 #include <GL/ext_texture_filter_anisotropic.h>
@@ -451,8 +452,6 @@ namespace renderer {
 
         auto p = vec2{x, y};
 
-        (void)font, (void)_align, (void)_w, (void)_h, (void)_x, (void)_y, (void)text;
-
         if (_align != 0) {
             auto [bsw, bsh] = video::get_text_length(font, text);
 
@@ -471,7 +470,9 @@ namespace renderer {
                 p.y += 0.f;
         }
 
-        for (const auto ch : text) {
+        const auto unicode_text = utility::to_utf16(text);
+
+        for (const auto ch : unicode_text) {
             if (ch == '\n') {
                 p.x = x;
                 p.y -= screen_pt_y * adv_y * correction;
@@ -480,7 +481,7 @@ namespace renderer {
 
             const auto glyph = video::get_glyph_rect(font, ch);
             if (!glyph) {
-                game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
+                game::journal::warning(game::journal::_RENDER, "Glyph % not found", ch);
                 continue;
             }
 

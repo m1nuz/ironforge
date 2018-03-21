@@ -3,32 +3,30 @@
 #include <functional>
 #include <string>
 
-namespace game {
-    namespace utility {
+namespace utility {
 
-        using std::to_string;
+    using std::to_string;
 
-        constexpr inline const std::string& to_string(const std::string &s) {
-            return s;
-        }
+    constexpr inline const std::string& to_string(const std::string &s) {
+        return s;
+    }
 
-        inline auto format(std::string& message, const std::string& fmt) -> void {
-            message += fmt;
-        }
+    inline auto format(std::string& message, const std::string& fmt) -> void {
+        message += fmt;
+    }
 
-        template<typename Arg, typename... Args>
-        inline auto format(std::string& message, const std::string& fmt, Arg&& arg, Args&&... args) -> void {
-            for (auto it = fmt.begin(); it != fmt.end(); ++it) {
-                if (*it == '%') {
-                    message += to_string(std::forward<Arg>(arg));
-                    format(message, {std::next(it), fmt.end()}, std::forward<Args>(args)...);
+    template<typename Arg, typename... Args>
+    inline auto format(std::string& message, const std::string& fmt, Arg&& arg, Args&&... args) -> void {
+        for (auto it = fmt.begin(); it != fmt.end(); ++it) {
+            if (*it == '%') {
+                message += to_string(std::forward<Arg>(arg));
+                format(message, {std::next(it), fmt.end()}, std::forward<Args>(args)...);
 
-                    return;
-                }
-
-                message += *it;
+                return;
             }
-        }
 
-    } // namespace utility
-} // namespace game
+            message += *it;
+        }
+    }
+
+} // namespace utility

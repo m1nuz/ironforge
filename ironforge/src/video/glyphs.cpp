@@ -6,6 +6,8 @@
 #include <video/video.hpp>
 #include <video/glyphs.hpp>
 
+#include <utility/utf.hpp>
+
 namespace video {
     static auto make_font(assets::instance_t &asset, const font_info &info, atlas &_atlas) -> std::optional<font_t> {
         const SDL_Color White = {255, 255, 255, 255};
@@ -20,19 +22,19 @@ namespace video {
         if (!font)
             return {};
 
-        const auto count = info.cache.size(); // TODO: make support utf8
+        const auto charset = utility::to_utf16(info.cache);
 
         std::unordered_map<uint16_t, glyph_rect_t> glyph_rects;
-        glyph_rects.reserve(count);
+        glyph_rects.reserve(charset.size());
 
-        for (size_t i = 0; i < count; i++) {
-            char ch[2] = {info.cache[i], 0};
+        for (const auto c : charset) {
+            Uint16 ch[2] = {c, 0};
 
             int minx, maxx, miny, maxy, advance;
 
             if (TTF_GlyphMetrics(font, ch[0], &minx, &maxx, &miny, &maxy, &advance) != -1) {
-                //SDL_Surface *glyph = TTF_RenderUNICODE_Blended(font, (Uint16*)&ch[0], White);
-                SDL_Surface *glyph = TTF_RenderUTF8_Blended(font, ch, White);
+                SDL_Surface *glyph = TTF_RenderUNICODE_Blended(font, (Uint16*)&ch[0], White);
+                //SDL_Surface *glyph = TTF_RenderUTF8_Blended(font, ch, White);
 
                 SDL_Surface *rgba_glyph = SDL_ConvertSurfaceFormat(glyph, SDL_PIXELFORMAT_RGBA8888, 0);
 
@@ -90,16 +92,18 @@ namespace video {
 
         float px = 0, py = 0;
 
-        for (const auto ch : text) {
+        const auto unicode_text = utility::to_utf16(std::string{text});
+
+        for (const auto ch : unicode_text) {
             if (ch == '\n') {
                 px = 0;
                 py += spt * adv_y * correction;
                 continue;
             }
 
-            auto glyph = get_glyph_rect(font, static_cast<uint16_t>(ch));
+            auto glyph = get_glyph_rect(font, ch);
             if (!glyph) {
-                game::journal::warning(game::journal::_RENDER, "%", "Glyph not found");
+                game::journal::warning(game::journal::_RENDER, "Glyph % not found", ch);
                 continue;
             }
 

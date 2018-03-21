@@ -88,10 +88,10 @@ namespace editor {
         //imgui::widget::frame_begin(ui_context, 0.25f, 0.25f);
         imgui::widget::frame_begin(ui_context, 0.2f, 0.2f);
 
-        if (imgui::widget::button(ui_context, "Button1"))
+        if (imgui::widget::button(ui_context, "Button1 ❄"))
             game::journal::info(game::journal::_GAME, "%", "CLICK");
 
-        if (imgui::widget::button(ui_context, "Button2"))
+        if (imgui::widget::button(ui_context, "Button2 ❄"))
             game::journal::info(game::journal::_GAME, "%", "CLICK");
 
         imgui::widget::frame_end(ui_context);
