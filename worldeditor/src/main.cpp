@@ -84,17 +84,46 @@ namespace editor {
     }
 
     auto present(game::instance_t &app, const float interpolation) -> void {
+        using namespace game;
 
-        //imgui::widget::frame_begin(ui_context, 0.25f, 0.25f);
-        imgui::widget::frame_begin(ui_context, 0.2f, 0.2f);
+        static imgui::frame_state fs1;
+        fs1.width = 0.2f;
+        fs1.height = 0.2f;
+        fs1.flags |= imgui::frame_drag_flag | imgui::frame_header_flag;
 
-        if (imgui::widget::button(ui_context, "Button1 ❄"))
-            game::journal::info(game::journal::_GAME, "%", "CLICK");
+        imgui::widget::frame_begin(ui_context, &fs1);
 
-        if (imgui::widget::button(ui_context, "Button2 ❄"))
-            game::journal::info(game::journal::_GAME, "%", "CLICK");
+        if (imgui::widget::button(ui_context, "❄ Button1 ❄", "#button"))
+            journal::info(journal::_GAME, "%", "Click");
+
+        if (imgui::widget::button(ui_context, "❄ Button2 ❄", "#button"))
+            journal::info(journal::_GAME, "%", "CLICK");
+
+        static std::string text1;
+
+        if (imgui::widget::edit_box(ui_context, text1, "#button"))
+            journal::info(journal::_GAME, "%", "EDIT");
 
         imgui::widget::frame_end(ui_context);
+
+        /*using namespace imgui::chaning;
+
+        frame::show(ui_context)
+                .width(0.4)
+                .prepare()
+                .header("Window")
+                .btn()
+                .text("❄ Button1 ❄")
+                .background(0xff0000ff)
+                .on_click([] () { journal::info(journal::_GAME, "%", "Click 1"); })
+                .end()
+                .btn()
+                .text("❄ Button2 ❄")
+                .background(0xff0000ff)
+                .on_click([] () { journal::info(journal::_GAME, "%", "Click 2"); })
+                .end()
+                .complite();*/
+
         //imgui::widget::frame_end(ui_context);
 
         imgui::present(ui_context);
