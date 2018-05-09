@@ -7,10 +7,7 @@ namespace renderer {
     auto create_renderer(std::string_view type, video::instance_t &vi, const json &info) -> std::unique_ptr<instance> {
         using namespace game;
 
-        if (type.empty())
-            return std::make_unique<null_instance>();
-
-        if (type == "null")
+        if (type.empty() || type == "null")
             return std::make_unique<null_instance>();
 
         if (type == "forward")

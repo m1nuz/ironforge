@@ -35,6 +35,8 @@ namespace assets {
         rs.text_readers.emplace(".lua", read_text);
         rs.text_readers.emplace(".scene", read_text);
         rs.text_readers.emplace(".txt", read_text);
+        rs.text_readers.emplace(".ui", read_text);
+        rs.text_readers.emplace(".theme", read_text);
         rs.image_readers.emplace(".tga", read_targa);
         rs.binary_readers.emplace(".ttf", read_binary);
 

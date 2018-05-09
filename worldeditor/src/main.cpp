@@ -9,7 +9,7 @@
 
 #include <SDL2/SDL.h>
 
-#include <ui/imgui.hpp>
+#include <ui/imui.hpp>
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
@@ -27,7 +27,7 @@ namespace editor {
 
     using editor_state = std::variant<play_state, pause_state>;
 
-    imgui::context_t ui_context;
+    imui::context_t ui_context;
 
     editor_state current_state = pause_state{};
 
@@ -45,7 +45,7 @@ namespace editor {
                                        current_state = play_state{};
                                }
 
-                               imgui::handle_input(ui_context, ev);
+                               imui::handle_input(ui_context, ev);
 
                                //journal::debug(journal::_GAME, "% % %", ui_context.mouse_x, ui_context.mouse_y, ui_context.all_keys);
                            },
@@ -86,47 +86,52 @@ namespace editor {
     auto present(game::instance_t &app, const float interpolation) -> void {
         using namespace game;
 
-        static imgui::frame_state fs1;
+        static imui::frame_state_t fs1;
+        fs1.y = -0.3;
         fs1.width = 0.2f;
-        fs1.height = 0.2f;
-        fs1.flags |= imgui::frame_drag_flag | imgui::frame_header_flag;
+        fs1.height = 0.4f;
+        fs1.flags |= imui::frame_drag_flag | imui::frame_header_flag;
 
-        imgui::widget::frame_begin(ui_context, &fs1);
+        imui::widget::frame_begin(ui_context, &fs1, "#frame_header");
 
-        if (imgui::widget::button(ui_context, "❄ Button1 ❄", "#button"))
+        if (imui::widget::button(ui_context, "❄ Button1 ❄", "#button"))
             journal::info(journal::_GAME, "%", "Click");
 
-        if (imgui::widget::button(ui_context, "❄ Button2 ❄", "#button"))
+        if (imui::widget::button(ui_context, "❄ Button2 ❄", "#button"))
             journal::info(journal::_GAME, "%", "CLICK");
 
         static std::string text1;
+        static std::string text2;
 
-        if (imgui::widget::edit_box(ui_context, text1, "#button"))
+        if (imui::widget::edit_box(ui_context, text1, "#button"))
             journal::info(journal::_GAME, "%", "EDIT");
 
-        imgui::widget::frame_end(ui_context);
+        if (imui::widget::edit_box(ui_context, text2, "#button"))
+            journal::info(journal::_GAME, "%", "EDIT");
 
-        /*using namespace imgui::chaning;
+        const int max_value = 5;
+        static int value1 = 0;
 
-        frame::show(ui_context)
-                .width(0.4)
-                .prepare()
-                .header("Window")
-                .btn()
-                .text("❄ Button1 ❄")
-                .background(0xff0000ff)
-                .on_click([] () { journal::info(journal::_GAME, "%", "Click 1"); })
-                .end()
-                .btn()
-                .text("❄ Button2 ❄")
-                .background(0xff0000ff)
-                .on_click([] () { journal::info(journal::_GAME, "%", "Click 2"); })
-                .end()
-                .complite();*/
+        std::string value_text1;
+        utility::format(value_text1, "Value: %", value1);
 
-        //imgui::widget::frame_end(ui_context);
+        if (imui::widget::slider(ui_context, value1, max_value, value_text1, "#button"))
+            journal::info(journal::_GAME, "VALUE %", value1);
 
-        imgui::present(ui_context);
+        if (imui::widget::progress_bar(ui_context, value1, max_value, "", "#progress"))
+            journal::info(journal::_GAME, "PROGRESS %", value1);
+
+        static size_t list1_pos = 0;
+        static size_t value_pos = 0;
+        value_pos = value1;
+        static std::vector<std::string> list1{"item 1", "item 2", "item 3", "item 4", "item 5"};
+
+        if (imui::widget::list_box(ui_context, list1, 3, list1_pos, value_pos, "#button"))
+            ;
+
+        imui::widget::frame_end(ui_context, "#frame");
+
+        imui::present(ui_context);
         scene::present(app.vi, app.current_scene(), app.render, interpolation);
     }
 
@@ -136,14 +141,18 @@ namespace editor {
         app.timesteps = 0ull;
         app.delta_accumulator = 0.0f;
 
-        auto ui_ctx = imgui::create(app.vi);
-        if (!ui_ctx)
-            return EXIT_FAILURE;
-
-        ui_context = ui_ctx.value();
+        ui_context = app.imui;
 
         using std::placeholders::_1;
         ui_context.dispather = std::bind(&renderer::instance::dispath, app.render.get(), app.vi, _1);
+        ui_context.get_text_lenght = [&app] (const uint32_t font, const std::string &text) {
+            if (app.vi.fonts.size() < font)
+                return std::make_tuple<float, float>(0.f, 0.f);
+
+            const auto &f = app.vi.fonts[font];
+
+            return video::get_text_length(f, text);
+        };
 
         while (app.running) {
             process_events(app);

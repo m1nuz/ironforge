@@ -4,7 +4,6 @@
 #include <string>
 #include <variant>
 
-
 namespace ui {
     typedef uint32_t color_t;
 

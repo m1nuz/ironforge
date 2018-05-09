@@ -45,6 +45,7 @@ namespace game {
         std::unique_ptr<renderer::instance>             render;
         video::instance_t                               vi;
         ui::context                                     uic;
+        imui::context_t                                imui;
         assets::instance_t                              asset_instance;
         uint64_t                                        current_time = 0ull;
         uint64_t                                        last_time = 0ull;

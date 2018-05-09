@@ -5,7 +5,7 @@
 #include <video/video.hpp>
 #include <video/vertices.hpp>
 #include <ui/command.hpp>
-#include <ui/imgui.hpp>
+#include <ui/imui.hpp>
 #include <renderer/phong_model.hpp>
 
 #include <json.hpp>
