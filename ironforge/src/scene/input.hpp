@@ -6,7 +6,7 @@
 #include <memory>
 #include <optional>
 
-#include <json.hpp>
+#include <core/json.hpp>
 
 #include <SDL2/SDL_events.h>
 
@@ -35,8 +35,6 @@ namespace scene {
         input_source    *source;
         std::vector<input_action> actions;
     };
-
-    using json = nlohmann::json;
 
     [[nodiscard]] auto create_input(const int32_t entity, const json &info, const std::unordered_map<std::string, std::vector<input_action>> &sources) -> std::optional<input_instance>;
 

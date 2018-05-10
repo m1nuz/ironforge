@@ -2,13 +2,12 @@
 
 #include <vector>
 #include <string>
-#include <core/common.hpp>
-#include <video/video.hpp>
-#include <renderer/renderer.hpp>
-
 #include <optional>
 
-#include <json.hpp>
+#include <core/common.hpp>
+#include <core/json.hpp>
+#include <video/video.hpp>
+#include <renderer/renderer.hpp>
 
 namespace assets {
     struct instance_type;
@@ -27,6 +26,5 @@ namespace scene {
         uint64_t name_hash = 0;
     };
 
-    using json = nlohmann::json;
     auto create_material(video::instance_t &vi, const json &info) -> std::optional<material_instance>;
 } // namespace scene

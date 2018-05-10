@@ -2,15 +2,12 @@
 
 #include <vector>
 
+#include <core/json.hpp>
 #include <video/video.hpp>
 #include <video/atlas.hpp>
 #include <video/sprite_batch.hpp>
 #include <video/triangles_batch.hpp>
 #include <renderer/renderer.hpp>
-
-#include <json.hpp>
-
-using json = nlohmann::json;
 
 namespace renderer {
     // limits

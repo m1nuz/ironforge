@@ -5,12 +5,12 @@
 namespace physics {
     using body_instance = scene::body_instance;
 
-    inline auto integrate(body_state &state, float dt) -> void {
+    inline auto integrate(body_state &state, const float dt) -> void {
         state.position += state.velocity * dt;
         state.orientation += state.rotation * dt;
     }
 
-    inline auto interpolate(body_state &state, const body_state &previous, const body_state &current, float alpha) -> void {
+    inline auto interpolate(body_state &state, const body_state &previous, const body_state &current, const float alpha) -> void {
         using namespace glm;
         state.position = mix(previous.position, current.position, alpha);
         state.orientation = mix(previous.orientation, current.orientation, alpha); // TODO: wrong!

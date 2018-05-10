@@ -1,16 +1,14 @@
 #pragma once
 
 #include <memory>
+
 #include <core/common.hpp>
+#include <core/json.hpp>
 #include <video/video.hpp>
 #include <video/vertices.hpp>
+#include <renderer/phong_model.hpp>
 #include <ui/command.hpp>
 #include <ui/imui.hpp>
-#include <renderer/phong_model.hpp>
-
-#include <json.hpp>
-
-using json = nlohmann::json;
 
 namespace assets {
     struct instance_type;

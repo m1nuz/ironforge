@@ -20,7 +20,6 @@
 // TODO: handle memory alloc/free
 
 namespace assets {
-    using asset_result = std::variant<std::string, std::error_code>;
     using instance_result = std::variant<instance_t, std::error_code>;
 
     struct instance_type;
@@ -37,6 +36,7 @@ namespace assets {
     using binary_responce = std::function<void (const std::optional<binary_data_t> res)>;
     using text_responce = std::function<void (const std::optional<text_data_t> res)>;
     using image_responce = std::function<void (const std::optional<image_data_t> res)>;
+
     ///
     /// \brief The readers struct
     ///
@@ -52,8 +52,8 @@ namespace assets {
         std::vector<text_responce> responces;
     };
 
-    struct binart_info {
-        binart_info() = default;
+    struct binary_info {
+        binary_info() = default;
         utility::copyable_atomic<bool> ready = false;
         std::vector<binary_responce> responces;
     };
@@ -120,33 +120,12 @@ namespace assets {
     auto process(instance_t &inst) -> void;
     auto cleanup(instance_t &inst) -> void;
 
-    auto get_text(instance_t &inst, std::string_view name) -> std::optional<text_data_t>;
-    auto get_image(instance_t &inst, std::string_view name) -> std::optional<image_data_t>;
-    auto get_binary(instance_t &inst, std::string_view name) -> std::optional<binary_data_t>;
+    [[nodiscard]] auto get_config(std::string_view path) -> std::optional<std::string>;
+    [[nodiscard]] auto get_text(instance_t &inst, std::string_view name) -> std::optional<text_data_t>;
+    [[nodiscard]] auto get_image(instance_t &inst, std::string_view name) -> std::optional<image_data_t>;
+    [[nodiscard]] auto get_binary(instance_t &inst, std::string_view name) -> std::optional<binary_data_t>;
 
     auto get_text(instance_t &inst, std::string_view name, text_responce cb) -> void;
     auto get_image(instance_t &inst, std::string_view name, image_responce cb) -> void;
     auto get_binary(instance_t &inst, std::string_view name, binary_responce cb) -> void;
-
-    inline bool is_ok(const asset_result &res) {
-        return std::holds_alternative<std::string>(res);
-    }
-
-    inline auto readfile(const std::string &path) -> asset_result {
-        using namespace std;
-
-        ifstream fs(path, ios::in | ios::binary);
-
-        if (!fs.is_open())
-            return make_error_code(errc::bad_file_descriptor);
-
-        string contents;
-        fs.seekg(0, ios::end);
-        contents.resize(fs.tellg());
-        fs.seekg(0, ios::beg);
-        fs.read(&contents[0], contents.size());
-        fs.close();
-
-        return contents;
-    }
 } // namespace assets

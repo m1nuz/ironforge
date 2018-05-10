@@ -3,7 +3,7 @@
 #include <optional>
 
 #include <core/common.hpp>
-#include <json.hpp>
+#include <core/json.hpp>
 
 namespace scene {
     struct instance_type;
@@ -26,8 +26,6 @@ namespace scene {
         glm::mat4   projection = glm::mat4{1.f};
         glm::mat4   view = glm::mat4{1.f};
     };
-
-    using json = nlohmann::json;
 
     auto create_camera(const uint32_t entity, const json &info) -> std::optional<camera_instance>;
     auto present_all_cameras(instance_t& sc) -> void;

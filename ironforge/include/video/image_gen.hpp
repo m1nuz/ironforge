@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <core/common.hpp>
+#include <core/math.hpp>
 #include <video/texture.hpp>
 
 namespace video {
@@ -27,5 +28,5 @@ namespace video {
         auto make_color(int32_t width, int32_t height, rgb_color color) -> image_data;
         auto make_color(int32_t width, int32_t height, rgba_color color) -> image_data;
         auto make_check(int32_t width, int32_t height, uint8_t mask, rgb_color color) -> image_data;
-    } // namespace imggen
+    } // namespace imgen
 } // namespace video

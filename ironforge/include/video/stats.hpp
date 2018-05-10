@@ -4,7 +4,7 @@
 #include <cstddef>
 
 namespace video {
-    struct _video_stats {
+    struct drawing_info {
         uint32_t    dips;
         uint32_t    tris;
         uint32_t    tex_bindings;
@@ -14,10 +14,12 @@ namespace video {
         size_t      info_size;
     };
 
-    auto reset(_video_stats &stats) -> void;
-    auto update(_video_stats &stats, const float dt) -> void;
+    namespace stats {
+        auto reset(drawing_info &stats) -> void;
+        auto update(drawing_info &stats, const float dt) -> void;
+    } // namespace stats
 
-    extern _video_stats video_stats;
+    extern drawing_info video_stats;
 
     inline void stats_add_tris(uint32_t n) {
         video_stats.tris += n;
@@ -40,10 +42,10 @@ namespace video {
     }
 
     inline void stats_update(const float dt) {
-        update(video_stats, dt);
+        stats::update(video_stats, dt);
     }
 
     inline void stats_clear() {
-        reset(video_stats);
+        stats::reset(video_stats);
     }
 } // namespace video

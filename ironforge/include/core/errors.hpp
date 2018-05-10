@@ -7,6 +7,7 @@ namespace game {
     namespace errc {
 
         enum game_errors {
+            init_conf,
             init_platform,
             init_assets,
             read_assets,
@@ -33,7 +34,7 @@ namespace game {
             }
         };
 
-        inline std::error_code make_error_code(game_errors e) noexcept {
+        inline std::error_code make_error_code(game_errors e) {
             return std::error_code(static_cast<int>(e), game_category::get());
         }
 

@@ -9,7 +9,9 @@
 #include <SDL2/SDL_video.h>
 
 #include <core/common.hpp>
+#include <core/json.hpp>
 #include <core/journal.hpp>
+
 #include <video/errors.hpp>
 #include <video/screen.hpp>
 #include <video/vertices.hpp>
@@ -32,8 +34,6 @@
 #include <video/stats.hpp>
 #include <video/glyphs.hpp>
 #include <video/atlas.hpp>
-
-#include <json.hpp>
 
 namespace assets {
     struct instance_type;
@@ -153,7 +153,6 @@ namespace video {
     typedef struct instance_type instance_t;
 
     using video_result = std::variant<instance_t, std::error_code>;
-    using json = nlohmann::json;
 
     ///
     /// \brief is_extension_supported

@@ -6,6 +6,8 @@ namespace game {
 
         std::string game_category::message(int c) const {
             switch (static_cast<game_errors>(c)) {
+            case game_errors::init_conf:
+                return "Configuration file not found";
             case game_errors::init_platform:
                 return "SDL initialization failed";
             case game_errors::init_assets:

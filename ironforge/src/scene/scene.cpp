@@ -1,7 +1,8 @@
-#include <vector>
 #include <algorithm>
 #include <iterator>
+
 #include <core/common.hpp>
+#include <core/json.hpp>
 #include <utility/hash.hpp>
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
@@ -9,44 +10,10 @@
 #include <renderer/renderer.hpp>
 #include <ui/ui.hpp>
 
-#include "simple_instance.hpp"
-
-#include <json.hpp>
-
 namespace scene {
-    auto reset_all(instance_t &sc) -> bool {
-        (void)sc;
-        //scene::reset_engine(sc);
-
-        return true;
-    }
-
-    auto init_all() -> void {
-        //init_all_timers();
-        //physics::init_all();
-        //init_all_transforms();
-        //init_all_materials();
-        //init_all_cameras();
-        //init_all_models();
-        //init_all_scripts();
-    }
-
-    auto cleanup_all() -> void {
-        //cleanup_all_timers();
-        //cleanup_all_scripts();
-        //cleanup_all_models();
-        //cleanup_all_cameras();
-        //cleanup_all_materials();
-        //cleanup_all_transforms();
-        //physics::cleanup();
-    }
-
     auto cleanup_all(std::vector<instance_t> &scenes) -> void {
         for (auto &s : scenes) {
             physics::cleanup_all(s);
-            /*for (auto &t : s.transforms) {
-
-            }*/
         }
     }
 
@@ -99,98 +66,6 @@ namespace scene {
         render->dispath(vi, dt2);
         render->present(vi, sc.current_camera().projection, sc.current_camera().view);
         video::stats::end(vi.stats_info);
-    }
-
-    auto create_entity(assets::instance_t &asset, instance_t &sc, const json &info) -> instance_t::index_t {
-        using namespace std;
-        using namespace game;
-
-        static instance_t::index_t entity_id = 0;
-
-        string name;
-        if (info.find("name") != info.end())
-            name = info["name"].get<string>();
-
-        const auto ix = (name != "root") ? entity_id++ : 0;
-
-        if (!name.empty())
-            sc.names.emplace(name, ix);
-
-        const string parent_name = info.find("parent") != info.end() ? info["parent"].get<string>() : string{};
-
-        const auto parent_ix = find_entity(sc, parent_name);
-        const auto renderable = info.find("renderable") != info.end() ? info["renderable"].get<bool>() : false;
-        //const auto bool movable = info.find("movable") != info.end() ? info["movable"].get<bool>() : false;
-
-        journal::info(journal::_SCENE, "Create entity:\n\tname '%' (%)\n\tparent '%' (%)\n\trenderable %", name, entity_id, parent_name, parent_ix, renderable);
-
-        if (info.find("body") != info.end()) {
-            const auto b = create_body(info["body"]);
-            if (b)
-                sc.bodies[ix] = b.value();
-        }
-
-        if (info.find("camera") != info.end()) {
-            const auto c = create_camera(ix, info["camera"]);
-            if (c) {
-                sc.cameras[ix] = c.value();
-                sc.current_camera_index = ix;
-            }
-        }
-
-        if (renderable) {
-            const auto t = create_transforms(ix, parent_ix);
-            if (t)
-                sc.transforms[ix] = t.value();
-        }
-
-        if (info.find("model") != info.end()) {
-            const auto m = get_model(sc, info["model"].get<string>());
-            if (m)
-                sc.models[ix] = m.value();
-        }
-
-        if (info.find("light") != info.end()) {
-            const auto l = create_light(info["light"]);
-            if (l)
-                sc.lights[ix] = l.value();
-        }
-
-        if (info.find("materials") != info.end()) {
-            const auto mats = info["materials"];
-            if (mats.size() != 0) {
-                const auto mat_name = mats[0].get<string>();
-                const auto m = get_material(sc, mat_name);
-                if (m)
-                    sc.materials[ix] = m.value();
-            }
-        }
-
-        if (info.find("script") != info.end()) {
-            const auto s = create_script(asset, ix, info["script"]);
-            if (s)
-                sc.scripts[ix] = s.value();
-        }
-
-        if (info.find("input") != info.end()) {
-            const auto in = create_input(ix, info["input"], sc.input_sources);
-
-            if (in)
-                sc.inputs[ix] = in.value();
-        }
-
-        return ix;
-    }
-
-    auto find_entity(instance_t &sc, const std::string &name) -> instance_t::index_t {
-        if (name.empty())
-            return 0;
-
-        auto it = sc.names.find(name);
-        if (it != sc.names.end())
-            return (*it).second;
-
-        return 0;
     }
 
     auto cache_model(instance_t &sc, const std::string &name, const model_instance &m) -> bool {

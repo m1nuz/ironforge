@@ -45,7 +45,7 @@ namespace game {
         std::unique_ptr<renderer::instance>             render;
         video::instance_t                               vi;
         ui::context                                     uic;
-        imui::context_t                                imui;
+        imui::context_t                                 imui;
         assets::instance_t                              asset_instance;
         uint64_t                                        current_time = 0ull;
         uint64_t                                        last_time = 0ull;
@@ -61,9 +61,12 @@ namespace game {
     ///
     auto quit() -> void;
 
-    auto get_base_path() noexcept -> const std::string&;
-    auto get_pref_path() noexcept -> const std::string&;
-
+    ///
+    /// \brief Create application instance
+    /// \param[in] conf_path Configuration file path
+    /// \param[in] fullpath_only If true, get config by absolute path, else from base directory
+    /// \return
+    ///
     [[nodiscard]] auto create(std::string_view conf_path, const bool fullpath_only = false) -> game_result;
 
     [[nodiscard]] inline bool is_ok(const game_result& res) {

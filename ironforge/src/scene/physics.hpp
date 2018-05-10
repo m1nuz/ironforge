@@ -4,8 +4,7 @@
 #include <optional>
 
 #include <core/common.hpp>
-
-#include <json.hpp>
+#include <core/json.hpp>
 
 namespace scene {
     struct instance_type;
@@ -56,10 +55,7 @@ namespace scene {
         inline glm::vec3 size() const {
             return current.size;
         }
-        // uint32_t id; // TODO: make body id
     };
-
-    using json = nlohmann::json;
 
     struct instance_type;
     typedef instance_type instance_t;

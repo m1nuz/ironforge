@@ -4,7 +4,7 @@
 #include <string>
 #include <optional>
 
-#include <json.hpp>
+#include <core/json.hpp>
 
 namespace assets {
     struct instance_type;
@@ -46,9 +46,7 @@ namespace scene {
     struct instance_type;
     typedef instance_type instance_t;
 
-    using json = nlohmann::json;
-
-    auto reset_engine() -> bool;
+    auto reset_scripts_engine() -> bool;
     auto setup_bindings(instance_t &sc) -> void;
     auto create_script(assets::instance_t &asset, const uint32_t entity, const json &info) -> std::optional<script_instance>;
 

@@ -182,6 +182,24 @@ namespace assets {
         inst.active = false;
     }
 
+    auto get_config(std::string_view path) -> std::optional<std::string> {
+        using namespace std;
+
+        ifstream fs(path.data(), ios::in | ios::binary);
+
+        if (!fs.is_open())
+            return {};
+
+        string contents;
+        fs.seekg(0, ios::end);
+        contents.resize(fs.tellg());
+        fs.seekg(0, ios::beg);
+        fs.read(&contents[0], contents.size());
+        fs.close();
+
+        return contents;
+    }
+
     auto get_text(instance_t &inst, std::string_view name) -> std::optional<text_data_t> {
         const auto _name = std::string{name};
 

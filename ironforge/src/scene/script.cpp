@@ -107,7 +107,7 @@ namespace scene {
         return 0;
     }
 
-    auto reset_engine() -> bool {
+    auto reset_scripts_engine() -> bool {
         using namespace game;
 
         if (lua_state)

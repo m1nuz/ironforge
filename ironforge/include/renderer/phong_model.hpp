@@ -32,6 +32,10 @@ namespace renderer {
             glm::vec3  attenuation; // Constant, Linear, Quadratic
         };
 
+        struct spot_light {
+
+        };
+
         struct directional_light {
             glm::vec3  direction;
             glm::vec3  ld;

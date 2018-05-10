@@ -11,7 +11,9 @@
 
 #include <SDL2/SDL_events.h>
 
+#include <core/math.hpp>
 #include <core/journal.hpp>
+#include <video/video.hpp>
 #include <ui/command.hpp>
 
 namespace ui {

@@ -1,7 +1,6 @@
 #include <vector>
 
-#include <json.hpp>
-
+#include <core/json.hpp>
 #include <core/journal.hpp>
 #include <core/assets.hpp>
 #include <scene/scene.hpp>
@@ -111,7 +110,7 @@ namespace scene {
                         const auto key = inp_action.find("key") != inp_action.end() ? SDL_GetKeyFromName(inp_action["key"].get<string>().c_str()) : SDLK_UNKNOWN;
                         const auto cbutton = inp_action.find("cbutton") != inp_action.end() ? SDL_GameControllerGetButtonFromString(inp_action["cbutton"].get<string>().c_str()) : SDL_CONTROLLER_BUTTON_INVALID;
                         const auto caxis = inp_action.find("caxis") != inp_action.end() ? SDL_GameControllerGetAxisFromString(inp_action["caxis"].get<string>().c_str()) : SDL_CONTROLLER_AXIS_INVALID;
-                        const string on_keydown = (inp_action.find("on_keydown") != inp_action.end() )? inp_action["on_keydown"].get<string>() : string{};
+                        const auto on_keydown = (inp_action.find("on_keydown") != inp_action.end() )? inp_action["on_keydown"].get<string>() : string{};
                         const auto on_keyup = inp_action.find("on_keyup") != inp_action.end() ? inp_action["on_keyup"].get<string>() : string{};
                         const auto on_cmotion = inp_action.find("cmotion") != inp_action.end() ? inp_action["cmotion"].get<string>() : string{};
 

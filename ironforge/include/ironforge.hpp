@@ -10,6 +10,5 @@
 #include <core/journal.hpp>
 #include <core/game.hpp>
 #include <core/assets.hpp>
-#include <core/settings.hpp>
 #include <video/video.hpp>
 #include <utility/hash.hpp>

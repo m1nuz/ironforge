@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "../../src/scene/entity.hpp"
 #include "../../src/scene/model.hpp"
 #include "../../src/scene/material.hpp"
 #include "../../src/scene/camera.hpp"
@@ -11,6 +12,7 @@
 #include "../../src/scene/input.hpp"
 #include "../../src/scene/transform.hpp"
 #include "../../src/scene/light.hpp"
+#include "../../src/scene/timer.hpp"
 
 namespace scene {
     struct bound_box; // AABB
@@ -72,7 +74,6 @@ namespace scene {
         std::unordered_map<index_t, light_t>        lights;
 
         std::unordered_map<std::string, std::vector<input_action>> input_sources;
-
         std::unordered_map<std::string, model_t>    all_models;
         std::unordered_map<std::string, material_t> all_materials;
 

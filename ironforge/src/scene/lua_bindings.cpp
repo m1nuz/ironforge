@@ -66,42 +66,6 @@ get_entity_velocity(lua_State *L) {
     return 3;
 }
 
-/*static int
-load_scene(lua_State *L) {
-    using namespace game;
-
-    const char *s = luaL_checkstring(L, 1);
-
-    if (!game::load_scene(s))
-        journal::error(journal::_SCENE, "Can't load scene %", s);
-
-    return 0;
-}
-
-static int
-load_asset(lua_State *L) {
-    using namespace game;
-
-    const char *s = luaL_checkstring(L, 1);
-
-    if (!game::load_asset(s))
-        journal::error(journal::_SCENE, "Can't load asset %", s);
-
-    return 0;
-}
-
-static int
-load_settings(lua_State *L) {
-    using namespace game;
-
-    const char *s = luaL_checkstring(L, 1);
-
-    if (!game::load_settings(s))
-        journal::error(journal::_SCENE, "Can't load settings %", s);
-
-    return 0;
-}*/
-
 static const struct luaL_Reg scene_functions[] = {
     {"get_entity_velocity", get_entity_velocity},
     {"set_entity_velocity", set_entity_velocity},

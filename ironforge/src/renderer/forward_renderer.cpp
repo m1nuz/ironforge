@@ -3,7 +3,6 @@
 #include <video/glyphs.hpp>
 #include <video/screen.hpp>
 #include <core/journal.hpp>
-#include <core/settings.hpp>
 #include <utility/utf.hpp>
 #include "forward_renderer.hpp"
 

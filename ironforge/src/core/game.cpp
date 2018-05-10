@@ -7,6 +7,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include <core/journal.hpp>
+#include <core/json.hpp>
 #include <core/assets.hpp>
 #include <core/input.hpp>
 #include <core/game.hpp>
@@ -17,15 +18,9 @@
 
 #include "game_detail.hpp"
 
-#include <json.hpp>
-
-using json = nlohmann::json;
-
 namespace game {
 
     static auto process_events(instance_t &app) -> void {
-        //journal::debug(journal::_GAME, "%", __FUNCTION__);
-
         SDL_Event ev = {};
 
         while (SDL_PollEvent(&ev)) {
@@ -71,89 +66,16 @@ namespace game {
         std::locale::global(std::locale(locale));
     }
 
-    static auto to_color(const std::string& color_text) -> ui::color_t  {
-        if (color_text.empty())
-            return 0;
-
-        if (color_text[0] == '#')
-        {
-            unsigned int color = 0;
-            std::stringstream ss;
-            ss << std::hex << &color_text[1];
-            ss >> color;
-
-            return color;
-        }
-
-        return std::stoi(color_text);
-    }
-
-    static auto read_ui_styles( assets::instance_t& asset, json ui_json) -> std::unordered_map<std::string, imui::box_style> {
-        using namespace std;
-
-        std::unordered_map<std::string, imui::box_style> styles;
-
-        if (ui_json.find("theme") != ui_json.end()) {
-            const auto theme_filename = ui_json["theme"].get<string>();
-
-            const auto theme_text = assets::get_text(asset, theme_filename);
-
-            if (theme_text) {
-                if (!theme_text.value().empty()) {
-                    auto j = json::parse(theme_text.value());
-
-                    for (auto it = j.begin(); it != j.end(); ++it)
-                    {
-                        const auto style_name = it.key();
-                        const auto style_properties = it.value();
-                        std::cout << style_name << " | " << style_properties << "\n";
-
-                        imui::box_style style;
-
-                        if (style_properties.find("width") != style_properties.end())
-                            style.width = style_properties["width"].get<float>();
-
-                        if (style_properties.find("height") != style_properties.end())
-                            style.height = style_properties["height"].get<float>();
-
-                        if (style_properties.find("border-width") != style_properties.end())
-                            style.border_width = style_properties["border-width"].get<float>();
-
-                        if (style_properties.find("border-color") != style_properties.end())
-                        {
-                            const auto color = to_color(style_properties["border-color"].get<string>());
-                            style.border_color = std::array<ui::color_t, 4>{color, color, color, color};
-                        }
-
-                        if (style_properties.find("background-color") != style_properties.end())
-                            style.background_color = to_color(style_properties["background-color"].get<string>());
-
-                        if (style_properties.find("foreground-color") != style_properties.end())
-                            style.foreground_color = to_color(style_properties["foreground-color"].get<string>());
-
-                        if (style_properties.find("active-color") != style_properties.end())
-                            style.active_color = to_color(style_properties["active-color"].get<string>());
-
-                        if (style_properties.find("focused-color") != style_properties.end())
-                            style.focused_color = to_color(style_properties["focused-color"].get<string>());
-
-                        if (style_properties.find("text-color") != style_properties.end())
-                            style.text_color = to_color(style_properties["text-color"].get<string>());
-
-                        styles.emplace(style_name, style);
-                    }
-                }
-            }
-        }
-
-        return styles;
-    }
-
     auto create(std::string_view conf_path, const bool fullpath_only) -> game_result {
         using namespace std;
 
         // if releative and not fullpath_only add base_path
-        const auto cpath = (conf_path.find("..") == std::string::npos) && !fullpath_only ? string{conf_path} : get_base_path() + string{conf_path};
+        const auto cpath = (conf_path.find("..") == std::string::npos) && !fullpath_only ? string{conf_path} : detail::get_base_path() + string{conf_path};
+        auto contents = assets::get_config(cpath);
+        if (!contents)
+            return make_error_code(errc::init_conf);
+
+        auto j = json::parse(contents.value());
 
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
             return make_error_code(errc::init_platform);
@@ -167,98 +89,108 @@ namespace game {
 
         instance_t ctx;
 
-        auto asset_inst = assets::create_instance(assets::create_default_readers());
-        if (holds_alternative<error_code>(asset_inst)) {
-            journal::error(journal::_GAME, "%", "Can't append readers");
-            return make_error_code(errc::init_assets);
+        // Assets
+        {
+            auto asset_inst = assets::create_instance(assets::create_default_readers());
+            if (holds_alternative<error_code>(asset_inst)) {
+                journal::error(journal::_GAME, "%", "Can't append readers");
+                return make_error_code(errc::init_assets);
+            }
+
+            ctx.asset_instance = move(get<assets::instance_t>(asset_inst));
+
+            if (j.find("assets") == j.end())
+                return make_error_code(errc::read_assets);
+
+            for (auto &a : j["assets"]) {
+                journal::debug(journal::_GAME, "%", a.get<string>());
+
+                if (!assets::open(ctx.asset_instance, detail::get_base_path() + a.get<string>()))
+                    return make_error_code(std::errc::io_error);
+            }
         }
 
-        ctx.asset_instance = move(get<assets::instance_t>(asset_inst));
+        // Video
+        {
+            if (j.find("video") == j.end())
+                return make_error_code(errc::init_video);
 
-        auto contents = assets::readfile(cpath);
-        if (!assets::is_ok(contents))
-            return get<error_code>(contents);
+            const auto video_info = j["video"];
 
-        auto j = json::parse(get<string>(contents));
+            auto vc = video::init(ctx.asset_instance, video_info);
+            if (!video::is_ok(vc))
+                return get<error_code>(vc);
 
-        if (j.find("assets") == j.end())
-            return make_error_code(errc::read_assets);
+            ctx.vi = get<video::instance_t>(vc);
 
-        for (auto &a : j["assets"]) {
-            journal::debug(journal::_GAME, "%", a.get<string>());
+            journal::info(journal::_VIDEO, "%", video::get_info(ctx.vi));
+        }
 
-            if (!assets::open(ctx.asset_instance, get_base_path() + a.get<string>()))
+        // Scene
+        {
+            if (j.find("scenes") == j.end())
+                return make_error_code(errc::read_scenes);
+
+            string start_scene;
+
+            if (j.find("start_scene") != j.end()) {
+                start_scene = j["start_scene"].get<string>();
+            }
+
+            if (start_scene.empty())
+                return make_error_code(errc::no_start_scene);
+
+            scene::reset_scripts_engine();
+
+            auto any_loaded = false;
+            for (auto &sc : j["scenes"])
+                if (start_scene == sc.get<string>()) {
+                    auto res = scene::load(ctx.asset_instance, ctx.vi, start_scene);
+
+                    if (!scene::is_ok(res))
+                        return get<error_code>(res);
+
+                    any_loaded = true;
+
+                    ctx.scenes.push_back(get<scene::instance_t>(res));
+                }
+
+            scene::setup_bindings(ctx.current_scene());
+
+            if (!any_loaded)
                 return make_error_code(std::errc::io_error);
         }
 
-        if (j.find("video") == j.end())
-            return make_error_code(errc::init_video);
-
-        const auto video_info = j["video"];
-
-        auto vc = video::init(ctx.asset_instance, video_info);
-        if (!video::is_ok(vc))
-            return get<error_code>(vc);        
-
-        ctx.vi = get<video::instance_t>(vc);
-
-        journal::info(journal::_VIDEO, "%", video::get_info(ctx.vi));
-
-        if (j.find("scenes") == j.end())
-            return make_error_code(errc::read_scenes);
-
-        string start_scene;
-
-        if (j.find("start_scene") != j.end()) {
-            start_scene = j["start_scene"].get<string>();
-        }
-
-        if (start_scene.empty())
-            return make_error_code(errc::no_start_scene);
-
-        scene::reset_engine();
-
-        auto any_loaded = false;
-        for (auto &sc : j["scenes"])
-            if (start_scene == sc.get<string>()) {
-                auto res = scene::load(ctx.asset_instance, ctx.vi, start_scene);
-
-                if (!scene::is_ok(res))
-                    return get<error_code>(res);
-
-                any_loaded = true;
-
-                ctx.scenes.push_back(get<scene::instance_t>(res));
-            }
-
-        scene::setup_bindings(ctx.current_scene());
-
-        if (!any_loaded)
-            return make_error_code(std::errc::io_error);
-
+        // Input
         if (!input::init(ctx))
             return make_error_code(errc::init_gamecontrollers);
 
-        if (j.find("renderer") == j.end())
-            return make_error_code(std::errc::io_error);
+        // Renderer
+        {
+            if (j.find("renderer") == j.end())
+                return make_error_code(std::errc::io_error);
 
-        const auto renderer_info = j["renderer"];
-        const auto renderer_type = renderer_info.find("type") != renderer_info.end() ? renderer_info["type"].get<string>() : "null";
+            const auto video_info = j["video"];
+            const auto renderer_info = j["renderer"];
+            const auto renderer_type = renderer_info.find("type") != renderer_info.end() ? renderer_info["type"].get<string>() : "null";
 
-        ctx.render = renderer::create_renderer(renderer_type, ctx.vi, video_info);
-
-        const auto ui_info = j["ui"];
-        const auto ui_type = ui_info.find("type") != ui_info.end() ? ui_info["type"].get<string>() : string{};
-
-        if (ui_type == "immediate") {
-
-            const auto styles = read_ui_styles(ctx.asset_instance, ui_info);
-
-            if (auto imui = imui::create(ctx.vi, styles); imui)
-                ctx.imui = imui.value();
+            ctx.render = renderer::create_renderer(renderer_type, ctx.vi, video_info);
         }
 
-        //setup_locale("en_US.utf8");
+        // UI
+        {
+            const auto ui_info = j["ui"];
+            const auto ui_type = ui_info.find("type") != ui_info.end() ? ui_info["type"].get<string>() : string{};
+
+            if (ui_type == "immediate") {
+                const auto styles = detail::read_ui_styles(ctx.asset_instance, ui_info);
+
+                if (auto imui = imui::create(ctx.vi, styles); imui)
+                    ctx.imui = imui.value();
+            }
+        }
+
+        // Locale
         setup_locale("");
 
         return std::move(ctx);
