@@ -52,6 +52,7 @@ namespace imui {
         frame_dragging_flag         = 1 << 1,
         frame_header_flag           = 1 << 2,
         frame_collapse_flag         = 1 << 3,
+        frame_collapse_changed      = 1 << 4,
     };
 
     typedef struct frame_state_type {
@@ -155,8 +156,8 @@ namespace imui {
             if (event.button.button == SDL_BUTTON_RIGHT)
                 ctx.all_keys |= key_mouse_right;
 
-            //context.mouse_x = event.button.x;
-            //context.mouse_y = event.button.y;
+            //ctx.mouse_x = event.button.x;
+            //ctx.mouse_y = event.button.y;
             break;
 
         case SDL_MOUSEBUTTONUP:
@@ -169,8 +170,8 @@ namespace imui {
             if (event.button.button == SDL_BUTTON_RIGHT)
                 ctx.all_keys &= ~key_mouse_right;
 
-            //context.mouse_x = event.button.x;
-            //context.mouse_y = event.button.y;
+            //ctx.mouse_x = event.button.x;
+            //ctx.mouse_y = event.button.y;
             break;
 
         case SDL_MOUSEMOTION:
@@ -358,6 +359,13 @@ namespace imui {
             return ++ctx.widget_id;
         }
 
+        inline auto is_visble(context_t &ctx) -> bool {
+            if (ctx.frames.top()->flags & frame_collapse_flag)
+                return false;
+
+            return true;
+        }
+
         inline auto init_widget(context_t &ctx, const box_style& style) -> std::tuple<uint32_t, bool, float, float, float, float> {
             auto frm = ctx.frames.top();
 
@@ -412,40 +420,36 @@ namespace imui {
             fs->widget_y = fs->y;
 
             const auto padding = 0.05f - 0.006f;
-            const auto header_size = 0.024f;
-            const auto hw = fs->width/* * (1.f - padding)*/;
-            const auto hh = header_size;
-            const auto hx = fs->widget_x /*+ fs->width * padding * 0.5f*/;
-            const auto hy = fs->widget_y - (hh + /*fs->height * padding * 0.5f*/ - fs->height) * ctx.aspect_ratio;
-
-//            const auto marker_size = 0.01f;
-//            const auto mkx = fs->x + fs->width - marker_size;
-//            const auto mky = fs->y;
-//            const auto mkw = marker_size;
-//            const auto mkh = marker_size * ctx.aspect_ratio;
-//            const auto inside_marker = mouse_in_rect(ctx, mkx, mky, mkw, mkh);
-            //game::journal::info(game::journal::_UI, "% % % %", mkx, mky, mkw, mkh);
-
-            const auto inside_header = mouse_in_rect(ctx, hx, hy, hw, hh);
+            const auto header_w = fs->width;
+            const auto header_h = 0.024f;
+            const auto hx = fs->widget_x + header_w * 0.2;
+            const auto hy = fs->widget_y - (header_h - fs->height) * ctx.aspect_ratio;
+            const auto inside_header = mouse_in_rect(ctx, hx, hy, header_w, header_h);
 
             if (inside_header && is_button_down(ctx, key_mouse_left))
                 fs->flags |= frame_dragging_flag;
-
-            if (!is_button_down(ctx, key_mouse_left))
-                fs->flags &= ~frame_dragging_flag;
 
             if (fs->flags & frame_dragging_flag)
             {
                 const auto mx = - 0.5f + static_cast<float>(ctx.mouse_x) / ctx.screen_width;
                 const auto my =   0.5f - static_cast<float>(ctx.mouse_y) / ctx.screen_height;
                 fs->x = mx - fs->width * 0.5f;
-                fs->y = my - (fs->height - header_size * 0.5f) * ctx.aspect_ratio;
+                fs->y = my - (fs->height - header_h * 0.5f) * ctx.aspect_ratio;
                 fs->widget_x = fs->x;
                 fs->widget_y = fs->y;
             }
 
-            /*if (!is_button_down(ctx, key_mouse_left))
-                fs->flags &= ~frame_dragging_flag;*/
+            if (!is_button_down(ctx, key_mouse_left))
+            {
+                fs->flags &= ~frame_dragging_flag;
+
+
+                if (fs->flags & frame_collapse_changed)
+                {
+                    fs->flags ^= frame_collapse_flag;
+                    fs->flags &= ~frame_collapse_changed;
+                }
+            }
 
             if (fs->flags & frame_header_flag)
             {
@@ -457,23 +461,37 @@ namespace imui {
                     //const auto _hw = fs->width * (1.f - padding);
                     //const auto _hh = header_size;
                     const auto _hx = fs->widget_x /*+ fs->width * padding * 0.5f*/;
-                    const auto _hy = fs->widget_y - (hh /*+ fs->height * padding * 0.5f*/ - fs->height) * ctx.aspect_ratio;
+                    const auto _hy = fs->widget_y - (header_h /*+ fs->height * padding * 0.5f*/ - fs->height) * ctx.aspect_ratio;
 
-                    box_style hs;
+                    box_style header_style;
 
-                    hs.font = ctx.fonts[0];
-                    hs.text_color = style.text_color;
-                    hs.border_width = 0.0;
-                    hs.background_color = style.background_color;
-                    hs.border_color = {0, 0, 0, 0};
+                    header_style.font = ctx.fonts[0];
+                    header_style.text_color = style.text_color;
+                    header_style.border_width = 0.0;
+                    header_style.background_color = style.background_color;
+                    header_style.border_color = {0, 0, 0, 0};
 
-                    hs.align = ui::align_horizontal_left | ui::align_vertical_center;
-                    draw::text_only(ctx, {_hx + padding * 0.25, _hy}, {hw - padding * 0.5, hh}, "▼", hs);
+                    const auto _mx = _hx + padding * 0.25;
+                    const auto _my = _hy;
+                    const auto _mw = header_w * 0.2 - padding * 0.5;
+                    const auto _mh = header_h;
 
-                    hs.align = ui::align_center;
-                    draw::text_box(ctx, {_hx, _hy}, {hw, hh}, "TITLE", hs);
+                    const auto inside_marker = mouse_in_rect(ctx, _mx, _my, _mw, _mh);
 
-                    fs->widget_y += - (hh + fs->height * padding * 0.5f) * ctx.aspect_ratio;
+                    if (inside_marker && is_button_down(ctx, key_mouse_left))
+                    {
+                        fs->flags |= frame_collapse_changed;
+                    }
+
+                    const auto marker_str = fs->flags & frame_collapse_flag ? std::string{"▶"} : std::string{"▼"};
+
+                    header_style.align = ui::align_horizontal_left | ui::align_vertical_center;
+                    draw::text_only(ctx, {_hx + padding * 0.25, _hy}, {header_w - padding * 0.5, header_h}, marker_str, header_style);
+
+                    header_style.align = ui::align_center;
+                    draw::text_box(ctx, {_hx, _hy}, {header_w, header_h}, "TITLE", header_style);
+
+                    fs->widget_y += - (header_h + fs->height * padding * 0.5f) * ctx.aspect_ratio;
                 }
             }
 
@@ -484,6 +502,9 @@ namespace imui {
             if (ctx.frames.empty())
                 return;
 
+            if (!is_visble(ctx))
+                return;
+
             auto it = ctx.styles.find(style_name);
             if (it == ctx.styles.end())
                 return;
@@ -492,7 +513,7 @@ namespace imui {
 
             const auto marker_size = 0.01f;
 
-            auto* fs = ctx.frames.top();
+            auto& fs = ctx.frames.top();
 
             ui::draw_commands::draw_rect rect;
             rect.color = 0x3e4249ff;
@@ -521,6 +542,9 @@ namespace imui {
         /// \return Return true in case activated, otherwise false.
         ///
         [[nodiscard]] inline auto button(context_t &ctx, const std::string &text, const std::string &style_name) -> bool {
+            if (!is_visble(ctx))
+                return false;
+
             const auto it = ctx.styles.find(style_name);
             if (it == ctx.styles.cend())
                 return false;
@@ -552,6 +576,9 @@ namespace imui {
         /// \return Return true in case activated, otherwise false.
         ///
         [[nodiscard]] inline auto edit_box(context_t &ctx, std::string &text, const std::string &style_name) -> bool {
+            if (!is_visble(ctx))
+                return false;
+
             const auto it = ctx.styles.find(style_name);
             if (it == ctx.styles.cend())
                 return false;
@@ -615,6 +642,9 @@ namespace imui {
         /// \return Return true in case activated, otherwise false.
         ///
         [[nodiscard]] inline auto slider(context_t &ctx, int32_t& value, const int32_t max_value, const std::string &text, const std::string &style_name) -> bool {
+            if (!is_visble(ctx))
+                return false;
+
             const auto it = ctx.styles.find(style_name);
             if (it == ctx.styles.cend())
                 return false;
@@ -667,6 +697,9 @@ namespace imui {
         /// \return Return true in case activated, otherwise false.
         ///
         [[nodiscard]] inline auto progress_bar(context_t &ctx, const int32_t value, const int32_t max_value, const std::string &text, const std::string &style_name) -> bool {
+            if (!is_visble(ctx))
+                return false;
+
             const auto it = ctx.styles.find(style_name);
             if (it == ctx.styles.cend())
                 return false;
@@ -712,6 +745,9 @@ namespace imui {
         /// \return Return true in case activated, otherwise false.
         ///
         [[nodiscard]] inline auto list_box(context_t &ctx, const std::vector<std::string> elements, const size_t max_elements, size_t& pos, size_t& scroll, const std::string &style_name) -> bool {
+            if (!is_visble(ctx))
+                return false;
+
             const auto it = ctx.styles.find(style_name);
             if (it == ctx.styles.cend())
                 return false;
