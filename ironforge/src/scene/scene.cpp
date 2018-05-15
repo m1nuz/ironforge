@@ -8,7 +8,6 @@
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
 #include <renderer/renderer.hpp>
-#include <ui/ui.hpp>
 
 namespace scene {
     auto cleanup_all(std::vector<instance_t> &scenes) -> void {

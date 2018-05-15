@@ -1,8 +1,6 @@
 #include <algorithm>
 
 #include <core/common.hpp>
-#include <ui/ui.hpp>
-#include <ui/context.hpp>
 #include <ui/widgets.hpp>
 #include <video/screen.hpp>
 #include <video/glyphs.hpp>

@@ -87,26 +87,26 @@ namespace editor {
         using namespace game;
 
         static imui::frame_state_t fs1;
+        static imui::frame_state_t fs2;
+        static imui::frame_state_t fs3;
+
         fs1.y = -0.3;
         fs1.width = 0.2f;
         fs1.height = 0.4f;
         fs1.flags |= imui::frame_drag_flag | imui::frame_header_flag;
 
-        imui::widget::frame_begin(ui_context, &fs1, "#frame_header");
+        //fs3.width = 0.2f;
+        //fs3.height = 0.2f;
+        fs3.layout = ui::layout_horizontal;
 
-        if (imui::widget::button(ui_context, "❄ Button1 ❄", "#button"))
+        imui::frame_begin(ui_context, &fs1, "#frame_header");
+
+        if (imui::input_button(ui_context, "❄ Button1 ❄", "#button"))
             journal::info(journal::_GAME, "%", "Click");
 
-        if (imui::widget::button(ui_context, "❄ Button2 ❄", "#button"))
-            journal::info(journal::_GAME, "%", "CLICK");
-
         static std::string text1;
-        static std::string text2;
 
-        if (imui::widget::edit_box(ui_context, text1, "#button"))
-            journal::info(journal::_GAME, "%", "EDIT");
-
-        if (imui::widget::edit_box(ui_context, text2, "#button"))
+        if (imui::input_text(ui_context, text1, "#button"))
             journal::info(journal::_GAME, "%", "EDIT");
 
         const int max_value = 5;
@@ -115,10 +115,10 @@ namespace editor {
         std::string value_text1;
         utility::format(value_text1, "Value: %", value1);
 
-        if (imui::widget::slider(ui_context, value1, max_value, value_text1, "#button"))
+        if (imui::input_range(ui_context, value1, max_value, value_text1, "#button"))
             journal::info(journal::_GAME, "VALUE %", value1);
 
-        if (imui::widget::progress_bar(ui_context, value1, max_value, "", "#progress"))
+        if (imui::progress_bar(ui_context, value1, max_value, "", "#progress"))
             journal::info(journal::_GAME, "PROGRESS %", value1);
 
         static size_t list1_pos = 0;
@@ -126,10 +126,26 @@ namespace editor {
         value_pos = value1;
         static std::vector<std::string> list1{"item 1", "item 2", "item 3", "item 4", "item 5"};
 
-        if (imui::widget::list_box(ui_context, list1, 3, list1_pos, value_pos, "#button"))
+        if (imui::list_box(ui_context, list1, 3, list1_pos, value_pos, "#button"))
             ;
 
-        imui::widget::frame_end(ui_context, "#frame");
+        imui::frame_end(ui_context, "#frame");
+
+
+        fs2.width = 0.4f;
+        fs2.height = 0.07f;
+        fs2.flags |= imui::frame_drag_flag | imui::frame_header_flag;
+        fs2.layout = ui::layout_horizontal;
+
+        imui::frame_begin(ui_context, &fs2, "#frame_header");
+
+        if (imui::input_button(ui_context, "❄ Button1 ❄", "#button"))
+            journal::info(journal::_GAME, "%", "Click");
+
+        if (imui::input_button(ui_context, "❄ Button2 ❄", "#button"))
+            journal::info(journal::_GAME, "%", "CLICK");
+
+        imui::frame_end(ui_context, "#frame");
 
         imui::present(ui_context);
         scene::present(app.vi, app.current_scene(), app.render, interpolation);

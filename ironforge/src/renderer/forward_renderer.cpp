@@ -164,7 +164,6 @@ namespace renderer {
     }
 
     auto forward_renderer::dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void {
-        using namespace imui;
 
         std::visit(overloaded {
                        [this](const ui::draw_commands::draw_line &line) {

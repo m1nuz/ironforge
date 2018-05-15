@@ -14,7 +14,6 @@
 #include <video/video.hpp>
 #include <renderer/renderer.hpp>
 #include <scene/scene.hpp>
-#include <ui/ui.hpp>
 
 #include "game_detail.hpp"
 

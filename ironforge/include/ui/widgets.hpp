@@ -5,6 +5,7 @@
 #include <functional>
 
 #include <video/glyphs.hpp>
+#include <ui/types.hpp>
 
 namespace ui {
     struct button;
@@ -104,6 +105,10 @@ namespace ui {
 
         std::function<void (int32_t)> on_click;
         std::function<void (int32_t)> on_hover;
+    };
+
+    struct context {
+        std::vector<draw_command_t> commands;
     };
 
     auto create_button(const button_info &info) -> int32_t;

@@ -11,7 +11,8 @@
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
 #include <core/assets.hpp>
-#include <ui/ui.hpp>
+#include <ui/widgets.hpp>
+#include <ui/imui.hpp>
 
 namespace game {
     constexpr auto timestep = 0.002f;

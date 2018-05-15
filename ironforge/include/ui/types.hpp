@@ -18,6 +18,12 @@ namespace ui {
         align_center            = align_horizontal_center | align_vertical_center,
     };
 
+    enum layout_type {
+        layout_none,
+        layout_horizontal,
+        layout_vertical
+    };
+
     namespace draw_commands {
         struct draw_line {
             draw_line() = default;

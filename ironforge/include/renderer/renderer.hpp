@@ -7,8 +7,7 @@
 #include <video/video.hpp>
 #include <video/vertices.hpp>
 #include <renderer/phong_model.hpp>
-#include <ui/command.hpp>
-#include <ui/imui.hpp>
+#include <ui/types.hpp>
 
 namespace assets {
     struct instance_type;
