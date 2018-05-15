@@ -8,6 +8,7 @@
 #include <scene/scene.hpp>
 #include <scene/instance.hpp>
 #include <renderer/renderer.hpp>
+#include <video/debug.hpp>
 
 namespace scene {
     auto cleanup_all(std::vector<instance_t> &scenes) -> void {
@@ -19,7 +20,7 @@ namespace scene {
     auto update(instance_t &sc, const float dt) -> void {
         physics::integrate_all(sc, dt);
         update_all_scripts(sc, dt);
-        // video::stats_update(dt);
+        video::stats_update(dt);
     }
 
     auto process_event(instance_t &sc, const SDL_Event &ev) -> void {
@@ -29,6 +30,8 @@ namespace scene {
     auto present(video::instance_t &vi, instance_t &sc, std::unique_ptr<renderer::instance> &render, const float interpolation) -> void {
         using namespace glm;
         using namespace game;
+
+        video::stats_clear();
 
         interpolate_all(sc, interpolation);
         scene::present_all_cameras(sc);
@@ -46,23 +49,9 @@ namespace scene {
             }
         });
 
-        ui::draw_commands::draw_text dt;
-        dt.align = 0;//ui::align_horizontal_left/* | ui::align_vertical_center*/;
-        dt.w = 0.0f;//video::screen.width;
-        dt.h = 0.f;//video::screen.height;
-        dt.color = 0x1a1a1aff;
-        dt.font = video::get_font(vi, "roboto");
-        dt.x = -0.48;
-        dt.y = 0.42;
-        dt.text = vi.stats_info.info;
-
-        ui::draw_commands::draw_text dt2 = dt;
-        dt2.y = 0.4;
-        dt2.text = video::video_stats.info;
-
         video::stats::begin(vi.stats_info);
-        render->dispath(vi, dt);
-        render->dispath(vi, dt2);
+        video::debug_text(vi, render, -0.48, 0.42, vi.stats_info.info, 0x1a1a1aff);
+        video::debug_text(vi, render, -0.48, 0.24, video::video_stats.info, 0x1a1a1aff);
         render->present(vi, sc.current_camera().projection, sc.current_camera().view);
         video::stats::end(vi.stats_info);
     }

@@ -1,6 +1,9 @@
+#include <glcore_450.h>
+
 #include <core/journal.hpp>
 #include <video/video.hpp>
-#include <glcore_450.h>
+#include <video/debug.hpp>
+#include <ui/types.hpp>
 
 namespace video {
     static void APIENTRY debug_output(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
@@ -61,5 +64,19 @@ namespace video {
             glEnable(GL_DEBUG_OUTPUT);
             glEnable(debug_output_synchronous);
         }
+    }
+
+    auto debug_text(video::instance_t &vi, std::unique_ptr<renderer::instance> &render, const float pos_x, const float pos_y, std::string_view text, uint32_t color) -> void {
+        ui::draw_commands::draw_text dt;
+        dt.align = 0;
+        dt.w = 0.f;
+        dt.h = 0.f;
+        dt.color = color;
+        dt.font = video::get_font(vi, "roboto");
+        dt.x = pos_x;
+        dt.y = pos_y;
+        dt.text = text;
+
+        render->dispath(vi, dt);
     }
 } // namespace video

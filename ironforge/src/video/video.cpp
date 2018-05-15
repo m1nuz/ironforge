@@ -1,6 +1,7 @@
 ﻿#include <SDL2/SDL_video.h>
 #include <glcore_330.h>
 #include <video/video.hpp>
+#include <video/debug.hpp>
 #include <video/glyphs.hpp>
 
 #include <GL/ext_texture_filter_anisotropic.h>
@@ -10,7 +11,6 @@ int max_supported_anisotropy = 0;
 namespace video {
     _screen screen;
 
-    auto setup_debug() -> void;
     auto init_resources(instance_t &inst, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void;
     auto cleanup_resources(instance_t &in) -> void;
 
