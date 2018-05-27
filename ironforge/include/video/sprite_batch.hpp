@@ -2,16 +2,17 @@
 
 #include <vector>
 
-#include <core/common.hpp>
 #include <video/video.hpp>
 
 namespace video {
+
     struct sprite_batch_info {
         size_t                  max_sprites;
         texture                 tex;
     };
 
     struct sprite_batch {
+        float                   correction;
         size_t                  max_sprites;
         size_t                  sprites_count;
         texture                 tex;
@@ -29,4 +30,5 @@ namespace video {
     auto append_sprite(sprite_batch &sb, const glm::vec3 &position, const glm::vec2 size, const glm::vec4 offset, const glm::vec4 color) -> void;
 
     auto submit_sprite_batch(gl::command_buffer &cb, sprite_batch &sb, const gl::program &pm, const gl::sampler &sr) -> void;
+
 } // namespace video

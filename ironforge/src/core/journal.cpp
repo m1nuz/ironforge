@@ -110,7 +110,7 @@ namespace game {
             add_tag(_SYSTEM, verbosity::verbose);
             add_tag(_GAME, verbosity::verbose);
             add_tag(_AUDIO, verbosity::verbose);
-            add_tag(_VIDEO, verbosity::verbose);
+            add_tag("video", verbosity::verbose);
             add_tag(_RENDER, verbosity::verbose);
             add_tag(_INPUT, verbosity::verbose);
             add_tag(_SCENE, verbosity::verbose);

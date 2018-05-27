@@ -2,9 +2,10 @@
 #include <video/commands.hpp>
 
 namespace video {
+
     namespace commands {
 
-        uniform::uniform(const gl::program &p, const std::string &name, const glm::mat4 &m) : command{gl::command_type::send_uniform} {
+        /*uniform::uniform(const gl::program &p, const std::string &name, const glm::mat4 &m) : command{gl::command_type::send_uniform} {
             _send_uniform.ptr = &m[0][0];
             _send_uniform.location = gl::get_uniform_location(p, name);
             _send_uniform.offset = 0; // calculated later
@@ -119,12 +120,12 @@ namespace video {
             _subdata.offset = offset;
             _subdata.data = data;
             _subdata.size = size;
-        }
+        }*/
 
     } // namespace commands
 
     namespace gl330 {
-        command_buffer& operator <<(command_buffer &cb, const commands::uniform &c) {
+        /*command_buffer& operator <<(command_buffer &cb, const commands::uniform &c) {
             auto cc = c;
             if (cb.raw_memory) {
                 size_t sz = get_uniform_type_size(c._send_uniform.type) * c._send_uniform.count;
@@ -138,6 +139,23 @@ namespace video {
 
             cb.commands.push_back(cc);
             return cb;
+        }*/
+        auto operator <<(command_buffer &cb, const detail::bind_uniform &c) -> command_buffer& {
+            auto cc = c;
+            if (cb.raw_memory) {
+                size_t sz = get_uniform_type_size(c.type) * c.count;
+
+                assert(cb.memory_offset + sz < cb.memory_size);
+
+                memcpy((char*)cb.raw_memory + cb.memory_offset, c.ptr, c.size);
+                cc.offset = cb.memory_offset;
+                cb.memory_offset += sz;
+            }
+
+            cb.commands.push_back(cc);
+            return cb;
         }
+
     } // namespace gl330
+
 } // namespace video

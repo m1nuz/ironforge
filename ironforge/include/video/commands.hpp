@@ -1,9 +1,9 @@
 #pragma once
 
 #include <video/video.hpp>
-#include <core/journal.hpp>
+#include <video/command.hpp>
 
-namespace video {
+/*namespace video {
     namespace commands {
         struct clear : public gl::command {
             clear() : command{gl::command_type::clear} {
@@ -113,4 +113,6 @@ namespace video {
     } // namespace gl330
 } // namespace video
 
-namespace vcs = video::commands;
+namespace vcs = video::commands;*/
+
+namespace vcs = video::gl::detail;

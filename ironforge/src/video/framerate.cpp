@@ -4,6 +4,7 @@
 namespace video {
 
     namespace stats {
+
         auto reset(frame_info& stats) -> void {
             stats.accumulator = 0;
             stats.framerate = 0;
@@ -41,6 +42,7 @@ namespace video {
                                            (stats.min_framerate + stats.max_framerate) / 2, stats.time_value * 1000.0);
             }
         }
+
     } // namespace stats
 
 } // namespace video

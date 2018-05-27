@@ -137,12 +137,12 @@ namespace scene {
         json root_info;
         root_info["name"] = "root";
 
-        const auto r = create_entity(asset, sc, root_info);
+        const auto r = create_entity(asset, vi, sc, root_info);
         journal::info(journal::_SCENE, "Create root entity %", r);
 
         if (j.find("nodes") != j.end()) {
             for (auto &n : j["nodes"]) {
-                const auto e = create_entity(asset, sc, n);
+                const auto e = create_entity(asset, vi, sc, n);
 
                 journal::info(journal::_SCENE, "Create entity %", e);
             }

@@ -6,10 +6,7 @@
 
 #include <GL/ext_texture_filter_anisotropic.h>
 
-int max_supported_anisotropy = 0;
-
 namespace video {
-    _screen screen;
 
     auto init_resources(instance_t &inst, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void;
     auto cleanup_resources(instance_t &in) -> void;
@@ -92,16 +89,8 @@ namespace video {
         // get constants
         glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &ctx.max_uniform_components);
         glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &ctx.max_supported_anisotropy);
-        glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_supported_anisotropy);
-
-        // setup default screen
-        screen.width = drawable_w;
-        screen.height = drawable_h;
-        screen.vsync = vsync;
-        screen.aspect = static_cast<float>(screen.width) / static_cast<float>(screen.height);
 
         const auto tf = info.find("texture_filtering") != info.end() ? static_cast<texture_filtering>(info["texture_filtering"].get<uint32_t>()) : texture_filtering::trilinear;
-
         const auto tl = info.find("texture_level") != info.end() ? info["texture_level"].get<uint32_t>() : 0;
 
         // setup default config
@@ -134,9 +123,9 @@ namespace video {
         for (auto &buf : buffers) {
             for (auto &c : buf->commands) {
 
-                gl::set_color_blend_state(&buf->blend);
-                gl::set_rasterizer_state(&buf->rasterizer);
-                gl::set_depth_stencil_state(&buf->depth);
+                gl::set_color_blend_state(buf->blend);
+                gl::set_rasterizer_state(buf->rasterizer);
+                gl::set_depth_stencil_state(buf->depth);
 
                 gl::dispath_command(c, *buf);
 

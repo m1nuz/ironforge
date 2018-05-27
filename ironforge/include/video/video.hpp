@@ -6,14 +6,10 @@
 #include <vector>
 #include <variant>
 
-#include <SDL2/SDL_video.h>
-
-#include <core/common.hpp>
 #include <core/json.hpp>
 #include <core/journal.hpp>
 
 #include <video/errors.hpp>
-#include <video/screen.hpp>
 #include <video/vertices.hpp>
 #include <video/vertices_gen.hpp>
 #include <video/command.hpp>
@@ -59,8 +55,6 @@ namespace video {
         constexpr auto api_name = "opengl";
         constexpr auto api_version = (major_version * 100) + (minor_version * 10);
 
-        enum class command_type : uint32_t;
-        struct command;
         struct command_buffer;
         struct buffer;              // Buffer Object
         struct shader;              // Shader Object
@@ -94,12 +88,8 @@ namespace video {
     using program = gl::program;
     using memory_buffer = gl::buffer;
     using command_queue = gl::command_buffer;
-
-    struct vertices_source {
-        gl::vertex_array    array;
-        gl::buffer          vertices;
-        gl::buffer          elements;
-    };
+    struct vertices_source;
+    struct mesh;
 
     enum class result : int32_t {
         success,
@@ -107,50 +97,6 @@ namespace video {
         error_create_window,
         error_create_context
     };
-
-    enum class texture_filtering {
-        bilinear,
-        trilinear,
-        anisotropic,
-        max_filtering
-    };
-
-    struct mesh {
-        vertices_desc   desc;
-        vertices_source source;
-        vertices_draw   draw;
-    };
-
-    struct instance_type {
-        instance_type() = default;
-
-        SDL_Window                                      *window = nullptr;
-        SDL_GLContext                                   graphic_context = nullptr;
-        int                                             w = 0;
-        int                                             h = 0;
-        float                                           aspect_ratio = 0.f;
-        texture_filtering                               texture_filter = texture_filtering::bilinear;
-        uint32_t                                        texture_level = 0;
-        frame_info                                      stats_info = {};
-
-        std::string                                     vendor;
-        std::string                                     renderer;
-        std::string                                     version;
-        std::string                                     shading_language_version;
-        int32_t                                         max_supported_anisotropy = 0;
-        int32_t                                         max_uniform_components = 0;
-
-        std::unordered_map<std::string, size_t>         fonts_mapping;
-        std::vector<font_t>                             fonts;
-
-        std::unordered_map<std::string, texture>        textures;
-        std::unordered_map<std::string, program>        programs;
-        std::unordered_map<std::string, mesh>           meshes;
-        std::vector<memory_buffer>                      buffers;
-        std::vector<gl::vertex_array>                   arrays;
-    };
-
-    typedef struct instance_type instance_t;
 
     using video_result = std::variant<instance_t, std::error_code>;
 
@@ -178,16 +124,16 @@ namespace video {
 
     ///
     /// \brief Cleanup video resources
-    /// \param in
+    /// \param[inout] vi Video context
     ///
     auto cleanup(instance_t &vi) -> void;
 
     ///
     /// \brief Get vendor, renderer, version and shading language version
-    /// \param[inout] inst
+    /// \param[inout] vi
     /// \return Info string
     ///
-    auto get_info(instance_t &inst) -> std::string;
+    auto get_info(instance_t &vi) -> std::string;
 
     auto process(assets::instance_t &asset, instance_t &inst) -> void;
 
@@ -207,4 +153,8 @@ namespace video {
     inline bool is_ok(const video_result &res) {
         return std::holds_alternative<instance_t>(res);
     }
+
 } // namespace video
+
+#include <video/instance.hpp>
+#include <video/types.hpp>

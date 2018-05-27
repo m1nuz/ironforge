@@ -2,18 +2,18 @@
 
 #include <cstring>
 #include <vector>
-#include <core/common.hpp>
 #include <video/command.hpp>
 #include <video/state.hpp>
 
 namespace video {
+
     namespace gl330 {
         /*enum class command_buffer_flags {
             no_states = 0x00000001
         };*/
 
         struct command_buffer {
-            command_buffer(size_t uniform_components = 0);
+            command_buffer(const size_t uniform_components = 0);
             ~command_buffer();
 
             command_buffer(command_buffer const&) = delete;
@@ -41,6 +41,10 @@ namespace video {
             return cb;
         }
 
+        auto operator <<(command_buffer &cb, const detail::bind_uniform &c) -> command_buffer&;
+
         auto dispath_command(const command &c, command_buffer &buf) -> void;
+
     } // namespace gl330
+
 } // namespace video

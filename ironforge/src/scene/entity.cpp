@@ -5,7 +5,7 @@
 #include "entity.hpp"
 
 namespace scene {
-    auto create_entity(assets::instance_t &asset, instance_t &sc, const json &info) -> uint32_t {
+    auto create_entity(assets::instance_t &asset, video::instance_t &vi, instance_t &sc, const json &info) -> uint32_t {
         using namespace std;
         using namespace game;
 
@@ -35,7 +35,7 @@ namespace scene {
         }
 
         if (info.find("camera") != info.end()) {
-            const auto c = create_camera(ix, info["camera"]);
+            const auto c = create_camera(ix, info["camera"], vi.aspect_ratio);
             if (c) {
                 sc.cameras[ix] = c.value();
                 sc.current_camera_index = ix;

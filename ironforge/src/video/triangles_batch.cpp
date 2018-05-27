@@ -3,6 +3,7 @@
 #include <video/triangles_batch.hpp>
 
 namespace video {
+
     auto create_triangles_batch(instance_t &vi, const triangles_batch_info &info) -> triangles_batch {
         triangles_batch tb;
 
@@ -41,10 +42,10 @@ namespace video {
     auto submit_triangles_batch(gl::command_buffer &cb, triangles_batch &tb, const gl::program &pm, const gl::sampler &sr) -> void {
         cb << vcs::update{tb.source.vertices, 0, &tb.vertices[0], tb.vertices.size() * sizeof (tb.vertices[0])};
 
-        cb << vcs::bind{pm};
-        cb << vcs::bind{pm, "color_map", 0, tb.tex};
-        cb << vcs::bind{0, sr};
-        cb << vcs::bind{tb.source};
+        cb << vcs::bind_program{pm};
+        cb << vcs::bind_texture{pm, "color_map", 0, tb.tex};
+        cb << vcs::bind_sampler{0, sr};
+        cb << vcs::bind_vertex_array{tb.source.array};
 
         vertices_draw draw;
         memset(&draw, 0, sizeof draw);
@@ -55,4 +56,5 @@ namespace video {
 
         tb.vertices.clear();
     }
+
 } // namespace video

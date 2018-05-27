@@ -1,12 +1,14 @@
 #include <vector>
 
 #include <glcore_330.h>
-#include <core/journal.hpp>
+#include <video/journal.hpp>
 #include <video/video.hpp>
 #include <video/shader.hpp>
 
 namespace video {
+
     namespace gl330 {
+
         auto get_shader_type(shader_type type) -> uint32_t {
             switch (type) {
             case shader_type::vertex:
@@ -41,7 +43,7 @@ namespace video {
                 glGetShaderInfoLog(sh.id, lenght, &written, &log_text[0]);
                 log_text.resize(written);
 
-                game::journal::error(game::journal::_VIDEO, "%", log_text);
+                journal::error("%", log_text);
 
                 glDeleteShader(sh.id);
                 sh.id = 0;
@@ -49,5 +51,7 @@ namespace video {
 
             return sh;
         }
+
     } // namespace gl330
+
 } // namespace video

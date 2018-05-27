@@ -4,7 +4,9 @@
 #include <cstdint>
 
 namespace video {
+
     namespace gl330 {
+
         enum class buffer_target : uint32_t {
             array,
             element_array,
@@ -61,5 +63,7 @@ namespace video {
         auto map_buffer(buffer &buf, const buffer_access access) -> void*;
         auto unmap_buffer(buffer &buf) -> bool;
         // copy_buffer
+
     } // namespace gl330
+
 } // namespace video

@@ -7,7 +7,9 @@
 #include <video/shader.hpp>
 
 namespace video {
+
     namespace gl330 {
+
         /*enum class uniform_type : uint32_t {
 
         };*/
@@ -46,4 +48,5 @@ namespace video {
         auto destroy_program(program &pro) -> void;
         auto get_uniform_location(const program &pro, const std::string &name) -> int32_t;
     } // namespace gl330
+
 } // namespace video

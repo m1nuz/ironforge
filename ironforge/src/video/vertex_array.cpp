@@ -1,15 +1,17 @@
 #include <glcore_330.h>
-#include <core/journal.hpp>
+#include <video/journal.hpp>
 #include <video/buffer.hpp>
 #include <video/vertex_array.hpp>
 
 namespace video {
+
     namespace gl330 {
+
         auto create_vertex_array() -> vertex_array {
             GLuint va;
             glGenVertexArrays(1, &va);
 
-            game::journal::debug(game::journal::_VIDEO, "Create vertex array %", va);
+            journal::debug("Create vertex array %", va);
 
             return {va, {}, {}, {}};
         }
@@ -24,7 +26,7 @@ namespace video {
 
         auto destroy_vertex_array(vertex_array &va) -> void {
             if (glIsVertexArray(va.id)) {
-                game::journal::debug(game::journal::_VIDEO, "Destroy vertex array %", va.id);
+                journal::debug("Destroy vertex array %", va.id);
                 glDeleteVertexArrays(1, &va.id);
             }
             va.id = 0;
@@ -35,7 +37,7 @@ namespace video {
         }
 
         auto unbind_vertex_array(const vertex_array &va) -> void {
-            UNUSED(va);
+            (void)va;
 
             glBindVertexArray(0);
         }
@@ -94,5 +96,7 @@ namespace video {
 
             // TODO : add to attribs of va
         }
+
     } // namespace gl330
+
 } // namespace video

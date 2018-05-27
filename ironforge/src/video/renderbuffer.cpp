@@ -1,11 +1,13 @@
 #include <glcore_330.h>
-#include <core/journal.hpp>
+#include <video/journal.hpp>
 #include <video/renderbuffer.hpp>
 
 #include "texture_format.inl"
 
 namespace video {
+
     namespace gl330 {
+
         auto create_renderbuffer(const renderbuffer_info &info) -> renderbuffer {
             GLuint buf = 0;
             glGenRenderbuffers(1, &buf);
@@ -27,11 +29,12 @@ namespace video {
 
         auto destroy_renderbuffer(renderbuffer &buf) -> void {
             if (!glIsRenderbuffer(buf.id))
-                game::journal::debug(game::journal::_VIDEO, "Trying delete not renderbuffer %", buf.id);
+                journal::debug("Trying delete not renderbuffer %", buf.id);
 
             glDeleteRenderbuffers(1, &buf.id);
             buf.id = 0;
         }
 
     } // namespace gl330
+
 } // namespace video

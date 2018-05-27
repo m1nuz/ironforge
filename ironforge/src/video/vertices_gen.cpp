@@ -6,7 +6,9 @@
 #include <video/vertices_gen.hpp>
 
 namespace video {
+
     namespace vertgen {
+
         struct shape {
             std::vector<glm::vec4>  vertices;
             std::vector<glm::vec3>  normals;
@@ -73,7 +75,7 @@ namespace video {
         }
 
         auto make_plane(const glm::mat4 &transform) -> vertices_info {
-            UNUSED(transform);
+            (void)transform;
 
             shape sh;
 
@@ -101,7 +103,7 @@ namespace video {
         }
 
         auto make_cube(const glm::mat4 &transform) -> vertices_info {
-            UNUSED(transform);
+            (void)transform;
 
             shape sh;
             sh.attributes = nullptr;
@@ -136,7 +138,7 @@ namespace video {
         }
 
         auto make_sphere(const gen_sphere_info *info, const glm::mat4 &transform) -> vertices_info {
-            UNUSED(transform);
+            (void)transform;
 
             shape sh;
 
@@ -191,8 +193,7 @@ namespace video {
         //vertices_info make_ribbon(const gen_ribbon_info *info, glm::mat4 transform);
 
         auto make_grid_plane(const gen_grid_plane_info *info, const glm::mat4 &transform, const video::heightmap_t &height_map) -> vertices_info {
-            UNUSED(transform);
-            UNUSED(height_map);
+            (void)transform, (void)height_map;
 
             const size_t num_vertices = (info->rows + 1) * (info->columns + 1);
             const size_t num_indices = info->triangle_strip ? info->rows * 2 * (info->columns + 1) : info->rows * 6 * info->columns;
@@ -251,5 +252,7 @@ namespace video {
 
             return make_vi(vertex_format::v3t2n3t3, index_format::ui16, sh);
         }
+
     } // namespace vertgen
+
 } // namespace video

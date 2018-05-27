@@ -1,7 +1,9 @@
 #include <video/image_gen.hpp>
 
 namespace video {
+
     namespace imgen {
+
         auto make_radial_gradient(int32_t width, int32_t height, uint8_t c0, uint8_t c1, int32_t radius) -> image_data {
             // the center of the surface
             const double cx = (double)width / 2.0;
@@ -95,5 +97,7 @@ namespace video {
 
             return {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 0, pixel_format::rgb8, all_pixels};
         }
+
     } // namespace imggen
+
 } // namespace video

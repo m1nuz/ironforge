@@ -27,6 +27,6 @@ namespace scene {
         glm::mat4   view = glm::mat4{1.f};
     };
 
-    auto create_camera(const uint32_t entity, const json &info) -> std::optional<camera_instance>;
-    auto present_all_cameras(instance_t& sc) -> void;
+    auto create_camera(const uint32_t entity, const json &info, const float aspect_ratio) -> std::optional<camera_instance>;
+    auto present_all_cameras(instance_t& sc, const float aspect_ratio) -> void;
 } // namespace scene

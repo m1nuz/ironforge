@@ -5,7 +5,7 @@
 #include "physics.hpp"
 
 namespace scene {
-    auto create_camera(const uint32_t entity, const json &info) -> std::optional<camera_instance> {
+    auto create_camera(const uint32_t entity, const json &info, const float aspect_ratio) -> std::optional<camera_instance> {
         using namespace glm;
         using namespace game;
 
@@ -28,7 +28,7 @@ namespace scene {
             ci.projection = glm::mat4{1.f};
             break;
         case camera_type::perspective:
-            ci.projection = perspective(ci.fov, video::screen.aspect, ci.znear, ci.zfar);
+            ci.projection = perspective(ci.fov, aspect_ratio, ci.znear, ci.zfar);
             break;
         default:
             ci.projection = mat4{1.f};
@@ -41,7 +41,7 @@ namespace scene {
         return ci;
     }
 
-    auto present_all_cameras(instance_t& sc) -> void {
+    auto present_all_cameras(instance_t& sc, const float aspect_ratio) -> void {
         using namespace game;
         using namespace glm;
 
@@ -51,7 +51,7 @@ namespace scene {
                 c.projection = mat4{1.f};
                 break;
             case camera_type::perspective:
-                c.projection = perspective(c.fov, video::screen.aspect, c.znear, c.zfar);
+                c.projection = perspective(c.fov, aspect_ratio, c.znear, c.zfar);
                 break;
             }
 

@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <vector>
-#include <core/common.hpp>
 #include <core/math.hpp>
 #include <video/texture.hpp>
 

@@ -7,7 +7,9 @@
 #include <video/buffer.hpp>
 
 namespace video {
+
     namespace gl330 {
+
         enum class attrib_type : uint32_t {
             // int types
             byte_value,
@@ -48,5 +50,7 @@ namespace video {
         auto unbind_vertex_array(const vertex_array &va) -> void;
         auto vertex_array_buffer(vertex_array &va, buffer &buf, ptrdiff_t offset, ptrdiff_t stride) -> void;
         auto vertex_array_format(vertex_array &va, vertex_attributes attribindex, int32_t size, attrib_type type, bool normalized, uint32_t relative_offset) -> void;
+
     } // namespace gl330
+
 } // namespace video

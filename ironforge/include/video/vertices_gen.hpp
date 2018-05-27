@@ -2,11 +2,11 @@
 
 #include <vector>
 
-#include <core/common.hpp>
 #include <video/vertices.hpp>
 #include <video/video.hpp>
 
 namespace video {
+
     struct gen_cube_info {
         float size;
     };
@@ -28,11 +28,14 @@ namespace video {
     };
 
     namespace vertgen {
+
         auto make_plane(const glm::mat4 &transform) -> vertices_info;
         auto make_cube(const glm::mat4 &transform) -> vertices_info;
         auto make_sphere(const gen_sphere_info *info, const glm::mat4 &transform) -> vertices_info;
         //vertices_info make_torus(const gen_torus_info *info, glm::mat4 transform);
         //vertices_info make_ribbon(const gen_ribbon_info *info, glm::mat4 transform);
         auto make_grid_plane(const gen_grid_plane_info *info, const glm::mat4 &transform, const video::heightmap_t &height_map) -> vertices_info;
+
     } // namespace vertgen
+
 } // namespace video

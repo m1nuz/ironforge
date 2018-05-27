@@ -2,7 +2,6 @@
 
 #include <core/common.hpp>
 #include <ui/widgets.hpp>
-#include <video/screen.hpp>
 #include <video/glyphs.hpp>
 
 #include "button.hpp"

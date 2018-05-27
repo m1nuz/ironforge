@@ -4,6 +4,7 @@
 #include <cstddef>
 
 namespace video {
+
     struct drawing_info {
         uint32_t    dips;
         uint32_t    tris;
@@ -48,4 +49,5 @@ namespace video {
     inline void stats_clear() {
         stats::reset(video_stats);
     }
+
 } // namespace video

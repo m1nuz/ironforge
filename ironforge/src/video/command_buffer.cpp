@@ -1,12 +1,14 @@
 #include <glcore_330.h>
-#include <core/journal.hpp>
+#include <video/journal.hpp>
 #include <video/video.hpp>
 #include <video/command_buffer.hpp>
 #include <video/stats.hpp>
 
 namespace video {
+
     namespace gl330 {
-        command_buffer::command_buffer(size_t uniform_components) : memory_offset{0} {
+
+        command_buffer::command_buffer(const size_t uniform_components) : memory_offset{0} {
             memory_size = uniform_components == 0 ? (sizeof (float) * 1024) : (sizeof (float) * uniform_components);
             raw_memory = malloc(memory_size);
             memset(raw_memory, 0, memory_size);
@@ -69,85 +71,68 @@ namespace video {
                 glUniform4fv(location, count, (const float*)((const char*)buf.raw_memory + offset));
                 break;
             default:
-                game::journal::warning(game::journal::_VIDEO, "Unknown uniform %", type);
+                journal::warning("Unknown uniform %", type);
                 break;
             }
         }
 
+        template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+        template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
         auto dispath_command(const command &c, command_buffer &buf) -> void {
-            switch (c.type) {
-            case command_type::clear:
-                glClearColor(buf.clear_color.x, buf.clear_color.y, buf.clear_color.z, buf.clear_color.w);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-                //glClearBufferfv(GL_COLOR, 0, &buf.clear_color[0]);
-                //glClearBufferfv(GL_DEPTH, 0, &depth_value);
-                break;
-            case command_type::viewport:
-                glViewport(c._viewport.x, c._viewport.y, c._viewport.w, c._viewport.h);
-                break;
-            case command_type::draw_arrays:
-                stats_inc_dips();
-                stats_add_tris(c._draw_arrays.count);
-                glDrawArrays(c._draw_arrays.mode, c._draw_arrays.first, c._draw_arrays.count);
-                break;
-            case command_type::draw_arrays_instanced:
-                stats_inc_dips();
-                stats_add_tris(c._draw_arrays.count * c._draw_arrays.primcount);
-                glDrawArraysInstanced(c._draw_arrays.mode, c._draw_arrays.first, c._draw_arrays.count, c._draw_arrays.primcount);
-                break;
-            case command_type::draw_elements:
-                // TODO: use glDrawElementsBaseVertex
-                stats_inc_dips();
-                stats_add_tris(c._draw_elements.count);
-                glDrawElementsBaseVertex(c._draw_elements.mode, c._draw_elements.count, GL_UNSIGNED_SHORT, nullptr, c._draw_elements.base_vertex);
-                break;
-            case command_type::draw_elements_instanced:
-                stats_inc_dips();
-                stats_add_tris(c._draw_elements.count * c._draw_elements.primcount);
-                glDrawElementsInstancedBaseVertex(c._draw_elements.mode, c._draw_elements.count, GL_UNSIGNED_SHORT, nullptr, c._draw_elements.primcount, c._draw_elements.base_vertex);
-                break;
-            case command_type::bind_framebuffer:
-                glBindFramebuffer(GL_FRAMEBUFFER, c._bind_framebuffer.id);
-                break;
-            case command_type::bind_program:
-                stats_inc_prg_bindings();
+            std::visit([&] (auto&& arg) {
+                using T = std::decay_t<decltype(arg)>;
 
-                glUseProgram(c._bind_program.pid);
-                break;
-            case command_type::bind_texture:
-                stats_inc_tex_bindings();
+                if constexpr (std::is_same_v<T, detail::clear>) {
+                    glClearColor(buf.clear_color.x, buf.clear_color.y, buf.clear_color.z, buf.clear_color.w);
+                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+                } else if constexpr (std::is_same_v<T, detail::viewport>) {
+                    glViewport(arg.x, arg.y, arg.w, arg.h);
+                } else if constexpr (std::is_same_v<T, detail::draw_arrays>) {
+                    stats_inc_dips();
+                    stats_add_tris(arg.count);
+                    glDrawArrays(arg.mode, arg.first, arg.count);
+                    // TODO: instanced
+                    // glDrawArraysInstanced(arg.mode, arg.first, arg.count, arg.primcount);
+                } else if constexpr (std::is_same_v<T, detail::draw_elements>) {
+                    stats_inc_dips();
+                    stats_add_tris(arg.count);
+                    glDrawElementsBaseVertex(arg.mode, arg.count, GL_UNSIGNED_SHORT, nullptr, arg.base_vertex);
 
-                glActiveTexture(GL_TEXTURE0 + c._bind_texture.unit);
-                glBindTexture(c._bind_texture.target, c._bind_texture.texture);
+                    // TODO: instanced
+                    // glDrawElementsInstancedBaseVertex(arg.mode, arg.count, GL_UNSIGNED_SHORT, nullptr, arg.primcount, arg.base_vertex);
+                } else if constexpr (std::is_same_v<T, detail::bind_framebuffer>) {
+                    glBindFramebuffer(GL_FRAMEBUFFER, arg.id);
+                } else if constexpr (std::is_same_v<T, detail::bind_program>) {
+                    stats_inc_prg_bindings();
 
-                glUniform1i(c._bind_texture.location, c._bind_texture.unit);
-                break;
-            case command_type::bind_sampler:
-                glBindSampler(c._bind_sampler.unit, c._bind_sampler.sampler);
-                break;
-            case command_type::bind_vertex_array:
-                glBindVertexArray(c._bind_vertex_array.array);
-                break;
-            case command_type::send_uniform:
-                dispath_uniform(buf, c._send_uniform.offset, c._send_uniform.location, c._send_uniform.type, c._send_uniform.count);
-                break;
-            case command_type::update:
-                glBindBuffer(c._subdata.target, c._subdata.buf);
-                glBufferSubData(c._subdata.target, c._subdata.offset, c._subdata.size, c._subdata.data);
-                break;
-            case command_type::blit:
-                //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, c._blit.src_id);
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, c._blit.dst_id);
-                glBlitFramebuffer(c._blit.src_x0, c._blit.src_y0, c._blit.src_x1, c._blit.src_y1,
-                                  c._blit.dst_x0, c._blit.dst_y0, c._blit.dst_x1, c._blit.dst_y1,
-                                  c._blit.mask, c._blit.filter);
-                break;
-            default:
-                game::journal::warning(game::journal::_VIDEO, "Unknown command %", static_cast<uint32_t>(c.type));
-                break;
-            }
+                    glUseProgram(arg.id);
+                } else if constexpr (std::is_same_v<T, detail::bind_texture>) {
+                    stats_inc_tex_bindings();
+
+                    glActiveTexture(GL_TEXTURE0 + arg.unit);
+                    glBindTexture(arg.target, arg.texture);
+
+                    glUniform1i(arg.location, arg.unit);
+                } else if constexpr (std::is_same_v<T, detail::bind_sampler>) {
+                    glBindSampler(arg.unit, arg.id);
+                } else if constexpr (std::is_same_v<T, detail::bind_vertex_array>) {
+                    glBindVertexArray(arg.id);
+                } else if constexpr (std::is_same_v<T, detail::bind_uniform>) {
+                    dispath_uniform(buf, arg.offset, arg.location, arg.type, arg.count);
+                } else if constexpr (std::is_same_v<T, detail::update>) {
+                    glBindBuffer(arg.target, arg.buf);
+                    glBufferSubData(arg.target, arg.offset, arg.size, arg.data);
+                } else if constexpr (std::is_same_v<T, detail::blit>) {
+                    glBindFramebuffer(GL_READ_FRAMEBUFFER, arg.src_id);
+                    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, arg.dst_id);
+                    glBlitFramebuffer(arg.src_x0, arg.src_y0, arg.src_x1, arg.src_y1,
+                                      arg.dst_x0, arg.dst_y0, arg.dst_x1, arg.dst_y1,
+                                      arg.mask, arg.filter);
+                }
+            }, c);
         }
 
     } // namespace gl330
+
 } // namespace video

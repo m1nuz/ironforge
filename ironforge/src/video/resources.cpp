@@ -1,16 +1,15 @@
 #include <cstddef>
 #include <algorithm>
 #include <utility/hash.hpp>
-#include <core/journal.hpp>
 #include <core/assets.hpp>
+#include <video/journal.hpp>
 #include <video/video.hpp>
 #include <video/glyphs.hpp>
 #include <utility/thread_pool.hpp>
 
 namespace video {
-    auto init_resources(instance_t &inst, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void {
-        using namespace game;
 
+    auto init_resources(instance_t &inst, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void {
         inst.textures.reserve(100);
         inst.programs.reserve(100);
         inst.arrays.reserve(100);
@@ -27,7 +26,7 @@ namespace video {
             break;
         }
 
-        journal::debug(journal::_VIDEO, "%", "Init resources");
+        journal::debug("%", "Init resources");
 
         inst.textures.emplace("white-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 255, 255}), textures_flags));
         inst.textures.emplace("black-map", gl::create_texture_2d(imgen::make_color(128, 128, {0, 0, 0}), textures_flags));
@@ -41,7 +40,7 @@ namespace video {
         auto font_atlas = video::create_atlas(asz, asz, 1);
         /*auto rc = */video::insert_image(font_atlas, white_im);
         if (!build_fonts(inst, asset, fonts, font_atlas)) {
-            journal::error(journal::_VIDEO, "%", "Fonts isn't built");
+            journal::error("%", "Fonts isn't built");
         }
 
         video::make_texture_2d(inst, "glyphs-map", get_atlas_texture(font_atlas), static_cast<uint32_t>(video::texture_flags::auto_mipmaps));
@@ -49,8 +48,6 @@ namespace video {
     }
 
     auto cleanup_resources(instance_t &in) -> void {
-        using namespace game;
-
         for (auto &b : in.buffers)
             gl::destroy_buffer(b);
 
@@ -58,12 +55,12 @@ namespace video {
             gl::destroy_vertex_array(a);
 
         for (auto &[name, t] : in.textures) {
-            journal::debug(journal::_VIDEO, "Destroy texture %", name);
+            journal::debug("Destroy texture %", name);
             gl::destroy_texture(t);
         }
 
         for (auto &[name, p] : in.programs) {
-            journal::debug(journal::_VIDEO, "Destroy program %", name);
+            journal::debug("Destroy program %", name);
             gl::destroy_program(p);
         }
     }
@@ -88,7 +85,7 @@ namespace video {
                     t.tex = gl::create_texture_2d(t.imd_future.get(), textures_flags);
                     t.ready = true;
                     t.tex.desc = &t;
-                    game::journal::debug(game::journal::_VIDEO, "%", "TEX LOADED");
+                    game::journal::debug( "%", "TEX LOADED");
                     // FIXME: ok, for now
                     //t.imd_future.get().pixels = NULL;
                 }
@@ -137,7 +134,7 @@ namespace video {
             const auto levels = info.find("levels") != info.end() ? info["levels"].get<vector<string>>() : vector<string>{};
 
             if (levels.empty()) {
-                journal::error(journal::_VIDEO, "No levels for texture %", name);
+                journal::error("No levels for texture %", name);
                 return {};
             }
 
@@ -146,14 +143,14 @@ namespace video {
             auto imd = assets::get_image(asset, texture_name);
 
             if (!imd) {
-                journal::warning(journal::_GAME, "Texture % not found", name);
+                journal::warning("Texture % not found", name);
                 return {};
             }
 
             auto tex = gl::create_texture_2d(imd.value(), textures_flags);
             inst.textures.emplace(name, tex);
 
-            journal::info(journal::_VIDEO, "Create texture '%'", name);
+            journal::info("Create texture '%'", name);
 
             return tex;
         }
@@ -162,19 +159,19 @@ namespace video {
             const auto levels = info.find("levels") != info.end() ? info["levels"].get<vector<vector<string>>>() : vector<vector<string>>{};
 
             if (levels.empty()) {
-                journal::error(journal::_VIDEO, "No levels for texture %", name);
+                journal::error("No levels for texture %", name);
                 return {};
             }
 
             const auto level = levels.size() < inst.texture_level ? levels.back() : levels[inst.texture_level];
 
             if (level.empty()) {
-                journal::error(journal::_VIDEO, "No levels for texture %", name);
+                journal::error("No levels for texture %", name);
                 return {};
             }
 
             if (level.size() != 6) {
-                journal::error(journal::_VIDEO, "Not enough sides for texture %", name);
+                journal::error("Not enough sides for texture %", name);
                 return {};
             }
 
@@ -192,12 +189,12 @@ namespace video {
             auto tex = gl::create_texture_cube(images, textures_flags);
             inst.textures.emplace(name, tex);
 
-            journal::info(journal::_VIDEO, "Create texture '%'", name);
+            journal::info("Create texture '%'", name);
 
             return tex;
         }
 
-        journal::error(journal::_VIDEO, "Unknown texture type '%'", type);
+        journal::error("Unknown texture type '%'", type);
 
         return {};
     }
@@ -233,17 +230,17 @@ namespace video {
                 auto p = gl::create_program(pi);
                 inst.programs.emplace(name, p);
 
-                journal::info(journal::_VIDEO, "Create program '%'", name);
+                journal::info("Create program '%'", name);
 
                 return p;
             }
 
-            journal::error(journal::_VIDEO, "Empty shader sources '%'", name);
+            journal::error("Empty shader sources '%'", name);
 
             return {};
         }
 
-        journal::error(journal::_VIDEO, "Empty shader programs '%'", name);
+        journal::error("Empty shader programs '%'", name);
 
         return {};
     }
@@ -306,7 +303,7 @@ namespace video {
 
         auto vsi = create_vertices_info(asset, info);
         if (!vsi) {
-            journal::error(journal::_VIDEO, "%", "Can't create vertices for mesh");
+            journal::error("%", "Can't create vertices for mesh");
             return {};
         }
 
@@ -317,7 +314,7 @@ namespace video {
         m.source = make_vertices_source(vi, {vsi.value().data}, vsi.value().desc, draws);
         m.draw = draws[0];
 
-        journal::info(journal::_VIDEO, "Create mesh '%'", type);
+        journal::info("Create mesh '%'", type);
 
         return m;
     }
@@ -388,7 +385,7 @@ namespace video {
                 vertices_data_size += vb_size;
                 break;
             default:
-                game::journal::warning(game::journal::_VIDEO, "%", "Unknown vertex format");
+                journal::warning("%", "Unknown vertex format");
                 break;
             }
 
@@ -404,7 +401,7 @@ namespace video {
                 indices_data_size += ib_size;
                 break;
             default:
-                game::journal::warning(game::journal::_VIDEO, "%", "Unknown index format");
+                journal::warning( "%", "Unknown index format");
                 break;
             }
 
@@ -476,7 +473,7 @@ namespace video {
             gl::vertex_array_format(va, vertex_attributes::tangent, 3, gl::attrib_type::float_value, false, offsetof(v3t2n3t3, tangent));
             break;
         default:
-            game::journal::warning(game::journal::_VIDEO, "%", "Unknown vertex format");
+            journal::warning( "%", "Unknown vertex format");
             break;
         }
 
@@ -504,7 +501,7 @@ namespace video {
             return it->second;
         }
 
-        journal::error(journal::_VIDEO, "Texture % not found", name);
+        journal::error("Texture % not found", name);
 
         return {};
     }
@@ -540,7 +537,7 @@ namespace video {
         });
 
         if (pi != programs.end()) {
-            game::journal::warning(game::journal::_VIDEO, "Program % already created", pi->pro.pid);
+            game::journal::warning( "Program % already created", pi->pro.pid);
             return pi->pro;
         }
 
@@ -571,7 +568,7 @@ namespace video {
         if (auto it = vi.programs.find(name); it != vi.programs.end())
             return it->second;
 
-        journal::error(journal::_VIDEO, "Shader % not found", name);
+        journal::error("Shader % not found", name);
 
         return {};
     }
@@ -582,4 +579,5 @@ namespace video {
 
         return static_cast<uint32_t>(-1);
     }
+
 } // namespace video

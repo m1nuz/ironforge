@@ -48,7 +48,7 @@ namespace video {
                 type = GL_UNSIGNED_SHORT;
                 break;
             default:
-                game::journal::error(game::journal::_VIDEO, "% %\n", "Unknown texture format for pixel format", static_cast<uint32_t>(pf));
+                journal::error("% %\n", "Unknown texture format for pixel format", static_cast<uint32_t>(pf));
                 break;
             }
         }

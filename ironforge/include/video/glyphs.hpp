@@ -10,9 +10,10 @@
 namespace assets {
     struct instance_type;
     typedef instance_type instance_t;
-}
+} // namespace assets
 
 namespace video {
+
     struct instance_type;
     typedef instance_type instance_t;
 
@@ -42,6 +43,8 @@ namespace video {
     struct font_type {
         int                                         size = 0;
         int                                         lineskip = 0;
+        float                                       correction = 1.f;
+        float                                       spt;
         std::unordered_map<uint16_t, glyph_rect_t>  glyphs;
     };
 
@@ -77,4 +80,5 @@ namespace video {
     /// \brief default_charset
     ///
     [[nodiscard]] auto default_charset() noexcept -> const char *;
+
 } // namespace video

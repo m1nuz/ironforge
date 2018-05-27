@@ -5,6 +5,7 @@
 #include <video/image_gen.hpp>
 
 namespace video {
+
     struct atlas {
         struct node;
 
@@ -18,4 +19,5 @@ namespace video {
     auto insert_surface(atlas &_atlas, SDL_Surface *_surface) -> SDL_Rect;
     auto insert_image(atlas &_atlas, image_data &_image) -> SDL_Rect;
     auto get_atlas_texture(atlas &_atlas) -> image_data;
+
 } // namespace video

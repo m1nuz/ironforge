@@ -122,7 +122,7 @@ namespace game {
 
             ctx.vi = get<video::instance_t>(vc);
 
-            journal::info(journal::_VIDEO, "%", video::get_info(ctx.vi));
+            journal::info(journal::_GAME, "%", video::get_info(ctx.vi));
         }
 
         // Scene

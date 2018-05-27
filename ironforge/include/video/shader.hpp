@@ -4,7 +4,9 @@
 #include <string>
 
 namespace video {
+
     namespace gl330 {
+
         enum class shader_type : uint32_t {
             vertex,
             geometry,
@@ -22,5 +24,7 @@ namespace video {
         };
 
         auto compile_shader(shader_type type, const shader_source &source) -> shader;
+
     } // namespace gl330
+
 } // namespace video

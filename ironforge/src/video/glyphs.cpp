@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include <SDL2/SDL_ttf.h>
+#include <video/journal.hpp>
 #include <core/assets.hpp>
 #include <video/video.hpp>
 #include <video/glyphs.hpp>
@@ -9,7 +10,8 @@
 #include <utility/utf.hpp>
 
 namespace video {
-    static auto make_font(assets::instance_t &asset, const font_info &info, atlas &_atlas) -> std::optional<font_t> {
+
+    static auto make_font(instance_t &vi, assets::instance_t &asset, const font_info &info, atlas &_atlas) -> std::optional<font_t> {
         const SDL_Color White = {255, 255, 255, 255};
         auto fb = assets::get_binary(asset, info.filename);
 
@@ -47,7 +49,9 @@ namespace video {
             }
         }
 
-        return font_t{TTF_FontHeight(font), TTF_FontLineSkip(font), glyph_rects};
+        const auto spt = 1.f / vi.h;
+
+        return font_t{TTF_FontHeight(font), TTF_FontLineSkip(font), vi.aspect_ratio, spt, glyph_rects};
     }
 
     auto build_fonts(instance_t &vi, assets::instance_t &asset, const std::vector<font_info> &fonts_info, atlas &_atlas) -> bool {
@@ -60,7 +64,7 @@ namespace video {
         fonts.reserve(fonts_info.size());
 
         for (const auto &fi : fonts_info) {
-            const auto f = make_font(asset, fi, _atlas);
+            const auto f = make_font(vi, asset, fi, _atlas);
 
             if (f)
             {
@@ -87,8 +91,8 @@ namespace video {
 
     auto get_text_length(const font_t &font, std::string_view text) -> std::tuple<float, float> {
         const int adv_y = font.lineskip;
-        const float spt = 1.f / video::screen.height;
-        const auto correction = video::screen.aspect;
+        const float spt = font.spt;
+        const auto correction = font.correction;
 
         float px = 0, py = 0;
 
@@ -103,14 +107,14 @@ namespace video {
 
             auto glyph = get_glyph_rect(font, ch);
             if (!glyph) {
-                game::journal::warning(game::journal::_RENDER, "Glyph % not found", ch);
+                journal::warning("Glyph % not found", ch);
                 continue;
             }
 
             px += glyph.value().advance * spt;
         }
 
-        return {px, py == 0 ? (float)adv_y / video::screen.height * 2.f : py};
+        return {px, py == 0 ? (float)adv_y * spt * 2.f : py};
     }
 
     auto default_charset() noexcept -> const char * {
@@ -118,4 +122,5 @@ namespace video {
                "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"
                "`abcdefghijklmnopqrstuvwxyz{|}~";
     }
+
 } // namespace video

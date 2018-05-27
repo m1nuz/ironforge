@@ -1,7 +1,5 @@
-#include <video/screen.hpp>
 #include <video/commands.hpp>
 #include <video/glyphs.hpp>
-#include <video/screen.hpp>
 #include <core/journal.hpp>
 #include <utility/utf.hpp>
 #include "forward_renderer.hpp"
@@ -12,7 +10,7 @@ template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 namespace renderer {
-    forward_renderer::forward_renderer(video::instance_t &vi, const json &info) : aspect_ratio{vi.aspect_ratio} {
+    forward_renderer::forward_renderer(video::instance_t &vi, const json &info) : aspect_ratio{vi.aspect_ratio}, display_width{static_cast<float>(vi.w)}, display_height{static_cast<float>(vi.h)} {
         game::journal::debug(game::journal::_RENDER, "% % with % %", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
         emission_shader = video::get_shader(vi, "emission-shader");
@@ -265,150 +263,148 @@ namespace renderer {
         cam_model = glm::scale(cam_model, glm::vec3(5.f));
         glm::mat4 projection_view = proj * view;
 
-        auto def_framebuffer = video::gl::default_framebuffer();
+        auto def_framebuffer = video::gl::default_framebuffer(vi);
 
-        prepare_commands << vcs::bind{sample_framebuffer};
+        prepare_commands << vcs::bind_framebuffer{sample_framebuffer};
         prepare_commands << vcs::viewport{sample_framebuffer};
         prepare_commands << vcs::clear{};
 
-        skybox_commands << vcs::bind{skybox_shader};
-        skybox_commands << vcs::uniform{skybox_shader, "projection_view_matrix", projection_view};
-        skybox_commands << vcs::uniform{skybox_shader, "model_matrix", cam_model};
+        skybox_commands << vcs::bind_program{skybox_shader};
+        skybox_commands << vcs::bind_uniform{skybox_shader, "projection_view_matrix", projection_view};
+        skybox_commands << vcs::bind_uniform{skybox_shader, "model_matrix", cam_model};
 
-        skybox_commands << vcs::bind{skybox_shader, "cubemap", 0, skybox_map};
-        skybox_commands << vcs::bind{0, texture_sampler};
+        skybox_commands << vcs::bind_texture{skybox_shader, "cubemap", 0, skybox_map};
+        skybox_commands << vcs::bind_sampler{0, texture_sampler};
 
-        skybox_commands << vcs::bind{skybox_cube};
+        skybox_commands << vcs::bind_vertex_array{skybox_cube.array};
         skybox_commands << vcs::draw_elements{skybox_draw};
 
-        ambient_commands << vcs::bind{ambient_light_shader};
-        ambient_commands << vcs::uniform{ambient_light_shader, "projection_view_matrix", projection_view};
+        ambient_commands << vcs::bind_program{ambient_light_shader};
+        ambient_commands << vcs::bind_uniform{ambient_light_shader, "projection_view_matrix", projection_view};
 
         for (const auto &lt : ambient_lights) {
-            ambient_commands << vcs::uniform{ambient_light_shader, "ambient_intensity", lt.la};
+            ambient_commands << vcs::bind_uniform{ambient_light_shader, "ambient_intensity", lt.la};
 
             for (size_t i = 0; i < draws.size(); i++) {
-                ambient_commands << vcs::uniform{ambient_light_shader, "model_matrix", matrices[i]};
-                ambient_commands << vcs::uniform{ambient_light_shader, "ambient_color", materials[i].ka};
+                ambient_commands << vcs::bind_uniform{ambient_light_shader, "model_matrix", matrices[i]};
+                ambient_commands << vcs::bind_uniform{ambient_light_shader, "ambient_color", materials[i].ka};
 
-                ambient_commands << vcs::bind{ambient_light_shader, "ambient_map", 0, materials[i].diffuse_tex};
-                ambient_commands << vcs::bind{0, texture_sampler};
+                ambient_commands << vcs::bind_texture{ambient_light_shader, "ambient_map", 0, materials[i].diffuse_tex};
+                ambient_commands << vcs::bind_sampler{0, texture_sampler};
 
-                ambient_commands << vcs::bind{sources[i]};
+                ambient_commands << vcs::bind_vertex_array{sources[i].array};
                 ambient_commands << vcs::draw_elements{draws[i]};
             }
         }
 
-        directional_commands << vcs::bind{directional_light_shader};
-        directional_commands << vcs::uniform{directional_light_shader, "projection_view_matrix", projection_view};
+        directional_commands << vcs::bind_program{directional_light_shader};
+        directional_commands << vcs::bind_uniform{directional_light_shader, "projection_view_matrix", projection_view};
 
-        directional_commands << vcs::uniform{directional_light_shader, "view_position", -glm::vec3(view[3])};
+        directional_commands << vcs::bind_uniform{directional_light_shader, "view_position", -glm::vec3(view[3])};
 
 
         for (const auto &lt : directional_lights) {
-
-
-            directional_commands << vcs::uniform{directional_light_shader, "light_direction", lt.direction};
-            directional_commands << vcs::uniform{directional_light_shader, "light.Ld", lt.ld};
-            directional_commands << vcs::uniform{directional_light_shader, "light.Ls", lt.ls};
+            directional_commands << vcs::bind_uniform{directional_light_shader, "light_direction", lt.direction};
+            directional_commands << vcs::bind_uniform{directional_light_shader, "light.Ld", lt.ld};
+            directional_commands << vcs::bind_uniform{directional_light_shader, "light.Ls", lt.ls};
 
             for (size_t i = 0; i < draws.size(); i++) {
 
-                directional_commands << vcs::uniform{directional_light_shader, "model_matrix", matrices[i]};
-                directional_commands << vcs::uniform{directional_light_shader, "material.Kd", materials[i].kd};
-                directional_commands << vcs::uniform{directional_light_shader, "material.Ks", materials[i].ks};
-                directional_commands << vcs::uniform{directional_light_shader, "material.shininess", materials[i].ns};
-                directional_commands << vcs::uniform{directional_light_shader, "material.transparency", 1.f};
-                directional_commands << vcs::uniform{directional_light_shader, "material.reflectivity", materials[i].reflectivity};
+                directional_commands << vcs::bind_uniform{directional_light_shader, "model_matrix", matrices[i]};
+                directional_commands << vcs::bind_uniform{directional_light_shader, "material.Kd", materials[i].kd};
+                directional_commands << vcs::bind_uniform{directional_light_shader, "material.Ks", materials[i].ks};
+                directional_commands << vcs::bind_uniform{directional_light_shader, "material.shininess", materials[i].ns};
+                directional_commands << vcs::bind_uniform{directional_light_shader, "material.transparency", 1.f};
+                directional_commands << vcs::bind_uniform{directional_light_shader, "material.reflectivity", materials[i].reflectivity};
 
-                directional_commands << vcs::bind{directional_light_shader, "diffuse_map", 0, materials[i].diffuse_tex};
-                directional_commands << vcs::bind{0, texture_sampler};
+                directional_commands << vcs::bind_texture{directional_light_shader, "diffuse_map", 0, materials[i].diffuse_tex};
+                directional_commands << vcs::bind_sampler{0, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "specular_map", 1, /*materials[i].specular_tex*/white_tex};
-                directional_commands << vcs::bind{1, texture_sampler};
+                directional_commands << vcs::bind_texture{directional_light_shader, "specular_map", 1, /*materials[i].specular_tex*/white_tex};
+                directional_commands << vcs::bind_sampler{1, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "gloss_map", 2, /*materials[i].gloss_tex*/white_tex};
-                directional_commands << vcs::bind{2, texture_sampler};
+                directional_commands << vcs::bind_texture{directional_light_shader, "gloss_map", 2, /*materials[i].gloss_tex*/white_tex};
+                directional_commands << vcs::bind_sampler{2, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "normal_map", 3, materials[i].normal_tex};
-                directional_commands << vcs::bind{3, texture_sampler};
+                directional_commands << vcs::bind_texture{directional_light_shader, "normal_map", 3, materials[i].normal_tex};
+                directional_commands << vcs::bind_sampler{3, texture_sampler};
 
-                directional_commands << vcs::bind{directional_light_shader, "environment_map", 4, /*skybox_map*/white_tex};
-                directional_commands << vcs::bind{4, filter_sampler};
+                directional_commands << vcs::bind_texture{directional_light_shader, "environment_map", 4, /*skybox_map*/white_tex};
+                directional_commands << vcs::bind_sampler{4, filter_sampler};
 
-                directional_commands << vcs::bind{sources[i]};
+                directional_commands << vcs::bind_vertex_array{sources[i].array};
                 directional_commands << vcs::draw_elements{draws[i]};
             }
         }
 
-        glow_commands << vcs::bind{glow_framebuffer};
+        glow_commands << vcs::bind_framebuffer{glow_framebuffer};
         glow_commands << vcs::viewport{glow_framebuffer};
         glow_commands << vcs::clear{};
 
-        glow_commands << vcs::bind{emission_shader};
-        glow_commands << vcs::uniform{emission_shader, "projection_view_matrix", projection_view};
+        glow_commands << vcs::bind_program{emission_shader};
+        glow_commands << vcs::bind_uniform{emission_shader, "projection_view_matrix", projection_view};
 
         for (size_t i = 0; i < draws.size(); i++) {
-            glow_commands << vcs::uniform{emission_shader, "model_matrix", matrices[i]};
-            glow_commands << vcs::uniform{emission_shader, "emission_color", materials[i].ke};
+            glow_commands << vcs::bind_uniform{emission_shader, "model_matrix", matrices[i]};
+            glow_commands << vcs::bind_uniform{emission_shader, "emission_color", materials[i].ke};
 
-            glow_commands << vcs::bind{emission_shader, "emission_map", 0, white_tex};
-            glow_commands << vcs::bind{1, texture_sampler};
+            glow_commands << vcs::bind_texture{emission_shader, "emission_map", 0, white_tex};
+            glow_commands << vcs::bind_sampler{1, texture_sampler};
 
-            glow_commands << vcs::bind{sources[i]};
+            glow_commands << vcs::bind_vertex_array{sources[i].array};
             glow_commands << vcs::draw_elements{draws[i]};
         }
 
         // vblur
-        post_commands << vcs::bind{blur_framebuffer};
+        post_commands << vcs::bind_framebuffer{blur_framebuffer};
         post_commands << vcs::viewport{blur_framebuffer};
         post_commands << vcs::clear{};
 
-        post_commands << vcs::bind{filter_vblur_shader};
+        post_commands << vcs::bind_program{filter_vblur_shader};
 
         const glm::vec2 size = glm::vec2(1.f / blur_framebuffer.width, 1.f / blur_framebuffer.height);
-        post_commands << vcs::uniform{filter_vblur_shader, "size", size};
-        post_commands << vcs::uniform{filter_vblur_shader, "scale", 2.0f};
+        post_commands << vcs::bind_uniform{filter_vblur_shader, "size", size};
+        post_commands << vcs::bind_uniform{filter_vblur_shader, "scale", 2.0f};
 
-        post_commands << vcs::bind{filter_vblur_shader, "tex0", 0, glow_map};
-        post_commands << vcs::bind{0, filter_sampler};
+        post_commands << vcs::bind_texture{filter_vblur_shader, "tex0", 0, glow_map};
+        post_commands << vcs::bind_sampler{0, filter_sampler};
 
-        post_commands << vcs::bind{fullscreen_quad};
+        post_commands << vcs::bind_vertex_array{fullscreen_quad.array};
         post_commands << vcs::draw_elements{fullscreen_draw};
 
         // hblur
-        post_commands << vcs::bind{glow_framebuffer};
+        post_commands << vcs::bind_framebuffer{glow_framebuffer};
         post_commands << vcs::viewport{glow_framebuffer};
         post_commands << vcs::clear{};
 
-        post_commands << vcs::bind{filter_hblur_shader};
+        post_commands << vcs::bind_program{filter_hblur_shader};
 
-        post_commands << vcs::uniform{filter_hblur_shader, "size", size};
-        post_commands << vcs::uniform{filter_hblur_shader, "scale", 2.0f};
+        post_commands << vcs::bind_uniform{filter_hblur_shader, "size", size};
+        post_commands << vcs::bind_uniform{filter_hblur_shader, "scale", 2.0f};
 
-        post_commands << vcs::bind{filter_hblur_shader, "tex0", 0, blur_map};
-        post_commands << vcs::bind{0, filter_sampler};
+        post_commands << vcs::bind_texture{filter_hblur_shader, "tex0", 0, blur_map};
+        post_commands << vcs::bind_sampler{0, filter_sampler};
 
-        post_commands << vcs::bind{fullscreen_quad};
+        post_commands << vcs::bind_vertex_array{fullscreen_quad.array};
         post_commands << vcs::draw_elements{fullscreen_draw};
 
         // blit sample to color
         post_commands << vcs::blit{sample_framebuffer, color_framebuffer};
 
         // postprocess
-        post_commands << vcs::bind{def_framebuffer};
+        post_commands << vcs::bind_framebuffer{def_framebuffer};
         post_commands << vcs::viewport{def_framebuffer};
         post_commands << vcs::clear{};
 
-        post_commands << vcs::bind{postprocess_shader};
+        post_commands << vcs::bind_program{postprocess_shader};
 
-        post_commands << vcs::bind{postprocess_shader, "color_map", 0, color_map};
-        post_commands << vcs::bind{0, filter_sampler};
+        post_commands << vcs::bind_texture{postprocess_shader, "color_map", 0, color_map};
+        post_commands << vcs::bind_sampler{0, filter_sampler};
 
-        post_commands << vcs::bind{postprocess_shader, "glow_map", 1, glow_map};
-        post_commands << vcs::bind{1, filter_sampler};
+        post_commands << vcs::bind_texture{postprocess_shader, "glow_map", 1, glow_map};
+        post_commands << vcs::bind_sampler{1, filter_sampler};
 
-        post_commands << vcs::bind{fullscreen_quad};
+        post_commands << vcs::bind_vertex_array{fullscreen_quad.array};
         post_commands << vcs::draw_elements{fullscreen_draw};
 
         video::submit_triangles_batch(post_commands, triangles, sprite_shader, texture_sampler);
@@ -435,8 +431,8 @@ namespace renderer {
         const auto tw = static_cast<float>(glyphs_map.width);
         const auto th = static_cast<float>(glyphs_map.height);
 
-        //const float screen_pt_x = 1.f / video::screen.width;
-        const float screen_pt_y = 1.f / video::screen.height;
+        //const float screen_pt_x = 1.f / display_width;
+        const float screen_pt_y = 1.f / display_height;
         const int adv_y = font.lineskip;
         const float fh = font.size * screen_pt_y;
         const auto correction = aspect_ratio;

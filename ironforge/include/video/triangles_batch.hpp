@@ -2,10 +2,10 @@
 
 #include <vector>
 
-#include <core/common.hpp>
 #include <video/video.hpp>
 
 namespace video {
+
     struct triangles_batch_info {
         size_t                  max_triangles;
         texture                 tex;
@@ -26,4 +26,5 @@ namespace video {
     auto append_triangles_vertices(triangles_batch &tb, const v3t2c4 *vertices, size_t size) -> void;
 
     auto submit_triangles_batch(gl::command_buffer &cb, triangles_batch &tb, const gl::program &pm, const gl::sampler &sr) -> void;
+
 } // namespace video

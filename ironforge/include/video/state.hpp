@@ -1,10 +1,11 @@
 #pragma once
 
 #include <cstdint>
-#include <core/common.hpp>
 
 namespace video {
+
     namespace gl330 {
+
         enum class blend_factor : uint32_t {
             zero,
             one,
@@ -75,12 +76,14 @@ namespace video {
             } front, back;*/
         };
 
-        auto set_color_blend_state(const color_blend_state *restrict state) -> void;
-        auto set_rasterizer_state(const rasterizer_state *restrict state) -> void;
-        auto set_depth_stencil_state(const depth_stencil_state *restrict state) -> void;
+        auto set_color_blend_state(const color_blend_state &state) -> void;
+        auto set_rasterizer_state(const rasterizer_state &state) -> void;
+        auto set_depth_stencil_state(const depth_stencil_state &state) -> void;
 
         auto clear_color_blend_state() -> void;
         auto clear_rasterizer_state() -> void;
         auto clear_depth_stencil_state() -> void;
+
     } // namespace gl330
+
 } // namespace video

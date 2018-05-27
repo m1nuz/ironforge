@@ -1,12 +1,14 @@
 #include <glcore_330.h>
 #include <core/assets.hpp>
+#include <video/journal.hpp>
 #include <video/video.hpp>
 
-#include "journal.hpp"
 #include "texture_format.inl"
 
 namespace video {
+
     namespace gl330 {
+
         auto create_texture_2d(const texture_info &info) -> texture {
             auto tex = 0u;
             glGenTextures(1, &tex);
@@ -29,7 +31,7 @@ namespace video {
 
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            journal::debug(journal::_VIDEO, "Create 2d texture %", tex);
+            journal::debug("Create 2d texture %", tex);
 
             return {static_cast<uint32_t>(tex), GL_TEXTURE_2D, info.width, info.height, 0};
         }
@@ -62,7 +64,7 @@ namespace video {
 
             glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-            journal::debug(journal::_VIDEO, "Create cube texture %", tex);
+            journal::debug("Create cube texture %", tex);
 
             return {static_cast<uint32_t>(tex), GL_TEXTURE_CUBE_MAP, infos[0].width, infos[0].height, 6};
         }
@@ -77,12 +79,14 @@ namespace video {
 
         auto destroy_texture(texture &tex) -> void {
             if (glIsTexture(tex.id)) {
-                journal::debug(journal::_VIDEO, "Delete texture %", tex.id);
+                journal::debug("Delete texture %", tex.id);
                 glDeleteTextures(1, &tex.id);
             }
 
             tex.id = 0;
         }
+
     } // namespace gl330
+
 } // namespace video
 

@@ -1,44 +1,46 @@
 #include <glcore_450.h>
 
-#include <core/journal.hpp>
+#include <video/journal.hpp>
 #include <video/video.hpp>
 #include <video/debug.hpp>
 #include <ui/types.hpp>
 
 namespace video {
+
     static void APIENTRY debug_output(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
         (void)source, (void)type, (void)id, (void)severity, (void)length, (void)userParam;
 
         using namespace game;
 
-        switch (type) {
+        /*switch (type) {
         case GL_DEBUG_TYPE_ERROR:
             //type_name = "ERROR";
-            journal::error(journal::_VIDEO, "%", message);
+            journal::error("%", message);
             break;
         case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
             //type_name = "DEPRECATED_BEHAVIOR";
-            journal::warning(journal::_VIDEO, "%", message);
+            journal::warning("%", message);
             break;
         case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
             //type_name = "UNDEFINED_BEHAVIOR";
-            journal::warning(journal::_VIDEO, "%", message);
+            journal::warning("%", message);
             break;
         case GL_DEBUG_TYPE_PORTABILITY:
-            journal::warning(journal::_VIDEO, "%", message);
+            journal::warning("%", message);
             //type_name = "PORTABILITY";
             break;
         case GL_DEBUG_TYPE_PERFORMANCE:
-            journal::warning(journal::_VIDEO, "%", message);
+            journal::warning("%", message);
             //type_name = "PERFORMANCE";
             break;
         case GL_DEBUG_TYPE_OTHER:
-            journal::warning(journal::_VIDEO, "%", message);
+            journal::warning("%", message);
             //type_name = "OTHER";
             break;
         default:
-            journal::debug(journal::_VIDEO, "%", message);
-        }
+            journal::debug("%", message);
+        }*/
+        journal::verbose("%s", message);
     }
 
     auto setup_debug() -> void {
@@ -79,4 +81,5 @@ namespace video {
 
         render->dispath(vi, dt);
     }
+
 } // namespace video

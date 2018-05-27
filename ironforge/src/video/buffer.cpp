@@ -2,19 +2,19 @@
 #include <map>
 
 #include <glcore_330.h>
-#include <core/journal.hpp>
+#include <video/journal.hpp>
 #include <video/buffer.hpp>
 
 namespace video {
-    namespace gl330 {
-        static std::map<buffer_target, const char *> buffer_target_names = {
-            {buffer_target::array, "array"},
-            {buffer_target::element_array, "element_array"},
-            {buffer_target::texture, "texture"},
-            {buffer_target::uniform, "uniform"},
-        };
 
-        constexpr inline auto get_buffer_target(const buffer_target target) -> uint32_t {
+    namespace gl330 {
+
+        constexpr char ARRAY_TARGET_NAME[] = "array";
+        constexpr char ELEMENT_TARGET_ARRAY_NAME[] = "element_array";
+        constexpr char TEXTURE_TARGET_NAME[] = "texture";
+        constexpr char UNIFORM_TARGET_NAME[] = "uniform";
+
+        inline auto get_buffer_target(const buffer_target target) -> uint32_t {
             switch (target) {
             case buffer_target::array:
                 return GL_ARRAY_BUFFER;
@@ -32,13 +32,13 @@ namespace video {
         inline auto get_buffer_target_name(const uint32_t target) -> const char * {
             switch (target) {
             case GL_ARRAY_BUFFER:
-                return buffer_target_names.at(buffer_target::array);
+                return ARRAY_TARGET_NAME;
             case GL_ELEMENT_ARRAY_BUFFER:
-                return buffer_target_names.at(buffer_target::element_array);
+                return ELEMENT_TARGET_ARRAY_NAME;
             case GL_TEXTURE_BUFFER:
-                return buffer_target_names.at(buffer_target::texture);
+                return TEXTURE_TARGET_NAME;
             case GL_UNIFORM_BUFFER:
-                return buffer_target_names.at(buffer_target::uniform);
+                return UNIFORM_TARGET_NAME;
             }
 
             return "unknown";
@@ -73,22 +73,22 @@ namespace video {
             GLuint buf;
             glGenBuffers(1, &buf);
 
-            const uint32_t bt = get_buffer_target(target);
-            const uint32_t bu = get_buffer_usage(usage);
+            const uint32_t buf_target = get_buffer_target(target);
+            const uint32_t buf_usage = get_buffer_usage(usage);
 
-            glBindBuffer(bt, buf);
-            glBufferData(bt, size, ptr, bu);
+            glBindBuffer(buf_target, buf);
+            glBufferData(buf_target, size, ptr, buf_usage);
 
-            game::journal::debug(game::journal::_VIDEO, "Create % buffer %", buffer_target_names[target], buf);
+            journal::debug("Create % buffer %", get_buffer_target_name(buf_target), buf);
 
-            return buffer{buf, bt, bu};
+            return buffer{buf, buf_target, buf_usage};
         }
 
         auto destroy_buffer(buffer &buf) -> void {
             if (!glIsBuffer(buf.id))
-                game::journal::warning(game::journal::_VIDEO, "Trying delete not buffer %", buf.id);
+                journal::warning("Trying delete not buffer %", buf.id);
 
-            game::journal::debug(game::journal::_VIDEO, "Destroy % buffer %", get_buffer_target_name(buf.target), buf.id);
+            journal::debug("Destroy % buffer %", get_buffer_target_name(buf.target), buf.id);
 
             glDeleteBuffers(1, &buf.id);
             buf.id = 0;
@@ -128,5 +128,7 @@ namespace video {
         auto unmap_buffer(buffer &buf) -> bool {
             return glUnmapBuffer(buf.target) == GL_TRUE;
         }
+
     } // namespace gl330
+
 } // namespace video

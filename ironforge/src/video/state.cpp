@@ -1,10 +1,12 @@
 #include <glcore_330.h>
 
-#include <core/journal.hpp>
+#include <video/journal.hpp>
 #include <video/state.hpp>
 
 namespace video {
+
     namespace gl330 {
+
         inline auto get_blend_factor(blend_factor factor) -> uint32_t {
             switch (factor) {
             case blend_factor::zero:
@@ -37,7 +39,7 @@ namespace video {
                 return GL_ONE_MINUS_CONSTANT_ALPHA;
             }
 
-            game::journal::warning(game::journal::_VIDEO, "Unknown blend factor %", static_cast<uint32_t>(factor));
+            journal::warning("Unknown blend factor %", static_cast<uint32_t>(factor));
 
             return GL_NONE;
         }
@@ -52,7 +54,7 @@ namespace video {
                 return GL_FRONT_AND_BACK;
             }
 
-            game::journal::warning(game::journal::_VIDEO, "Unknown cull face mode %", static_cast<uint32_t>(mode));
+            journal::warning("Unknown cull face mode %", static_cast<uint32_t>(mode));
 
             return GL_NONE;
         }
@@ -67,7 +69,7 @@ namespace video {
                 return GL_FILL;
             }
 
-            game::journal::warning(game::journal::_VIDEO, "Unknown polygon mode fill %", static_cast<uint32_t>(mode));
+            journal::warning("Unknown polygon mode fill %", static_cast<uint32_t>(mode));
 
             return GL_NONE;
         }
@@ -92,39 +94,39 @@ namespace video {
                 return GL_ALWAYS;
             }
 
-            game::journal::warning(game::journal::_VIDEO, "Unknown depth func %", static_cast<uint32_t>(f));
+            journal::warning("Unknown depth func %", static_cast<uint32_t>(f));
 
             return GL_NONE;
         }
 
-        auto set_color_blend_state(const color_blend_state *restrict state) -> void {
-            if (!state->enable)
+        auto set_color_blend_state(const color_blend_state &state) -> void {
+            if (!state.enable)
                 return;
 
             glEnable(GL_BLEND);
-            glBlendFunc(get_blend_factor(state->sfactor), get_blend_factor(state->dfactor));
+            glBlendFunc(get_blend_factor(state.sfactor), get_blend_factor(state.dfactor));
         }
 
-        auto set_rasterizer_state(const rasterizer_state *restrict state) -> void {
-            if (state->cull_face) {
+        auto set_rasterizer_state(const rasterizer_state &state) -> void {
+            if (state.cull_face) {
                 glEnable(GL_CULL_FACE);
-                glCullFace(get_cull_face_mode(state->cull_mode));
+                glCullFace(get_cull_face_mode(state.cull_mode));
             }
-            if (state->polygon_mode) {
-                glPolygonMode(GL_FRONT_AND_BACK, get_polygon_mode(state->fill_mode));
+            if (state.polygon_mode) {
+                glPolygonMode(GL_FRONT_AND_BACK, get_polygon_mode(state.fill_mode));
             }
 
-            if (state->discard)
+            if (state.discard)
                 glEnable(GL_RASTERIZER_DISCARD);
         }
 
-        auto set_depth_stencil_state(const depth_stencil_state *restrict state) -> void {
-            if (state->depth_test) {
+        auto set_depth_stencil_state(const depth_stencil_state &state) -> void {
+            if (state.depth_test) {
                 glEnable(GL_DEPTH_TEST);
-                glDepthFunc(get_depth_func(state->depth_func));
+                glDepthFunc(get_depth_func(state.depth_func));
             }
 
-            if (state->depth_write)
+            if (state.depth_write)
                 glDepthMask(GL_TRUE);
             else
                 glDepthMask(GL_FALSE);
@@ -144,5 +146,7 @@ namespace video {
             glDepthMask(GL_TRUE);
             glDisable(GL_DEPTH_TEST);
         }
+
     } // namespace gl330
+
 } // namespace video

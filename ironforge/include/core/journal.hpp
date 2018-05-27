@@ -82,7 +82,7 @@ namespace game {
         constexpr char _GAME[] = "game";
         constexpr char _SYSTEM[] = "system";
         constexpr char _AUDIO[] = "audio";
-        constexpr char _VIDEO[] = "video";
+        //constexpr char _VIDEO[] = "video";
         constexpr char _RENDER[] = "render";
         constexpr char _INPUT[] = "input";
         constexpr char _SCENE[] = "scene";

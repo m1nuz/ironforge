@@ -28,6 +28,7 @@ namespace video {
 
             // per frame info
         }
+
     } // namespace stats
 
 } // namespace video

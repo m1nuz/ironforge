@@ -46,6 +46,8 @@ namespace renderer {
         auto draw_rect(const float _x, const float _y, const float _w, const float _h, const uint32_t _color) -> void;
 
         float                                   aspect_ratio;
+        float                                   display_width;
+        float                                   display_height;
 
         std::vector<video::vertices_source>     sources;
         std::vector<video::vertices_draw>       draws; // TODO: use raw_draw

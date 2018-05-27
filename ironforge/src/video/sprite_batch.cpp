@@ -3,9 +3,11 @@
 #include <video/commands.hpp>
 
 namespace video {
+
     auto create_sprite_batch(instance_t &vi, const sprite_batch_info &info) -> sprite_batch {
         sprite_batch sb;
 
+        sb.correction = vi.aspect_ratio;
         sb.max_sprites = info.max_sprites;
         sb.sprites_count = 0;
         sb.tex = info.tex;
@@ -53,7 +55,7 @@ namespace video {
     }
 
     auto append_sprite(sprite_batch &sb, const glm::vec3 &position, const glm::vec2 size, const glm::vec4 offset, const glm::vec4 color) -> void {
-        const float correction = screen.aspect;
+        const float correction = sb.correction;
 
         const v3t2c4 vertices[4] = {
             {{position[0], position[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
@@ -68,10 +70,10 @@ namespace video {
     auto submit_sprite_batch(gl::command_buffer &cb, sprite_batch &sb, const gl::program &pm, const gl::sampler &sr) -> void {
         cb << vcs::update{sb.source.vertices, 0, &sb.vertices[0], sb.vertices.size() * sizeof (sb.vertices[0])};
 
-        cb << vcs::bind{pm};
-        cb << vcs::bind{pm, "color_map", 0, sb.tex};
-        cb << vcs::bind{0, sr};
-        cb << vcs::bind{sb.source};
+        cb << vcs::bind_program{pm};
+        cb << vcs::bind_texture{pm, "color_map", 0, sb.tex};
+        cb << vcs::bind_sampler{0, sr};
+        cb << vcs::bind_vertex_array{sb.source.array};
 
         vertices_draw draw;
         memset(&draw, 0, sizeof draw);
@@ -83,4 +85,5 @@ namespace video {
         sb.sprites_count = 0;
         sb.vertices.clear();
     }
+
 } // namespace video

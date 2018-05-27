@@ -1,23 +1,24 @@
 #include <glcore_330.h>
-#include <utility/hash.hpp>
-#include <core/journal.hpp>
-#include <video/screen.hpp>
+#include <video/journal.hpp>
+#include <video/instance.hpp>
 #include <video/framebuffer.hpp>
 
 namespace video {
+
     namespace gl330 {
+
         inline auto check_framebuffer() -> uint32_t {
             const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
             if (status != GL_FRAMEBUFFER_COMPLETE)
-                game::journal::error(game::journal::_VIDEO, "Framebuffer incomplete %", utils::to_hex(status));
+                journal::error("Framebuffer incomplete %", status);
 
             // TODO: make verbose output
 
             return status;
         }
 
-        inline auto get_framebuffer_attachment(framebuffer_attachment attachment) {
+        inline auto get_framebuffer_attachment(const framebuffer_attachment attachment) {
             switch (attachment) {
             case framebuffer_attachment::color0:
                 return GL_COLOR_ATTACHMENT0;
@@ -47,11 +48,11 @@ namespace video {
         }
 
         auto create_framebuffer(const framebuffer_info &info) -> framebuffer {
-            GLuint buf = 0;
+            GLuint buf = INVALID_FRAMEBUFFER_ID;
             glGenFramebuffers(1, &buf);
             glBindFramebuffer(GL_FRAMEBUFFER, buf);
 
-            game::journal::debug(game::journal::_VIDEO, "Create framebuffer %", buf);
+            journal::debug("Create framebuffer %", buf);
 
             for (const auto &att : info.attachments) {
                 switch (att.attachment_target) {
@@ -71,16 +72,18 @@ namespace video {
 
         auto destroy_framebuffer(framebuffer &buf) -> void {
             if (!glIsFramebuffer(buf.id))
-                game::journal::debug(game::journal::_VIDEO, "Trying delete not framebuffer %", buf.id);
+                journal::debug("Trying delete not framebuffer %", buf.id);
 
-            game::journal::debug(game::journal::_VIDEO, "Destroy framebuffer %", buf.id);
+            journal::debug("Destroy framebuffer %", buf.id);
 
             glDeleteFramebuffers(1, &buf.id);
             buf.id = 0;
         }
 
-        auto default_framebuffer() -> framebuffer {
-            return {0, static_cast<uint32_t>(screen.width), static_cast<uint32_t>(screen.height), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT};
+        auto default_framebuffer(instance_t &vi) -> framebuffer {
+            return {DEFAULT_FRAMEBUFFER_ID, static_cast<uint32_t>(vi.w), static_cast<uint32_t>(vi.h), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT};
         }
+
     } // namespace gl330
+
 } // namespace video

@@ -34,7 +34,7 @@ namespace scene {
         video::stats_clear();
 
         interpolate_all(sc, interpolation);
-        scene::present_all_cameras(sc);
+        scene::present_all_cameras(sc, vi.aspect_ratio);
         render->append(sc.skybox, 0);
         scene::present_all_lights(sc, render);
         scene::present_all_transforms(sc, [&sc, &render] (uint32_t entity, const glm::mat4 &model) {

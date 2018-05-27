@@ -148,4 +148,5 @@ namespace video {
 
         return image_data{static_cast<uint32_t>(_atlas.surface->w), static_cast<uint32_t>(_atlas.surface->h), 0, pixel_format::rgba8, all_pixels};
     }
+
 } // namespace video

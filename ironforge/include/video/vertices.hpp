@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <core/common.hpp>
 #include <core/math.hpp>
 
 namespace video {
+
     enum class vertex_attributes : uint32_t {
         position  = 0,
         texcoord  = 1,

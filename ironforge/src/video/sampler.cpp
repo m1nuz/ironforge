@@ -1,11 +1,12 @@
 #include <glcore_330.h>
 #include <GL/ext_texture_filter_anisotropic.h>
-#include <core/journal.hpp>
+#include <video/journal.hpp>
 #include <video/sampler.hpp>
-#include <core/common.hpp>
 
 namespace video {
+
     namespace gl330 {
+
         inline auto get_texture_mag_filter(texture_mag_filter filter) -> int32_t {
             switch (filter) {
             case texture_mag_filter::nearest:
@@ -33,7 +34,7 @@ namespace video {
                 return GL_LINEAR_MIPMAP_LINEAR;
             }
 
-            game::journal::debug(game::journal::_VIDEO, "Texture min filter not found %", static_cast<uint32_t>(filter));
+            journal::debug("Texture min filter not found %", static_cast<uint32_t>(filter));
 
             return GL_NONE;
         }
@@ -50,7 +51,7 @@ namespace video {
                 return GL_CLAMP_TO_BORDER;
             }
 
-            game::journal::debug(game::journal::_VIDEO, "Texture wrap not found %", static_cast<uint32_t>(wrap));
+            journal::debug("Texture wrap not found %", static_cast<uint32_t>(wrap));
 
             return GL_NONE;
         }
@@ -76,14 +77,14 @@ namespace video {
                 glSamplerParameteri(sid, GL_TEXTURE_MAX_ANISOTROPY_EXT, info.anisotropy);
             }
 
-            game::journal::debug(game::journal::_VIDEO, "Create sampler %", sid);
+            journal::debug("Create sampler %", sid);
 
             return {sid};
         }
 
         auto destroy_sampler(sampler &sam) -> void {
             if (glIsSampler(sam.id)) {
-                game::journal::debug(game::journal::_VIDEO, "Destroy sampler %", sam.id);
+                journal::debug("Destroy sampler %", sam.id);
                 glDeleteSamplers(1, &sam.id);
             }
 
@@ -95,9 +96,11 @@ namespace video {
         }
 
         auto unbind_sampler(const sampler &sam, uint32_t unit) -> void {
-            UNUSED(sam);
+            (void)sam;
 
             glBindSampler(unit, 0);
         }
+
     } // namespace gl330
+
 } // namespace video

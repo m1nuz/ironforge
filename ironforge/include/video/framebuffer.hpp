@@ -4,7 +4,12 @@
 #include <vector>
 
 namespace video {
+
+    struct instance_type;
+    typedef instance_type instance_t;
+
     namespace gl330 {
+
         /*enum class framebuffer_target : uint32_t {
             draw_framebuffer,
             read_framebuffer,
@@ -46,6 +51,9 @@ namespace video {
             stencil_buffer = 0x00000400
         };
 
+        constexpr uint32_t INVALID_FRAMEBUFFER_ID = -1;
+        constexpr uint32_t DEFAULT_FRAMEBUFFER_ID = 0;
+
         struct framebuffer_attachments {
             //framebuffer_target target;
             framebuffer_attachment attachment;
@@ -71,6 +79,8 @@ namespace video {
         auto create_framebuffer(const framebuffer_info &info) -> framebuffer;
         auto destroy_framebuffer(framebuffer &buf) -> void;
 
-        auto default_framebuffer() -> framebuffer;
+        auto default_framebuffer(instance_t &vi) -> framebuffer;
+
     } // namespace gl330
+
 } // namespace video

@@ -3,7 +3,9 @@
 #include <cstdint>
 
 namespace video {
+
     namespace gl330 {
+
         enum class texture_min_filter : int32_t {
             nearest,
             linear,
@@ -48,5 +50,7 @@ namespace video {
 
         auto bind_sampler(const sampler &sam, uint32_t unit) -> void;
         auto unbind_sampler(const sampler &sam, uint32_t unit) -> void;
+
     } // namespace gl330
+
 } // namespace video

@@ -4,6 +4,7 @@
 #include <cstddef>
 
 namespace video {
+
     struct frame_info {
         frame_info() = default;
 
@@ -20,9 +21,11 @@ namespace video {
     };
 
     namespace stats {
+
         auto reset(frame_info& stats) -> void;
         auto begin(frame_info& stats) -> void;
         auto end(frame_info& stats) -> void;
+
     } // namespace stats
 
 } // namespace video

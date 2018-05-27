@@ -4,7 +4,9 @@
 #include <video/texture.hpp>
 
 namespace video {
+
     namespace gl330 {
+
         struct renderbuffer_info {
             pixel_format pf;
             uint32_t width;
@@ -21,5 +23,7 @@ namespace video {
 
         auto create_renderbuffer(const renderbuffer_info &info) -> renderbuffer;
         auto destroy_renderbuffer(renderbuffer &buf) -> void;
+
     } // namespace gl330
+
 } // namespace video
