@@ -44,14 +44,13 @@ namespace scene {
                 const auto &mt = sc.materials[entity];
 
                 render->append(mt.m0);
-                render->append(model);
-                render->append(msh.source, msh.draw);
+                render->append(msh.source, msh.draw, model);
             }
         });
 
         video::stats::begin(vi.stats_info);
-        video::debug_text(vi, render, -0.48, 0.42, vi.stats_info.info, 0x1a1a1aff);
-        video::debug_text(vi, render, -0.48, 0.24, video::video_stats.info, 0x1a1a1aff);
+        video::debug_text(vi, render, -0.48f, 0.42f, vi.stats_info.info, 0x1a1a1aff);
+        video::debug_text(vi, render, -0.48f, 0.24f, video::video_stats.info, 0x1a1a1aff);
 
         render->present(vi, sc.current_camera().projection, sc.current_camera().view);
 

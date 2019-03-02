@@ -3,10 +3,18 @@
 #include <video/video.hpp>
 #include <video/debug.hpp>
 #include <video/glyphs.hpp>
+#include <video/journal.hpp>
 
 #include <GL/ext_texture_filter_anisotropic.h>
 
 namespace video {
+
+    ///
+    /// \brief Get vendor, renderer, version and shading language version
+    /// \param[inout] vi
+    /// \return Info string
+    ///
+    auto get_info(instance_t &vi) -> std::string;
 
     auto create_resources(instance_t &inst, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void;
     auto cleanup_resources(instance_t &in) -> void;
@@ -123,6 +131,8 @@ namespace video {
 
         const auto fonts = load_font_infos(info);
         video::create_resources(ctx, asset, fonts);
+
+        journal::info("%", get_info(ctx));
 
         return ctx;
     }

@@ -18,7 +18,7 @@ namespace video {
         if (!fb)
             return {};
 
-        auto rw = SDL_RWFromConstMem(&fb.value()[0], fb.value().size());
+        auto rw = SDL_RWFromConstMem(&fb.value()[0], static_cast<int>(fb.value().size()));
 
         auto font = TTF_OpenFontRW(rw, SDL_TRUE, info.size);
         if (!font)
@@ -35,7 +35,7 @@ namespace video {
             int minx, maxx, miny, maxy, advance;
 
             if (TTF_GlyphMetrics(font, ch[0], &minx, &maxx, &miny, &maxy, &advance) != -1) {
-                SDL_Surface *glyph = TTF_RenderUNICODE_Blended(font, (Uint16*)&ch[0], White);
+                SDL_Surface *glyph = TTF_RenderUNICODE_Blended(font, static_cast<Uint16*>(&ch[0]), White);
                 //SDL_Surface *glyph = TTF_RenderUTF8_Blended(font, ch, White);
 
                 SDL_Surface *rgba_glyph = SDL_ConvertSurfaceFormat(glyph, SDL_PIXELFORMAT_RGBA8888, 0);

@@ -23,32 +23,37 @@ namespace renderer {
         glm::vec4 values[4];
     };
 
+    struct raw_draw {
+        video::gl::vertex_array va;
+        uint32_t                mode;
+        uint32_t                vb_offset;
+        uint32_t                ib_offset;
+        uint32_t                count;
+        uint32_t                base_vertex;
+        uint32_t                base_index;
+    };
+
     // TODO : make video api specific template
-    struct forward_renderer : public instance {
-        forward_renderer(video::instance_t &vi);
-        ~forward_renderer();
+    struct forward_renderer final : public instance {
+        forward_renderer(video::instance_t &vi, const uint32_t renderer_flags);
+        ~forward_renderer() override;
 
-        virtual auto set_flags(const uint32_t flags) -> void;
-
-        virtual auto append(const phong::ambient_light &light) -> void;
-        virtual auto append(const phong::directional_light &light) -> void;
-        virtual auto append(const phong::point_light &light) -> void;
-        virtual auto append(const phong::material &material) -> void;
-        virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw) -> void;
-        virtual auto append(const glm::mat4 &model) -> void;
-        virtual auto append(const video::texture &tex, const uint32_t flags) -> void;
+        virtual auto append(const phong::ambient_light &light) -> void override;
+        virtual auto append(const phong::directional_light &light) -> void override;
+        virtual auto append(const phong::point_light &light) -> void override;
+        virtual auto append(const phong::material &material) -> void override;
+        virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw, const glm::mat4 &model) -> void override;
+        virtual auto append(const video::texture &tex, const uint32_t flags) -> void override;
 
         virtual auto dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void override;
 
-        virtual auto reset() -> void;
-        virtual auto present(video::instance_t &vi, const glm::mat4 &proj, const glm::mat4 &view) -> void;
-        virtual auto presented_texture() -> video::texture;
+        virtual auto reset() -> void override;
+        virtual auto present(video::instance_t &vi, const glm::mat4 &proj, const glm::mat4 &view) -> void override;
+        virtual auto presented_texture() -> video::texture override;
 
         auto draw_text(const video::font_t &font, float _x, float _y, float _w, float _h, const std::string &text, uint32_t _align, uint32_t _color) -> void;
         auto draw_line(float _x0, float _y0, float _x1, float _y1, float _w, uint32_t _color) -> void;
         auto draw_rect(const float _x, const float _y, const float _w, const float _h, const uint32_t _color) -> void;
-
-        video::instance_t                       &vis;
 
         float                                   aspect_ratio;
         float                                   display_width;

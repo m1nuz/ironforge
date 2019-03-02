@@ -112,6 +112,7 @@ namespace video {
                 glEnable(GL_CULL_FACE);
                 glCullFace(get_cull_face_mode(state.cull_mode));
             }
+
             if (state.polygon_mode) {
                 glPolygonMode(GL_FRONT_AND_BACK, get_polygon_mode(state.fill_mode));
             }

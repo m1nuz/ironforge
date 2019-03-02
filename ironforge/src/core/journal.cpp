@@ -71,7 +71,7 @@ namespace game {
 
             static struct reporter {
                 ~reporter() {
-                    fputs("===== summary =====:\n", stdout);
+                    fputs("===== log summary =====\n", stdout);
                     fprintf(stdout, "verbose: %lu\n"
                                     "debug: %lu\n"
                                     "info: %lu\n"
@@ -155,11 +155,9 @@ namespace game {
             case verbosity::critical:
                 fputs("\x1b[39;41;1m", stdout);
                 break;
-            default:
-                break;
             }
 
-            auto tv = std::time(NULL);
+            auto tv = std::time(nullptr);
             char timestamp[100];
             std::strftime(timestamp, sizeof(timestamp), "%F %T", std::localtime(&tv));
 
@@ -195,7 +193,7 @@ namespace game {
             if (!log_file.fp)
                 return -1;
 
-            auto t = std::time(NULL);
+            auto t = std::time(nullptr);
             char timestamp_str[100];
             std::strftime(timestamp_str, sizeof(timestamp_str), "%F %T", std::localtime(&t));
 
@@ -220,7 +218,7 @@ namespace game {
             if (!fp)
                 return -1;
 
-            auto t = std::time(NULL);
+            auto t = std::time(nullptr);
             char timestamp_str[100];
             std::strftime(timestamp_str, sizeof(timestamp_str), "%F %T", std::localtime(&t));
 

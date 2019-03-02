@@ -25,9 +25,9 @@ namespace video {
         auto compile_shader(shader_type type, const shader_source &source) -> shader {
             auto sh = shader{glCreateShader(get_shader_type(type)), type};
 
-            const char *fullsource[] =  {source.text.c_str(), 0};
+            const char *fullsource[] =  {source.text.c_str(), nullptr};
 
-            glShaderSource(sh.id, 1, fullsource, 0);
+            glShaderSource(sh.id, 1, fullsource, nullptr);
             glCompileShader(sh.id);
 
             GLint status = 0;
@@ -36,14 +36,17 @@ namespace video {
             if (!status) {
                 GLint lenght = 0;
                 glGetShaderiv(sh.id, GL_INFO_LOG_LENGTH, &lenght);
+                if (lenght > 0) {
+                    std::string log_text(static_cast<size_t>(lenght), 0);
 
-                std::string log_text(lenght, 0);
+                    GLsizei written = 0;
+                    glGetShaderInfoLog(sh.id, lenght, &written, &log_text[0]);
+                    log_text.resize(static_cast<size_t>(lenght));
 
-                GLsizei written = 0;
-                glGetShaderInfoLog(sh.id, lenght, &written, &log_text[0]);
-                log_text.resize(written);
-
-                journal::error("%", log_text);
+                    journal::error("%", log_text);
+                } else {
+                    journal::error("%", "Unknown log lenght");
+                }
 
                 glDeleteShader(sh.id);
                 sh.id = 0;

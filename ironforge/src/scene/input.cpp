@@ -7,7 +7,7 @@
 #include "script.hpp"
 
 namespace scene {
-    auto create_input(const int32_t entity, const json &info, const std::unordered_map<std::string, std::vector<input_action> > &sources) -> std::optional<input_instance> {
+    auto create_input(const uint32_t entity, const json &info, const std::unordered_map<std::string, std::vector<input_action> > &sources) -> std::optional<input_instance> {
         using namespace std;
         using namespace game;
 

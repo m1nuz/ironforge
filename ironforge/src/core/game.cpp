@@ -6,6 +6,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include <xargs.hpp>
+
 #include <core/journal.hpp>
 #include <core/json.hpp>
 #include <core/assets.hpp>
@@ -16,6 +18,7 @@
 #include <scene/scene.hpp>
 
 #include "game_detail.hpp"
+#include "config.h"
 
 namespace game {
 
@@ -55,7 +58,7 @@ namespace game {
         scene::present(app.vi, app.current_scene(), app.render, interpolation);
     }
 
-    auto quit() -> void {
+    auto quit() noexcept -> void {
         journal::critical(journal::_GAME, "%", "Unexpected exit");
         exit(EXIT_SUCCESS);
     }
@@ -65,8 +68,13 @@ namespace game {
         std::locale::global(std::locale(locale));
     }
 
-    auto create(std::string_view conf_path, const bool fullpath_only) -> game_result {
+    auto create(const int argc, const char* argv[], std::string_view conf_path, const bool fullpath_only) -> game_result {
         using namespace std;
+
+        (void)argc;
+        (void)argv;
+
+        journal::info( journal::_GAME, "IRONFORGE Engine %",  IRONFORGE_ENGINE_VERSION);
 
         // if releative and not fullpath_only add base_path
         const auto cpath = (conf_path.find("..") == string::npos) && !fullpath_only ? string{conf_path} : detail::get_base_path() + string{conf_path};
@@ -121,8 +129,6 @@ namespace game {
                 return get<error_code>(vc);
 
             ctx.vi = get<video::instance_t>(vc);
-
-            journal::info(journal::_GAME, "%", video::get_info(ctx.vi));
         }
 
         // Scene
@@ -172,8 +178,13 @@ namespace game {
             const auto video_info = j["video"];
             const auto renderer_info = j["renderer"];
             const auto renderer_type = renderer_info.find("type") != renderer_info.end() ? renderer_info["type"].get<string>() : "null";
+            const bool is_offscreen_rendering = renderer_info.find("to_texture") != renderer_info.end() ? renderer_info["to_texture"].get<bool>() : false;
 
-            ctx.render = renderer::create_renderer(renderer_type, ctx.vi);
+            uint32_t renderer_falgs = 0;
+            if (is_offscreen_rendering)
+                renderer_falgs |= renderer::RENDER_TO_TEXTURE_BIT;
+
+            ctx.render = renderer::create_renderer(renderer_type, ctx.vi, renderer_falgs);
         }
 
         // UI

@@ -6,11 +6,11 @@ namespace video {
 
         auto make_radial_gradient(int32_t width, int32_t height, uint8_t c0, uint8_t c1, int32_t radius) -> image_data {
             // the center of the surface
-            const double cx = (double)width / 2.0;
-            const double cy = (double)height / 2.0;
+            const double cx = static_cast<double>(width) / 2.0;
+            const double cy = static_cast<double>(height) / 2.0;
 
             // compute max distance M from center
-            const double M = (double)radius;//sqrt(cx * cx + cy * cy);
+            const double M = static_cast<double>(radius);//sqrt(cx * cx + cy * cy);
 
             // the color delta
             const double dc = c1 - c0;
@@ -18,7 +18,8 @@ namespace video {
             // and constant used in the code....
             const double K = dc / M;
 
-            rgb_color *pixels = new rgb_color[width * height];
+            std::vector<rgb_color> pixels;
+            pixels.resize(static_cast<size_t>(width * height));
 
             for (int j = 0; j < height; j++)
                 for (int i = 0; i < width; i++) {
@@ -28,7 +29,7 @@ namespace video {
                     double r = sqrt(x * x + y * y);  // the distance
 
                     if (r < M) {
-                        pixels[i * width + j].r = (uint8_t)(r * K + c0);
+                        pixels[i * width + j].r = static_cast<uint8_t>(r * K + c0);
                         pixels[i * width + j].g = pixels[i * width + j].r;
                         pixels[i * width + j].b = pixels[i * width + j].r;
                     } else {
@@ -41,7 +42,7 @@ namespace video {
             std::vector<uint8_t> all_pixels;
             all_pixels.resize(width * height * 3);
 
-            memcpy(&all_pixels[0], reinterpret_cast<uint8_t*>(pixels), all_pixels.size());
+            memcpy(std::data(all_pixels), std::data(pixels), all_pixels.size());
 
             return {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 0, pixel_format::rgb8, all_pixels};
         }

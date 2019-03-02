@@ -17,13 +17,15 @@ namespace video {
 
         for (size_t i = 0; i < info.max_sprites; i++)
         {
-            sb.indices.push_back(0 + i * 4);
-            sb.indices.push_back(1 + i * 4);
-            sb.indices.push_back(2 + i * 4);
+            const auto index = static_cast<uint16_t>(i);
 
-            sb.indices.push_back(0 + i * 4);
-            sb.indices.push_back(2 + i * 4);
-            sb.indices.push_back(3 + i * 4);
+            sb.indices.push_back(0 + index * 4);
+            sb.indices.push_back(1 + index * 4);
+            sb.indices.push_back(2 + index * 4);
+
+            sb.indices.push_back(0 + index * 4);
+            sb.indices.push_back(2 + index * 4);
+            sb.indices.push_back(3 + index * 4);
         }
 
         std::vector<vertices_draw> draws;

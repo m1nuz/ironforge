@@ -20,8 +20,11 @@ namespace video {
                 // per time info
                 // ...
 
-                stats.info_size = snprintf(stats.info, sizeof stats.info, "DIPs/frame %d\nTriangles %d\nTex bindings %d\nPrg bindings %d",
-                                           stats.dips, stats.tris, stats.tex_bindings, stats.prg_bindings);
+                const auto n_chars = snprintf(stats.info, sizeof stats.info, "DIPs/frame %d\nTriangles %d\nTex bindings %d\nPrg bindings %d",
+                                              stats.dips, stats.tris, stats.tex_bindings, stats.prg_bindings);
+
+                if (n_chars > 0)
+                    stats.info_size = static_cast<size_t>(n_chars);
 
                 stats.tv = 0.f;
             }

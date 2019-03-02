@@ -77,7 +77,7 @@ namespace video {
             const uint32_t buf_usage = get_buffer_usage(usage);
 
             glBindBuffer(buf_target, buf);
-            glBufferData(buf_target, size, ptr, buf_usage);
+            glBufferData(buf_target, static_cast<GLsizeiptr>(size), ptr, buf_usage);
 
             journal::debug("Create % buffer %", get_buffer_target_name(buf_target), buf);
 
@@ -104,7 +104,7 @@ namespace video {
 
         auto update_buffer(buffer &buf, const size_t offset, const void *data, const size_t size) -> void {
             glBindBuffer(buf.target, buf.id);
-            glBufferSubData(buf.target, offset, size, data);
+            glBufferSubData(buf.target, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size), data);
         }
 
         constexpr inline auto get_buffer_access(buffer_access access) -> uint32_t {

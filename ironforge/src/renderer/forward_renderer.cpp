@@ -10,8 +10,13 @@ template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 namespace renderer {
-    forward_renderer::forward_renderer(video::instance_t &vi)
-        : vis{vi}, aspect_ratio{vi.aspect_ratio}, display_width{static_cast<float>(vi.w)}, display_height{static_cast<float>(vi.h)} {
+    forward_renderer::forward_renderer(video::instance_t &vi, const uint32_t renderer_flags)
+        : aspect_ratio{vi.aspect_ratio},
+          display_width{static_cast<float>(vi.w)},
+          display_height{static_cast<float>(vi.h)}
+    {
+        (void)renderer_flags;
+
         game::journal::debug(game::journal::_RENDER, "% % with % %", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
         emission_shader = video::get_shader(vi, "emission-shader");
@@ -109,6 +114,15 @@ namespace renderer {
         matrices.reserve(max_matrices);
         materials.reserve(max_materials);
 
+        if (renderer_flags & RENDER_TO_TEXTURE_BIT) {
+            using namespace video;
+
+            const auto offscreen_mask = static_cast<uint32_t>(gl::framebuffer_mask::color_buffer);
+
+            final_texture = gl::create_texture_2d({pixel_format::rgba8, 0, 0, w, h, 0, {}});
+            final_framebuffer = gl::create_framebuffer({w, h, offscreen_mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, final_texture.id}}});
+        }
+
         reset();
     }
 
@@ -128,19 +142,6 @@ namespace renderer {
         game::journal::debug(game::journal::_RENDER, "%", "Destroy forward render");
     }
 
-    auto forward_renderer::set_flags(const uint32_t flags) -> void {
-        if (flags & RENDER_TO_TEXTURE_BIT) {
-            using namespace video;
-
-            const auto w = static_cast<uint32_t>(vis.w);
-            const auto h = static_cast<uint32_t>(vis.h);
-            const auto mask = static_cast<uint32_t>(gl::framebuffer_mask::color_buffer);
-
-            final_texture = gl::create_texture_2d({pixel_format::rgba8, 0, 0, w, h, 0, {}});
-            final_framebuffer = gl::create_framebuffer({w, h, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, final_texture.id}}});
-        }
-    }
-
     auto forward_renderer::append(const phong::ambient_light &light) -> void {
         ambient_lights.push_back(light);
     }
@@ -158,12 +159,9 @@ namespace renderer {
         materials.push_back(material);
     }
 
-    auto forward_renderer::append(const video::vertices_source &source, const video::vertices_draw &draw) -> void {
+    auto forward_renderer::append(const video::vertices_source &source, const video::vertices_draw &draw, const glm::mat4 &model) -> void {
         sources.push_back(source);
         draws.push_back(draw);
-    }
-
-    auto forward_renderer::append(const glm::mat4 &model) -> void {
         matrices.push_back(model);
     }
 
@@ -496,10 +494,10 @@ namespace renderer {
 
             vec2 size = {glyph.value().advance * screen_pt_y, fh * correction};
             vec4 offset;
-            offset[0] = (float)glyph.value().x / tw;
-            offset[1] = (float)glyph.value().y / th;
-            offset[2] = (float)glyph.value().w / tw;
-            offset[3] = (float)glyph.value().h / th;
+            offset[0] = static_cast<float>(glyph.value().x) / tw;
+            offset[1] = static_cast<float>(glyph.value().y) / th;
+            offset[2] = static_cast<float>(glyph.value().w) / tw;
+            offset[3] = static_cast<float>(glyph.value().h) / th;
 
             const video::v3t2c4 vertices[6] = {
                 {{p.x         , p.y + size.y, 0}, {offset[0]            , offset[1]}            , color},

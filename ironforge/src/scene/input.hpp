@@ -31,12 +31,12 @@ namespace scene {
     };
 
     struct input_instance {
-        int32_t         entity;
+        uint32_t        entity;
         input_source    *source;
         std::vector<input_action> actions;
     };
 
-    [[nodiscard]] auto create_input(const int32_t entity, const json &info, const std::unordered_map<std::string, std::vector<input_action>> &sources) -> std::optional<input_instance>;
+    [[nodiscard]] auto create_input(const uint32_t entity, const json &info, const std::unordered_map<std::string, std::vector<input_action>> &sources) -> std::optional<input_instance>;
 
     auto create_input_source(scene::instance_t &s, const std::string &name, const std::vector<input_action> &actions) -> bool;
     auto process_input_events(scene::instance_t &s, const SDL_Event &e) -> void;

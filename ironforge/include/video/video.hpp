@@ -106,7 +106,7 @@ namespace video {
     /// \param extension
     /// \return
     ///
-    auto is_extension_supported(const char *extension) -> bool;
+    [[nodiscard]] auto is_extension_supported(const char *extension) -> bool;
 
     ///
     /// \brief Initialize video resources
@@ -129,13 +129,6 @@ namespace video {
     ///
     auto cleanup(instance_t &vi) -> void;
 
-    ///
-    /// \brief Get vendor, renderer, version and shading language version
-    /// \param[inout] vi
-    /// \return Info string
-    ///
-    auto get_info(instance_t &vi) -> std::string;
-
     auto process_resources(assets::instance_t &asset, instance_t &inst) -> void;
 
     auto create_texture(assets::instance_t &asset, instance_t &inst, const json &info) -> texture;
@@ -147,7 +140,7 @@ namespace video {
     auto make_vertices_source(instance_t &vi, const std::vector<vertices_data> &data, const vertices_desc &desc, std::vector<vertices_draw> &draws) -> vertices_source;
 
     auto get_texture(instance_t &vi, const std::string &name) -> texture;
-    auto get_heightmap(const std::string &name) -> heightmap_t;
+    auto get_heightmap(instance_t &vi, const std::string &name) -> heightmap_t;
     auto get_shader(instance_t &vi, const std::string &name) -> program;
     auto get_font(instance_t &vi, const std::string &name) -> uint32_t;
 

@@ -3,10 +3,7 @@
 #include <core/journal.hpp>
 #include <core/game.hpp>
 
-extern int main(int argc, char* argv[]) {
-    (void)argc;
-    (void)argv;
-
+extern int main(const int argc, const char* argv[]) {
     using namespace std;
     using namespace game;
     using namespace journal;
@@ -19,7 +16,7 @@ extern int main(int argc, char* argv[]) {
     //set_verbosity(_SCENE, verbosity::verbose);
 
     // Create game application
-    auto res = create("../assets/sandbox/game.conf");
+    auto res = create(argc, argv, "../assets/sandbox/game.conf");
     if (!is_ok(res)) {
         error(_GAME, "%", what(res));
         return EXIT_FAILURE;

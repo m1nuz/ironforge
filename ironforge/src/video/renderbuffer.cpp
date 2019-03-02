@@ -20,9 +20,9 @@ namespace video {
             get_texture_format_from_pixelformat(info.pf, internalformat, format, type);
 
             if (info.samples == 0)
-                glRenderbufferStorage(GL_RENDERBUFFER, internalformat, info.width, info.height);
+                glRenderbufferStorage(GL_RENDERBUFFER, static_cast<GLenum>(internalformat), static_cast<GLsizei>(info.width), static_cast<GLsizei>(info.height));
             else
-                glRenderbufferStorageMultisample(GL_RENDERBUFFER, info.samples, internalformat, info.width, info.height);
+                glRenderbufferStorageMultisample(GL_RENDERBUFFER, static_cast<GLsizei>(info.samples), static_cast<GLenum>(internalformat), static_cast<GLsizei>(info.width), static_cast<GLsizei>(info.height));
 
             return {buf, info.width, info.height, info.samples};
         }

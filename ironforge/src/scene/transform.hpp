@@ -5,6 +5,7 @@
 #include <optional>
 
 #include <core/common.hpp>
+#include <core/math.hpp>
 
 namespace scene {
     struct instance_type;

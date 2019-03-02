@@ -140,7 +140,7 @@ namespace video {
             cb.commands.push_back(cc);
             return cb;
         }*/
-        auto operator <<(command_buffer &cb, const detail::bind_uniform &c) -> command_buffer& {
+        /*auto operator <<(command_buffer &cb, const detail::bind_uniform &c) -> command_buffer& {
             auto cc = c;
             if (cb.raw_memory) {
                 size_t sz = get_uniform_type_size(c.type) * c.count;
@@ -154,7 +154,7 @@ namespace video {
 
             cb.commands.push_back(cc);
             return cb;
-        }
+        }*/
 
     } // namespace gl330
 

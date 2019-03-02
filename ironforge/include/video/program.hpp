@@ -46,7 +46,7 @@ namespace video {
 
         auto create_program(const program_info &info) -> program;
         auto destroy_program(program &pro) -> void;
-        auto get_uniform_location(const program &pro, const std::string &name) -> int32_t;
+        auto get_uniform_location(const program &pro, const std::string_view name) -> int32_t;
     } // namespace gl330
 
 } // namespace video

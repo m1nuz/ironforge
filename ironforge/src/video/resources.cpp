@@ -142,7 +142,7 @@ namespace video {
             auto imd = assets::get_image(asset, texture_name);
 
             if (!imd) {
-                journal::warning("Texture % not found", name);
+                journal::warning("Texture % not found '%'", name, texture_name);
                 return {};
             }
 
@@ -505,8 +505,8 @@ namespace video {
         return {};
     }
 
-    auto get_heightmap(const std::string &name) -> heightmap_t {
-        UNUSED(name);
+    auto get_heightmap(instance_t &vi, const std::string &name) -> heightmap_t {
+        UNUSED(vi), UNUSED(name);
 
         return {};
     }

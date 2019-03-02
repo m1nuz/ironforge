@@ -60,7 +60,7 @@ namespace game {
     ///
     /// \brief Exit from application
     ///
-    auto quit() -> void;
+    auto quit() noexcept -> void;
 
     ///
     /// \brief Create application instance
@@ -68,7 +68,7 @@ namespace game {
     /// \param[in] fullpath_only If true, get config by absolute path, else from base directory
     /// \return
     ///
-    [[nodiscard]] auto create(std::string_view conf_path, const bool fullpath_only = false) -> game_result;
+    [[nodiscard]] auto create(const int argc, const char *argv[], std::string_view conf_path, const bool fullpath_only = false) -> game_result;
 
     [[nodiscard]] inline bool is_ok(const game_result& res) {
         return std::holds_alternative<instance_t>(res);

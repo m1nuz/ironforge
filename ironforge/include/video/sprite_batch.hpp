@@ -7,14 +7,14 @@
 namespace video {
 
     struct sprite_batch_info {
-        size_t                  max_sprites;
+        uint32_t                max_sprites;
         texture                 tex;
     };
 
     struct sprite_batch {
         float                   correction;
-        size_t                  max_sprites;
-        size_t                  sprites_count;
+        uint32_t                max_sprites;
+        uint32_t                sprites_count;
         texture                 tex;
 
         std::vector<v3t2c4>     vertices;

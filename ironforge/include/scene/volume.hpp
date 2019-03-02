@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/common.hpp>
+#include <core/math.hpp>
 
 namespace scene {
     struct bound_box { // AABB

@@ -18,7 +18,7 @@ namespace video {
             return status;
         }
 
-        inline auto get_framebuffer_attachment(const framebuffer_attachment attachment) {
+        inline auto get_framebuffer_attachment(const framebuffer_attachment attachment) -> GLenum {
             switch (attachment) {
             case framebuffer_attachment::color0:
                 return GL_COLOR_ATTACHMENT0;

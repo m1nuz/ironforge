@@ -22,7 +22,7 @@ namespace scene {
 
         const auto parent_name = info.find("parent") != info.end() ? info["parent"].get<string>() : string{};
 
-        const auto parent_ix = find_entity(sc, parent_name);
+        const auto parent_ix = find_entity_by_name(sc, parent_name);
         const auto renderable = info.find("renderable") != info.end() ? info["renderable"].get<bool>() : false;
         //const auto bool movable = info.find("movable") != info.end() ? info["movable"].get<bool>() : false;
 
@@ -86,7 +86,8 @@ namespace scene {
         return ix;
     }
 
-    auto find_entity(instance_t &sc, const std::string &name) -> uint32_t {
+    // TODO: optional
+    auto find_entity_by_name(instance_t &sc, const std::string &name) -> uint32_t {
         if (name.empty())
             return 0;
 
@@ -95,5 +96,65 @@ namespace scene {
             return (*it).second;
 
         return 0;
+    }
+
+    auto remove_entity( instance_t &sc, const uint32_t entity_id ) -> bool {
+        auto res = false;
+
+        auto material_it = sc.materials.find( entity_id );
+        if ( material_it != sc.materials.end() ) {
+            res |= true;
+            sc.materials.erase( material_it );
+        }
+
+        auto model_it = sc.models.find( entity_id );
+        if ( model_it != sc.models.end() ) {
+            res |= true;
+            sc.models.erase( model_it );
+        }
+
+        auto camera_it = sc.cameras.find( entity_id );
+        if ( camera_it != sc.cameras.end() ) {
+            res |= true;
+            sc.cameras.erase( camera_it );
+        }
+
+        auto script_it = sc.scripts.find( entity_id );
+        if ( script_it != sc.scripts.end() ) {
+            res |= true;
+            sc.scripts.erase( script_it );
+        }
+
+        auto body_it = sc.bodies.find( entity_id );
+        if ( body_it != sc.bodies.end() ) {
+            res |= true;
+            sc.bodies.erase( body_it );
+        }
+
+        auto input_it = sc.inputs.find( entity_id );
+        if ( input_it != sc.inputs.end() ) {
+            res |= true;
+            sc.inputs.erase( input_it );
+        }
+
+        auto transform_it = sc.transforms.find( entity_id );
+        if ( transform_it != sc.transforms.end() ) {
+            res |= true;
+            sc.transforms.erase( transform_it );
+        }
+
+        auto emitter_it = sc.emitters.find( entity_id );
+        if ( emitter_it != sc.emitters.end() ) {
+            res |= true;
+            sc.emitters.erase( emitter_it );
+        }
+
+        auto light_it = sc.lights.find( entity_id );
+        if ( light_it != sc.lights.end() ) {
+            res |= true;
+            sc.lights.erase( light_it );
+        }
+
+        return res;
     }
 } // namespace scene

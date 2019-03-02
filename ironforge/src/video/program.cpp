@@ -20,13 +20,21 @@ namespace video {
                 GLint lenght = 0;
                 glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &lenght);
 
-                std::string log_text(lenght, 0);
+                if (lenght > 0) {
 
-                GLsizei written = 0;
-                glGetProgramInfoLog(pid, lenght, &written, &log_text[0]);
-                log_text.resize(written);
+                    std::string log_text(static_cast<size_t>(lenght), 0);
 
-                journal::error("%", log_text);
+                    GLsizei written = 0;
+                    glGetProgramInfoLog(pid, lenght, &written, &log_text[0]);
+
+                    if (written > 0) {
+                        log_text.resize(static_cast<size_t>(written));
+
+                        journal::error("%", log_text);
+                    }
+                } else {
+                    journal::error("%", "Unknown log lenght");
+                }
             }
 
             return true;
@@ -39,18 +47,20 @@ namespace video {
             if (total < 0)
                 return -1;
 
-            p.attributes.reserve(total);
+            p.attributes.reserve(static_cast<size_t>(total));
 
             // TODO: GL_ACTIVE_ATTRIBUTE_MAX_LENGTH
             char name[1024] = {};
             int name_len = -1, num = -1;
             GLenum type = GL_ZERO;
             for (auto i = 0; i < total; i++) {
-                glGetActiveAttrib(p.pid, i, sizeof(name) - 1, &name_len, &num, &type, name);
+                glGetActiveAttrib(p.pid, static_cast<GLuint>(i), sizeof(name) - 1, &name_len, &num, &type, name);
 
-                p.attributes.push_back({name, utils::xxhash64(name, name_len), glGetAttribLocation(p.pid, name), num, type});
+                if (name_len > 0) {
+                    p.attributes.push_back({name, utils::xxhash64(name, static_cast<size_t>(name_len)), glGetAttribLocation(p.pid, name), num, type});
 
-                journal::debug("-a- % %", p.attributes.back().name, p.attributes.back().location);
+                    journal::debug("-a- % %", p.attributes.back().name, p.attributes.back().location);
+                }
             }
 
             return static_cast<int32_t>(p.attributes.size());
@@ -63,18 +73,20 @@ namespace video {
             if (total < 0)
                 return -1;
 
-            p.uniforms.reserve(total);
+            p.uniforms.reserve(static_cast<size_t>(total));
 
             // TODO: GL_ACTIVE_UNIFORM_MAX_LENGTH to get allocation size
             char name[1024] = {};
             int name_len = -1, num = -1;
             GLenum type = GL_ZERO;
             for (auto i = 0; i < total; i++) {
-                glGetActiveUniform(p.pid, i, sizeof(name) - 1, &name_len, &num, &type, name);
+                glGetActiveUniform(p.pid, static_cast<GLuint>(i), sizeof(name) - 1, &name_len, &num, &type, name);
 
-                p.uniforms.push_back({name, utils::xxhash64(name, name_len), glGetUniformLocation(p.pid, name), num, type});
+                if (name_len > 0) {
+                    p.uniforms.push_back({name, utils::xxhash64(name, static_cast<size_t>(name_len)), glGetUniformLocation(p.pid, name), num, type});
 
-                journal::debug("-u- % %", p.uniforms.back().name, p.uniforms.back().location);
+                    journal::debug("-u- % %", p.uniforms.back().name, p.uniforms.back().location);
+                }
             }
 
             return static_cast<int32_t>(p.uniforms.size());
@@ -131,11 +143,11 @@ namespace video {
             pro.pid = 0;
         }
 
-        auto get_uniform_location(const program &pro, const std::string &name) -> int32_t {
-            auto hash = utils::xxhash64(name);
+        auto get_uniform_location(const program &pro, const std::string_view name) -> int32_t {
+            const auto hash = utils::xxhash64(name.data(), name.size());
 
-            auto it = std::find_if(pro.uniforms.begin(), pro.uniforms.end(), [&](const uniform &u) {
-                return u.name_hash == hash;
+            auto it = std::find_if(pro.uniforms.begin(), pro.uniforms.end(), [name_hash = hash](const auto &u) {
+                return u.name_hash == name_hash;
             });
 
             if (it != pro.uniforms.end())

@@ -7,8 +7,8 @@ namespace video {
 
     auto is_extension_supported(const char *extension) -> bool {
 #ifdef GL_VERSION_3_0
-        if (glGetStringi == NULL) {
-            if (strstr((const char *)glGetString(GL_EXTENSIONS), extension) != NULL)
+        if (glGetStringi == nullptr) {
+            if (strstr(reinterpret_cast<const char *>(glGetString(GL_EXTENSIONS)), extension) != nullptr)
                 return true;
 
             return false;
@@ -17,9 +17,12 @@ namespace video {
         auto num_extensions = 0;
         glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
 
-        for (auto i = 0; i < num_extensions; i++)
-            if (strcmp((const char *)glGetStringi(GL_EXTENSIONS, i), extension) == 0)
-                return true;
+        if (num_extensions > 0) {
+
+            for (auto i = 0u; i < static_cast<unsigned int>(num_extensions); i++)
+                if (strcmp(reinterpret_cast<const char *>(glGetStringi(GL_EXTENSIONS, i)), extension) == 0)
+                    return true;
+        }
 #else
         if (strstr((const char *)glGetString(GL_EXTENSIONS), extension) != NULL)
             return true;

@@ -27,14 +27,13 @@ namespace renderer {
     /// Renderer interface
     ///
     struct instance {
-        virtual auto set_flags(const uint32_t flags) -> void = 0;
+        virtual ~instance() = default;
 
         virtual auto append(const phong::ambient_light &light) -> void = 0;
         virtual auto append(const phong::directional_light &light) -> void = 0;
         virtual auto append(const phong::point_light &light) -> void = 0;
         virtual auto append(const phong::material &material) -> void = 0;
-        virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw) -> void = 0;
-        virtual auto append(const glm::mat4 &model) -> void = 0;
+        virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw, const glm::mat4 &model) -> void = 0;
         virtual auto append(const video::texture &tex, const uint32_t flags) -> void = 0;
         // TODO: think about add/remove from ubo mechanism
 
@@ -44,13 +43,11 @@ namespace renderer {
         virtual auto presented_texture() -> video::texture = 0;
 
         virtual auto dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void = 0;
-
-        virtual ~instance() = default;
     };
 
     ///
     /// Create renderer method
     ///
-    [[nodiscard]] auto create_renderer(std::string_view type, video::instance_t &vi) -> std::unique_ptr<instance>;
+    [[nodiscard]] auto create_renderer(std::string_view type, video::instance_t &vi, const uint32_t renderer_falgs) -> std::unique_ptr<instance>;
 
 } // namespace renderer
