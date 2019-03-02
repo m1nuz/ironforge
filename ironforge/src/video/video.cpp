@@ -8,8 +8,30 @@
 
 namespace video {
 
-    auto init_resources(instance_t &inst, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void;
+    auto create_resources(instance_t &inst, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void;
     auto cleanup_resources(instance_t &in) -> void;
+    auto load_font_infos(const json &info) -> std::vector<font_info>;
+
+    auto load_font_infos(const json &info) -> std::vector<font_info> {
+        using namespace std;
+
+        constexpr auto default_size = 12;
+        vector<font_info> fonts;
+
+        if (info.find("fonts") != info.end()) {
+            for (const auto& f : info["fonts"]) {
+                const auto filename = f.find("filename") != f.end() ? f["filename"].get<string>() : string{};
+                const auto fontname = f.find("fontname") != f.end() ? f["fontname"].get<string>() : string{};
+                const auto size = f.find("size") != f.end() ? f["size"].get<int>() : default_size;
+                const auto charset = f.find("charset") != f.end() ? f["charset"].get<string>() : default_charset();
+
+                if (!filename.empty() && !charset.empty() && size > 0)
+                    fonts.emplace_back(filename, fontname.empty() ? filename : fontname, size, charset == "default" ? default_charset() : charset);
+            }
+        }
+
+        return fonts;
+    }
 
     auto init(assets::instance_t &asset, const json &info) -> video_result {
         using namespace std;
@@ -74,6 +96,7 @@ namespace video {
         ctx.graphic_context = graphic;
         ctx.w = drawable_w;
         ctx.h = drawable_h;
+        ctx.fsaa = info.find("fsaa") != info.end() ? info["fsaa"].get<int>() : 0;
         ctx.aspect_ratio = static_cast<float>(ctx.w) / static_cast<float>(ctx.h);
 
         if (msaa)
@@ -98,21 +121,8 @@ namespace video {
         ctx.texture_filter = tex_filtering;
         ctx.texture_level = tl;
 
-        constexpr auto default_size = 12;
-        std::vector<font_info> fonts;
-        if (info.find("fonts") != info.end()) {
-            for (const auto& f : info["fonts"]) {
-                const auto filename = f.find("filename") != f.end() ? f["filename"].get<string>() : string{};
-                const auto fontname = f.find("fontname") != f.end() ? f["fontname"].get<string>() : string{};
-                const auto size = f.find("size") != f.end() ? f["size"].get<int>() : default_size;
-                const auto charset = f.find("charset") != f.end() ? f["charset"].get<string>() : video::default_charset();
-
-                if (!filename.empty() && !charset.empty() && size > 0)
-                    fonts.emplace_back(filename, fontname.empty() ? filename : fontname, size, charset == "default" ? video::default_charset() : charset);
-            }
-        }
-
-        video::init_resources(ctx, asset, fonts);
+        const auto fonts = load_font_infos(info);
+        video::create_resources(ctx, asset, fonts);
 
         return ctx;
     }

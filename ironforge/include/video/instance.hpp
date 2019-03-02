@@ -20,6 +20,7 @@ namespace video {
         SDL_GLContext                                   graphic_context = nullptr;
         int                                             w = 0;
         int                                             h = 0;
+        int                                             fsaa = 0;
         float                                           aspect_ratio = 0.f;
         texture_filtering                               texture_filter = texture_filtering::bilinear;
         uint32_t                                        texture_level = 0;

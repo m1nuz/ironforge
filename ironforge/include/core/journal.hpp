@@ -79,7 +79,7 @@ namespace game {
             write(tag, verbosity::verbose, message);
         }
 
-        constexpr char _GAME[] = "game";
+        constexpr char _GAME[] = "core";
         constexpr char _SYSTEM[] = "system";
         constexpr char _AUDIO[] = "audio";
         //constexpr char _VIDEO[] = "video";

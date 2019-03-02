@@ -9,14 +9,14 @@
 
 namespace video {
 
-    auto init_resources(instance_t &inst, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void {
-        inst.textures.reserve(100);
-        inst.programs.reserve(100);
-        inst.arrays.reserve(100);
-        inst.buffers.reserve(100);
+    auto create_resources(instance_t &vi, assets::instance_t &asset, const std::vector<font_info> &fonts) -> void {
+        vi.textures.reserve(100);
+        vi.programs.reserve(100);
+        vi.arrays.reserve(100);
+        vi.buffers.reserve(100);
 
         uint32_t textures_flags = 0;
-        switch (inst.texture_filter) {
+        switch (vi.texture_filter) {
         case texture_filtering::bilinear:
             break;
         case texture_filtering::trilinear:
@@ -28,10 +28,10 @@ namespace video {
 
         journal::debug("%", "Init resources");
 
-        inst.textures.emplace("white-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 255, 255}), textures_flags));
-        inst.textures.emplace("black-map", gl::create_texture_2d(imgen::make_color(128, 128, {0, 0, 0}), textures_flags));
-        inst.textures.emplace("check-map", gl::create_texture_2d(imgen::make_check(128, 128, 0x10, {24, 24, 24}), textures_flags));
-        inst.textures.emplace("red-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 0, 0}), textures_flags));
+        vi.textures.emplace("white-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 255, 255}), textures_flags));
+        vi.textures.emplace("black-map", gl::create_texture_2d(imgen::make_color(128, 128, {0, 0, 0}), textures_flags));
+        vi.textures.emplace("check-map", gl::create_texture_2d(imgen::make_check(128, 128, 0x10, {24, 24, 24}), textures_flags));
+        vi.textures.emplace("red-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 0, 0}), textures_flags));
 
         const int asz = 1024;
 
@@ -39,33 +39,32 @@ namespace video {
         auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
         auto font_atlas = video::create_atlas(asz, asz, 1);
         /*auto rc = */video::insert_image(font_atlas, white_im);
-        if (!build_fonts(inst, asset, fonts, font_atlas)) {
+        if (!build_fonts(vi, asset, fonts, font_atlas)) {
             journal::error("%", "Fonts isn't built");
         }
 
-        video::make_texture_2d(inst, "glyphs-map", get_atlas_texture(font_atlas), static_cast<uint32_t>(video::texture_flags::auto_mipmaps));
-        //auto ui_rc = glm::vec4{rc.x / (float)asz, rc.y / (float)asz, rc.w / (float)asz, rc.h / (float)asz};
+        video::make_texture_2d(vi, "glyphs-map", get_atlas_texture(font_atlas), static_cast<uint32_t>(video::texture_flags::auto_mipmaps));
     }
 
-    auto cleanup_resources(instance_t &in) -> void {
-        for (auto &b : in.buffers)
+    auto cleanup_resources(instance_t &vi) -> void {
+        for (auto &b : vi.buffers)
             gl::destroy_buffer(b);
 
-        for (auto &a : in.arrays)
+        for (auto &a : vi.arrays)
             gl::destroy_vertex_array(a);
 
-        for (auto &[name, t] : in.textures) {
+        for (auto &[name, t] : vi.textures) {
             journal::debug("Destroy texture %", name);
             gl::destroy_texture(t);
         }
 
-        for (auto &[name, p] : in.programs) {
+        for (auto &[name, p] : vi.programs) {
             journal::debug("Destroy program %", name);
             gl::destroy_program(p);
         }
     }
 
-    auto process(assets::instance_t &asset, instance_t &inst) -> void {
+    auto process_resources(assets::instance_t &asset, instance_t &inst) -> void {
         (void)asset, (void)inst;
 
         /*uint32_t textures_flags = 0;

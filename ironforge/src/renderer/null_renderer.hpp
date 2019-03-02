@@ -17,6 +17,10 @@ namespace renderer {
             game::journal::debug(game::journal::_RENDER, "%", "Destroy null render");
         }
 
+        virtual auto set_flags(const uint32_t flags) -> void {
+            (void)flags;
+        }
+
         virtual auto append(const phong::ambient_light &light) -> void {
             UNUSED(light);
             // do nothing
@@ -45,10 +49,9 @@ namespace renderer {
             UNUSED(model);
         }
 
-        virtual auto append(const video::texture &cubemap, uint32_t flags) -> void {
-            UNUSED(cubemap), UNUSED(flags);
+        virtual auto append(const video::texture &, const uint32_t flags) -> void {
+            (void)flags;
         }
-
 
         auto dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void {
             UNUSED(vi), UNUSED(c);
@@ -65,6 +68,10 @@ namespace renderer {
 
             video::present(vi, {&commands});
             reset();
+        }
+
+        virtual auto presented_texture() -> video::texture {
+            return {};
         }
 
         video::gl::command_buffer commands;

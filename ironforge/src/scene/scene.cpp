@@ -35,7 +35,7 @@ namespace scene {
 
         interpolate_all(sc, interpolation);
         scene::present_all_cameras(sc, vi.aspect_ratio);
-        render->append(sc.skybox, 0);
+        render->append(sc.skybox, renderer::SKYBOX_TEXTURE_BIT);
         scene::present_all_lights(sc, render);
         scene::present_all_transforms(sc, [&sc, &render] (uint32_t entity, const glm::mat4 &model) {
             const auto &mdl = sc.models[entity];
@@ -52,7 +52,9 @@ namespace scene {
         video::stats::begin(vi.stats_info);
         video::debug_text(vi, render, -0.48, 0.42, vi.stats_info.info, 0x1a1a1aff);
         video::debug_text(vi, render, -0.48, 0.24, video::video_stats.info, 0x1a1a1aff);
+
         render->present(vi, sc.current_camera().projection, sc.current_camera().view);
+
         video::stats::end(vi.stats_info);
     }
 

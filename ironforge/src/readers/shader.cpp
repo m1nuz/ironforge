@@ -1,5 +1,4 @@
 #include <core/journal.hpp>
-#include <core/game.hpp>
 #include <readers/text.hpp>
 
 void replace_all(std::string& source, const std::string &find, const std::string &replace)
@@ -36,13 +35,13 @@ auto read_shader_text(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<
 
             if ((size_t)(end - sp) == step) {
                 journal::error(journal::_INPUT, "%", "#include expect \"FILENAME\"");
-                quit();
+                return {};
             }
 
             char *bracers_first = strchr(sp, '\"');
             if (bracers_first == NULL) {
                 journal::error(journal::_INPUT, "%", "#include expect \"FILENAME\"");
-                quit();
+                return {};
             }
 
             char *space = sp + sizeof(include_directive);
@@ -51,19 +50,19 @@ auto read_shader_text(assets::instance_t &inst, SDL_RWops *rw) -> std::optional<
                     space++;
                 else {
                     journal::error(journal::_INPUT, "%", "#include expect \"FILENAME\"");
-                    quit();
+                    return {};
                 }
 
             char *bracers_second = strchr(bracers_first + 1, '\"');
             if (bracers_second == NULL) {
                 journal::error(journal::_INPUT, "%", "#include expect \"FILENAME\"");
-                quit();
+                return {};
             }
 
             size_t name_size = bracers_second - bracers_first - 1;
             if (name_size == 0) {
                 journal::error(journal::_INPUT, "%", "empty filename in #include");
-                quit();
+                return {};
             }
 
             std::string name{bracers_first + 1, name_size};

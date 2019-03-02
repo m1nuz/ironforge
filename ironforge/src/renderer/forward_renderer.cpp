@@ -10,7 +10,8 @@ template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 namespace renderer {
-    forward_renderer::forward_renderer(video::instance_t &vi, const json &info) : aspect_ratio{vi.aspect_ratio}, display_width{static_cast<float>(vi.w)}, display_height{static_cast<float>(vi.h)} {
+    forward_renderer::forward_renderer(video::instance_t &vi)
+        : vis{vi}, aspect_ratio{vi.aspect_ratio}, display_width{static_cast<float>(vi.w)}, display_height{static_cast<float>(vi.h)} {
         game::journal::debug(game::journal::_RENDER, "% % with % %", "Create forward render", "version 1.00", video::gl::api_name, video::gl::api_version);
 
         emission_shader = video::get_shader(vi, "emission-shader");
@@ -51,7 +52,7 @@ namespace renderer {
         filter_sampler = video::gl::create_sampler(filter_info);
 
         const auto ratio = 2;
-        const auto samples = info.find("fsaa") != info.end() ? info["fsaa"].get<uint32_t>() : 0u;
+        const auto samples = static_cast<uint32_t>(vi.fsaa);
         const auto w = static_cast<uint32_t>(vi.w);
         const auto h = static_cast<uint32_t>(vi.h);
 
@@ -71,15 +72,14 @@ namespace renderer {
         using namespace video;
 
         color_framebuffer = gl::create_framebuffer({w, h, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, color_map.id},
-                                                                                        {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::texture, depth_map.id}}});
-
+                                                                 {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::texture, depth_map.id}}});
         glow_framebuffer = gl::create_framebuffer({w / ratio, h / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, glow_map.id},
-                                                                                       {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, blur_depth.id}}});
+                                                                                {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, blur_depth.id}}});
 
         blur_framebuffer = gl::create_framebuffer({w / ratio, h / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, blur_map.id}}});
-
         sample_framebuffer = gl::create_framebuffer({w, h, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::renderbuffer, sample_color.id},
-                                                                                         {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, sample_depth.id}}});
+                                                                  {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, sample_depth.id}}});
+        final_framebuffer = gl::default_framebuffer(vi);
 
         auto quad_vi = video::vertgen::make_plane(glm::mat4{1.f});
         std::vector<vertices_draw> quad_vd;
@@ -128,6 +128,19 @@ namespace renderer {
         game::journal::debug(game::journal::_RENDER, "%", "Destroy forward render");
     }
 
+    auto forward_renderer::set_flags(const uint32_t flags) -> void {
+        if (flags & RENDER_TO_TEXTURE_BIT) {
+            using namespace video;
+
+            const auto w = static_cast<uint32_t>(vis.w);
+            const auto h = static_cast<uint32_t>(vis.h);
+            const auto mask = static_cast<uint32_t>(gl::framebuffer_mask::color_buffer);
+
+            final_texture = gl::create_texture_2d({pixel_format::rgba8, 0, 0, w, h, 0, {}});
+            final_framebuffer = gl::create_framebuffer({w, h, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, final_texture.id}}});
+        }
+    }
+
     auto forward_renderer::append(const phong::ambient_light &light) -> void {
         ambient_lights.push_back(light);
     }
@@ -154,11 +167,10 @@ namespace renderer {
         matrices.push_back(model);
     }
 
-    auto forward_renderer::append(const video::texture &cubemap, uint32_t flags) -> void {
-        UNUSED(flags);
-
-        // TODO: add flag for special case
-        skybox_map = cubemap;
+    auto forward_renderer::append(const video::texture &tex, const uint32_t flags) -> void {
+        if (flags & SKYBOX_TEXTURE_BIT) {
+            skybox_map = tex;
+        }
     }
 
     auto forward_renderer::dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void {
@@ -258,12 +270,11 @@ namespace renderer {
         //journal::debug(journal::_VIDEO, "Proj % View %", proj, view);        
 
         const auto white_tex = video::get_texture(vi, "white-map");
+        //const auto black_tex = video::get_texture(vi, "black-map");
 
         glm::mat4 cam_model = glm::translate(glm::mat4(1.f), -glm::vec3(view[3])/*glm::vec3(0.f)*/);
         cam_model = glm::scale(cam_model, glm::vec3(5.f));
         glm::mat4 projection_view = proj * view;
-
-        auto def_framebuffer = video::gl::default_framebuffer(vi);
 
         prepare_commands << vcs::bind_framebuffer{sample_framebuffer};
         prepare_commands << vcs::viewport{sample_framebuffer};
@@ -392,8 +403,8 @@ namespace renderer {
         post_commands << vcs::blit{sample_framebuffer, color_framebuffer};
 
         // postprocess
-        post_commands << vcs::bind_framebuffer{def_framebuffer};
-        post_commands << vcs::viewport{def_framebuffer};
+        post_commands << vcs::bind_framebuffer{final_framebuffer};
+        post_commands << vcs::viewport{final_framebuffer};
         post_commands << vcs::clear{};
 
         post_commands << vcs::bind_program{postprocess_shader};
@@ -412,6 +423,10 @@ namespace renderer {
 
         video::present(vi, {&prepare_commands, &skybox_commands, &ambient_commands, &directional_commands, &glow_commands, &post_commands});
         reset();
+    }
+
+    auto forward_renderer::presented_texture() -> video::texture {
+        return {};
     }
 
     inline auto color_to_vec4(const uint32_t color) -> glm::vec4 {

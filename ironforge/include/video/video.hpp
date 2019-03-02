@@ -88,6 +88,7 @@ namespace video {
     using program = gl::program;
     using memory_buffer = gl::buffer;
     using command_queue = gl::command_buffer;
+    using framebuffer = gl::framebuffer;
     struct vertices_source;
     struct mesh;
 
@@ -135,7 +136,7 @@ namespace video {
     ///
     auto get_info(instance_t &vi) -> std::string;
 
-    auto process(assets::instance_t &asset, instance_t &inst) -> void;
+    auto process_resources(assets::instance_t &asset, instance_t &inst) -> void;
 
     auto create_texture(assets::instance_t &asset, instance_t &inst, const json &info) -> texture;
     auto create_program(assets::instance_t &asset, instance_t &inst, const json &info) -> program;

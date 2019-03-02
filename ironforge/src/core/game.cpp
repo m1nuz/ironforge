@@ -45,7 +45,7 @@ namespace game {
         input::update(app);
         assets::process(app.asset_instance);
         scene::update(app.current_scene(), dt);
-        video::process(app.asset_instance, app.vi);
+        video::process_resources(app.asset_instance, app.vi);
     }
 
     static auto present(instance_t &app, const float interpolation) -> void {
@@ -69,7 +69,7 @@ namespace game {
         using namespace std;
 
         // if releative and not fullpath_only add base_path
-        const auto cpath = (conf_path.find("..") == std::string::npos) && !fullpath_only ? string{conf_path} : detail::get_base_path() + string{conf_path};
+        const auto cpath = (conf_path.find("..") == string::npos) && !fullpath_only ? string{conf_path} : detail::get_base_path() + string{conf_path};
         auto contents = assets::get_config(cpath);
         if (!contents)
             return make_error_code(errc::init_conf);
@@ -173,7 +173,7 @@ namespace game {
             const auto renderer_info = j["renderer"];
             const auto renderer_type = renderer_info.find("type") != renderer_info.end() ? renderer_info["type"].get<string>() : "null";
 
-            ctx.render = renderer::create_renderer(renderer_type, ctx.vi, video_info);
+            ctx.render = renderer::create_renderer(renderer_type, ctx.vi);
         }
 
         // UI

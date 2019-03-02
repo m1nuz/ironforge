@@ -25,8 +25,10 @@ namespace renderer {
 
     // TODO : make video api specific template
     struct forward_renderer : public instance {
-        forward_renderer(video::instance_t &vi, const json &info);
+        forward_renderer(video::instance_t &vi);
         ~forward_renderer();
+
+        virtual auto set_flags(const uint32_t flags) -> void;
 
         virtual auto append(const phong::ambient_light &light) -> void;
         virtual auto append(const phong::directional_light &light) -> void;
@@ -34,16 +36,19 @@ namespace renderer {
         virtual auto append(const phong::material &material) -> void;
         virtual auto append(const video::vertices_source &source, const video::vertices_draw &draw) -> void;
         virtual auto append(const glm::mat4 &model) -> void;
-        virtual auto append(const video::texture &cubemap, uint32_t flags) -> void;
+        virtual auto append(const video::texture &tex, const uint32_t flags) -> void;
 
         virtual auto dispath(video::instance_t &vi, const ui::draw_command_t &c) -> void override;
 
         virtual auto reset() -> void;
         virtual auto present(video::instance_t &vi, const glm::mat4 &proj, const glm::mat4 &view) -> void;
+        virtual auto presented_texture() -> video::texture;
 
         auto draw_text(const video::font_t &font, float _x, float _y, float _w, float _h, const std::string &text, uint32_t _align, uint32_t _color) -> void;
         auto draw_line(float _x0, float _y0, float _x1, float _y1, float _w, uint32_t _color) -> void;
         auto draw_rect(const float _x, const float _y, const float _w, const float _h, const uint32_t _color) -> void;
+
+        video::instance_t                       &vis;
 
         float                                   aspect_ratio;
         float                                   display_width;
@@ -73,11 +78,13 @@ namespace renderer {
 
         video::texture                          skybox_map;
         video::texture                          glyphs_map;
+        video::texture                          final_texture;
 
         video::gl::framebuffer                  sample_framebuffer;
         video::gl::framebuffer                  color_framebuffer;
         video::gl::framebuffer                  glow_framebuffer;
         video::gl::framebuffer                  blur_framebuffer;
+        video::framebuffer                      final_framebuffer;
 
         video::vertices_source                  fullscreen_quad;
         video::vertices_draw                    fullscreen_draw;
