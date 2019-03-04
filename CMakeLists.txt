@@ -13,6 +13,7 @@ set(GLM_INCLUDE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/glm CACHE PATH "GLM include
 
 add_subdirectory(lib/GLcore)
 add_subdirectory(lib/xxhash)
+add_subdirectory(lib/nativefiledialog)
 add_subdirectory(ironforge)
 add_subdirectory(sandbox)
 add_subdirectory(worldeditor)

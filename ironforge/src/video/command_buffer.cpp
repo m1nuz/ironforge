@@ -8,8 +8,10 @@ namespace video {
 
     namespace gl330 {
 
+        constexpr size_t DEFAULT_MAX_UNIFORM_COMPONENTS = 1024;
+
         command_buffer::command_buffer(const size_t uniform_components) : memory_offset{0} {
-            memory_size = uniform_components == 0 ? (sizeof (float) * 1024) : (sizeof (float) * uniform_components);
+            memory_size = uniform_components == 0 ? (sizeof (float) * DEFAULT_MAX_UNIFORM_COMPONENTS) : (sizeof (float) * uniform_components);
             raw_memory = malloc(memory_size);
             memset(raw_memory, 0, memory_size);
         }

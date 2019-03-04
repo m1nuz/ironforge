@@ -101,6 +101,12 @@ namespace scene {
     auto remove_entity( instance_t &sc, const uint32_t entity_id ) -> bool {
         auto res = false;
 
+        auto name_it = std::find_if( sc.names.begin( ), sc.names.end( ), [entity_id]( const auto &nv ) { return nv.second == entity_id; } );
+        if ( name_it != sc.names.end( ) ) {
+            res |= true;
+            sc.names.erase( name_it );
+        }
+
         auto material_it = sc.materials.find( entity_id );
         if ( material_it != sc.materials.end() ) {
             res |= true;

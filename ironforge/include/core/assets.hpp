@@ -125,6 +125,8 @@ namespace assets {
     [[nodiscard]] auto get_image(instance_t &inst, std::string_view name) -> std::optional<image_data_t>;
     [[nodiscard]] auto get_binary(instance_t &inst, std::string_view name) -> std::optional<binary_data_t>;
 
+    [[nodiscard]] auto get_text_absolute( instance_t &inst, const std::string &path ) -> text_data_t;
+
     auto get_text(instance_t &inst, std::string_view name, text_responce cb) -> void;
     auto get_image(instance_t &inst, std::string_view name, image_responce cb) -> void;
     auto get_binary(instance_t &inst, std::string_view name, binary_responce cb) -> void;

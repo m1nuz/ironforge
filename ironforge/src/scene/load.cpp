@@ -8,11 +8,11 @@
 #include <scene/instance.hpp>
 
 namespace scene {
-    auto load(assets::instance_t &asset, video::instance_t &vi, const std::string &path) -> load_result {
+    auto load(assets::instance_t &asset, video::instance_t &vi, const std::string &path, const bool directly) -> load_result {
         using namespace std;
         using namespace game;
 
-        auto scene_contents = assets::get_text(asset, path);
+        auto scene_contents = directly ? assets::get_text_absolute( asset, path ) : assets::get_text( asset, path );
 
         if (!scene_contents)
             return make_error_code(errc::load_scene);

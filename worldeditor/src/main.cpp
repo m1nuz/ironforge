@@ -12,6 +12,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdl_gl3.h>
 #include <imgui_dock.h>
+#include <nfd.h>
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
@@ -30,7 +31,7 @@ namespace game {
 
         ///
         /// \brief Returns prefered application path.
-        /// Prefered path mean where application could write data.
+        /// Prefered path mean where application could write data.0
         ///
         auto get_pref_path() noexcept -> const std::string&;
 
@@ -48,6 +49,14 @@ namespace editor {
     struct play_state {
 
     };
+
+    struct instace_type {
+        scene::instance_t _scene;
+        assets::instance_t _asset;
+        video::instance_t _video;
+    };
+
+    using instace_t = instace_type;
 
     using editor_state = std::variant<play_state, pause_state>;
 
@@ -238,10 +247,10 @@ namespace editor {
         return EXIT_SUCCESS;
     }*/
 
-    assets::instance_t _asset;
-
-    auto init(std::string_view conf_path, const bool fullpath_only = false) -> void {
+    [[nodiscard]] auto init(std::string_view conf_path, const bool fullpath_only = false) -> std::optional<instace_t> {
         using namespace std;
+
+        instace_t inst;
 
         // if releative and not fullpath_only add base_path
         const auto cpath = (conf_path.find("..") == string::npos) && !fullpath_only ? string{conf_path} : game::detail::get_base_path() + string{conf_path};
@@ -249,19 +258,18 @@ namespace editor {
 
         if (!contents) {
             journal::error("editor", "%s", "Config not found");
-            return;
+            return {};
         }
 
         auto j = json::parse(contents.value());
-
         {
             auto asset_inst = assets::create_instance(assets::create_default_readers());
             if (holds_alternative<error_code>(asset_inst)) {
                 journal::error("editor", "%", "Can't append readers");
-                return;
+                return {};
             }
 
-            _asset = move(get<assets::instance_t>(asset_inst));
+            inst._asset = move(get<assets::instance_t>(asset_inst));
 
             if (j.find("assets") != j.end()) {
                 for (auto &a : j["assets"]) {
@@ -269,12 +277,147 @@ namespace editor {
 
                     journal::debug("editor", "%", asset_name);
 
-                    if (!assets::open(_asset, game::detail::get_base_path() + a.get<string>()))
+                    if (!assets::open(inst._asset, game::detail::get_base_path() + a.get<string>()))
                         journal::error("editor", "%", "Can't open asset %", asset_name);
                 }
             }
         }
+
+        inst._video.texture_level = 1;
+
+        return inst;
     }
+
+    auto open_scene(const std::string_view scene_path) {
+
+    }
+
+    auto quit( ) noexcept {
+        SDL_Event ev;
+        ev.type = SDL_QUIT;
+
+        SDL_PushEvent( &ev );
+    }
+
+    auto pick_file( ) {
+        nfdchar_t *out_path = nullptr;
+        auto result = NFD_OpenDialog( "scene", nullptr, &out_path );
+        if ( result == NFD_OKAY ) {
+            std::string p = out_path;
+            free( out_path );
+            return p;
+        } else if ( result == NFD_CANCEL ) {
+            // nothing
+        } else {
+            journal::error( "editor", "%", NFD_GetError( ) );
+        }
+    }
+
+    bool show_app_property_editor = false;
+
+    auto show_scene_properties( instace_t& app ) {
+        if (!show_app_property_editor)
+            return;
+
+        auto show_scene_entities = []( scene::instance_t &sc ) {
+            for ( auto &[entity_name, entity_id] : sc.names ) {
+                ImGui::PushID( entity_id );
+                ImGui::AlignTextToFramePadding( );
+
+                bool node_open = ImGui::TreeNode( "Object", "%s %u", entity_name.c_str( ), entity_id );
+                if ( node_open ) {
+                    ImGui::NextColumn( );
+                    ImGui::Text( "Properties:" );
+                    ImGui::TreePop( );
+                    ImGui::NextColumn( );
+                }
+
+                ImGui::PopID( );
+            }
+        };
+
+        if ( !ImGui::Begin( "Scene properties", &show_app_property_editor ) ) {
+            ImGui::End( );
+            return;
+        }
+
+        ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 2, 2 ) );
+        ImGui::Columns( 2 );
+        ImGui::Separator( );
+
+        show_scene_entities( app._scene );
+
+        ImGui::PopStyleVar( );
+
+        ImGui::End( );
+    }
+
+    auto show_file_menu( instace_t &app ) {
+        if ( ImGui::MenuItem( "New" ) ) {
+        }
+
+        if ( ImGui::MenuItem( "Open", "Ctrl+O" ) ) {
+            auto fp = pick_file( );
+            auto res = scene::load( app._asset, app._video, fp, true );
+            if ( !scene::is_ok( res ) ) {
+                return;
+            }
+
+            app._scene = std::move( std::get<scene::instance_t>( res ) );
+
+            show_app_property_editor = true;
+        }
+
+        if ( ImGui::BeginMenu( "Open Recent" ) ) {
+            ImGui::MenuItem( "fish_hat.c" );
+            ImGui::MenuItem( "fish_hat.inl" );
+            ImGui::MenuItem( "fish_hat.h" );
+            if ( ImGui::BeginMenu( "More.." ) ) {
+                ImGui::MenuItem( "Hello" );
+                ImGui::MenuItem( "Sailor" );
+                ImGui::EndMenu( );
+            }
+            ImGui::EndMenu( );
+        }
+
+        if ( ImGui::MenuItem( "Save", "Ctrl+S" ) ) {
+        }
+
+        if ( ImGui::MenuItem( "Save As.." ) ) {
+        }
+
+        if ( ImGui::MenuItem( "Quit", "Alt+F4" ) ) {
+            quit( );
+        }
+    }
+
+    auto show_main_menu( instace_t& app ) {
+        if ( ImGui::BeginMainMenuBar( ) ) {
+            if ( ImGui::BeginMenu( "File" ) ) {
+                show_file_menu( app );
+                ImGui::EndMenu( );
+            }
+            if ( ImGui::BeginMenu( "Edit" ) ) {
+                if ( ImGui::MenuItem( "Undo", "CTRL+Z" ) ) {
+                }
+                if ( ImGui::MenuItem( "Redo", "CTRL+Y", false, false ) ) {
+                } // Disabled item
+                ImGui::Separator( );
+                if ( ImGui::MenuItem( "Cut", "CTRL+X" ) ) {
+                }
+                if ( ImGui::MenuItem( "Copy", "CTRL+C" ) ) {
+                }
+                if ( ImGui::MenuItem( "Paste", "CTRL+V" ) ) {
+                }
+                ImGui::Separator( );
+                if ( ImGui::MenuItem( "Settings" ) ) {
+                }
+                ImGui::EndMenu( );
+            }
+            ImGui::EndMainMenuBar( );
+        }
+    }
+
 } // namespace editor
 
 #include <SDL2/SDL.h>
@@ -287,9 +430,12 @@ extern int main(int argc, char* argv[]) {
 
     // Get executable name
     const auto app_name = strrchr(argv[0], '/') ? strrchr(argv[0], '/') + 1 : nullptr;
-    editor::journal::setup_default(string{app_name} + ".log");
+    editor::journal::setup_default( string{app_name} + ".log" );
 
-    editor::init("../assets/editor/editor.conf");
+    auto app = editor::init( "../assets/editor/editor.conf" );
+    if ( !app ) {
+        editor::journal::error( editor::journal::_GAME, "%", "Couldn't init editor");
+    }
 
     // Init SDL
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -298,7 +444,7 @@ extern int main(int argc, char* argv[]) {
     }
 
     // Setup window
-    constexpr char EDITOR_TITLE[] = "WORLD EDITOR";
+    constexpr char EDITOR_TITLE[] = "IRONFORGE World Editor";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG | SDL_GL_CONTEXT_DEBUG_FLAG);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -326,7 +472,7 @@ extern int main(int argc, char* argv[]) {
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     ImGui_ImplSdlGL3_Init(window);
 
-    ImGui::InitDock();
+    //ImGui::InitDock();
 
     bool done = false;
     while (!done) {
@@ -340,8 +486,11 @@ extern int main(int argc, char* argv[]) {
 
         ImGui_ImplSdlGL3_NewFrame(window);
 
-        ImGui::Text("Hello, world!");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        editor::show_main_menu( app.value() );
+        editor::show_scene_properties( app.value() );
+
+        //ImGui::Text("Hello, world!");
+        //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
         glViewport(0, 0, drawable_w, drawable_h);
         glClearColor(0.3, 0.3, 0.3, 0);

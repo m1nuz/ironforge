@@ -237,27 +237,6 @@ namespace assets {
         return {};
     }
 
-    /*auto get_text_absolute(const std::string& path) -> text_data {
-        fs::path p(path);
-
-        auto r = text_readers.find(p.extension().string());
-
-        if (r == text_readers.end())
-            return {nullptr, 0};
-
-        auto td = text_data{nullptr, 0};
-
-        auto ret = r->second(SDL_RWFromFile(path.c_str(), "r"), td);
-        if (ret != 0) {
-            game::journal::error(game::journal::_SYSTEM, "Can't read file %", path);
-            return {nullptr, 0};
-        }
-
-        game::journal::debug(game::journal::_GAME, "Read file %", path);
-        texts.insert({p.filename().string(), td}); // TODO: free memory
-        return td;
-    }*/
-
     auto get_image(instance_t &inst, std::string_view name) -> std::optional<image_data_t> {
         const auto _name = std::string{name};
 
@@ -325,6 +304,20 @@ namespace assets {
             game::journal::warning(game::journal::_GAME, "No reader for '%'", p.extension().string());
 
             return {};
+        }
+
+        return {};
+    }
+
+    auto get_text_absolute( instance_t &inst, const std::string &path ) -> text_data_t {
+        fs::path p( path );
+
+        game::journal::debug( game::journal::_GAME, "Read file %", path );
+
+        auto rw = SDL_RWFromFile( path.c_str( ), "r" );
+        auto res = read_text( inst, rw );
+        if ( res ) {
+            return res.value( );
         }
 
         return {};

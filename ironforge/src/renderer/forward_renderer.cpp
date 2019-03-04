@@ -84,7 +84,17 @@ namespace renderer {
         blur_framebuffer = gl::create_framebuffer({w / ratio, h / ratio, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, blur_map.id}}});
         sample_framebuffer = gl::create_framebuffer({w, h, mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::renderbuffer, sample_color.id},
                                                                   {gl::framebuffer_attachment::depth, gl::framebuffer_attachment_target::renderbuffer, sample_depth.id}}});
-        final_framebuffer = gl::default_framebuffer(vi);
+
+        if (renderer_flags & RENDER_TO_TEXTURE_BIT) {
+            using namespace video;
+
+            const auto offscreen_mask = static_cast<uint32_t>(gl::framebuffer_mask::color_buffer);
+
+            final_texture = gl::create_texture_2d({pixel_format::rgba8, 0, 0, w, h, 0, {}});
+            final_framebuffer = gl::create_framebuffer({w, h, offscreen_mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, final_texture.id}}});
+        } else {
+            final_framebuffer = gl::default_framebuffer(vi);
+        }
 
         auto quad_vi = video::vertgen::make_plane(glm::mat4{1.f});
         std::vector<vertices_draw> quad_vd;
@@ -114,14 +124,7 @@ namespace renderer {
         matrices.reserve(max_matrices);
         materials.reserve(max_materials);
 
-        if (renderer_flags & RENDER_TO_TEXTURE_BIT) {
-            using namespace video;
 
-            const auto offscreen_mask = static_cast<uint32_t>(gl::framebuffer_mask::color_buffer);
-
-            final_texture = gl::create_texture_2d({pixel_format::rgba8, 0, 0, w, h, 0, {}});
-            final_framebuffer = gl::create_framebuffer({w, h, offscreen_mask, {{gl::framebuffer_attachment::color0, gl::framebuffer_attachment_target::texture, final_texture.id}}});
-        }
 
         reset();
     }

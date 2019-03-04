@@ -32,7 +32,7 @@ namespace scene {
     }
 
     auto cleanup_all(std::vector<instance_t> &scenes) -> void;
-    [[nodiscard]] auto load(assets::instance_t &asset, video::instance_t &vi, const std::string &path) -> load_result;
+    [[nodiscard]] auto load(assets::instance_t &asset, video::instance_t &vi, const std::string &path, const bool directly = false) -> load_result;
     auto update(instance_t &sc, const float dt) -> void;
     auto process_event(instance_t &sc, const SDL_Event &ev) -> void;
     auto present(video::instance_t &vi, instance_t &sc, std::unique_ptr<renderer::instance> &render, const float interpolation) -> void;
