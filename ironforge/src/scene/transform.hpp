@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <optional>
+#include <functional>
 
 #include <core/common.hpp>
 #include <core/math.hpp>
@@ -16,6 +17,8 @@ namespace scene {
         uint32_t    parent = 0;
         glm::mat4   model = glm::mat4{1.f};
     };
+
+    using transform_ref = std::reference_wrapper<transform_instance>;
 
     auto create_transforms(const uint32_t entity, const uint32_t parent) -> std::optional<transform_instance>;
     auto present_all_transforms(instance_t &sc, std::function<void(uint32_t, const glm::mat4 &)> cb) -> void;

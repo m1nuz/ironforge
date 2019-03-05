@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <optional>
+#include <functional>
 
 #include <core/json.hpp>
 
@@ -37,6 +38,8 @@ namespace scene {
         const char  *source;
         const char  *table_name;
     };
+
+    using script_ref = std::reference_wrapper<script_instance>;
 
     template<typename Arg, typename... Args>
     auto call_with_args(const script_instance *sc, const char *fn_name,  Arg&& arg, Args&&... args) -> int32_t;

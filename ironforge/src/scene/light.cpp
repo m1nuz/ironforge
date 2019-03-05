@@ -4,7 +4,7 @@
 #include "light.hpp"
 
 namespace scene {
-    auto create_light(const json &info) -> std::optional<light_t> {
+    auto create_light(const json &info) -> std::optional<light_instance> {
         using namespace std;
         using namespace glm;
         using namespace game;
@@ -14,7 +14,7 @@ namespace scene {
 
         const auto type = info["type"].get<string>();
 
-        light_t l;
+        light_instance l;
 
         journal::info(journal::_SCENE, "Create % light", type);
 

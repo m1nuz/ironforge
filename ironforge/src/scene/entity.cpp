@@ -9,13 +9,11 @@ namespace scene {
         using namespace std;
         using namespace game;
 
-        static instance_t::index_t entity_id = 0;
-
         string name;
         if (info.find("name") != info.end())
             name = info["name"].get<string>();
 
-        const auto ix = (name != "root") ? entity_id++ : 0;
+        const auto ix = (name != "root") ? sc.current_entity_id++ : 0;
 
         if (!name.empty())
             sc.names.emplace(name, ix);
@@ -26,7 +24,7 @@ namespace scene {
         const auto renderable = info.find("renderable") != info.end() ? info["renderable"].get<bool>() : false;
         //const auto bool movable = info.find("movable") != info.end() ? info["movable"].get<bool>() : false;
 
-        journal::info(journal::_SCENE, "Create entity:\n\tname '%' (%)\n\tparent '%' (%)\n\trenderable %", name, entity_id, parent_name, parent_ix, renderable);
+        journal::info(journal::_SCENE, "Create entity:\n\tname '%' (%)\n\tparent '%' (%)\n\trenderable %", name, ix, parent_name, parent_ix, renderable);
 
         if (info.find("body") != info.end()) {
             const auto b = create_body(info["body"]);
@@ -163,4 +161,87 @@ namespace scene {
 
         return res;
     }
+
+    auto get_entity_name( instance_t &inst, const uint32_t entity_id ) -> std::optional<std::string_view> {
+        auto name_it =
+            std::find_if( inst.names.begin( ), inst.names.end( ), [entity_id]( const auto &nv ) { return nv.second == entity_id; } );
+        if ( name_it != inst.names.end( ) ) {
+            return name_it->first;
+        }
+
+        return {};
+    }
+
+    auto get_entity_material( instance_t &inst, const uint32_t entity_id ) -> std::optional<material_ref> {
+        auto it = inst.materials.find( entity_id );
+        if ( it != inst.materials.end( ) )
+            return std::ref( it->second );
+
+        return {};
+    }
+
+    auto get_entity_model( instance_t &inst, const uint32_t entity_id ) -> std::optional<model_ref> {
+        auto it = inst.models.find( entity_id );
+        if ( it != inst.models.end() )
+            return std::ref( it->second );
+
+        return {};
+    }
+
+    auto get_entity_camera( instance_t &inst, const uint32_t entity_id ) -> std::optional<camera_ref> {
+        auto it = inst.cameras.find( entity_id );
+        if ( it != inst.cameras.end( ) )
+            return std::ref( it->second );
+
+        return {};
+    }
+
+    auto get_entity_script( instance_t &inst, const uint32_t entity_id ) -> std::optional<script_ref> {
+        auto it = inst.scripts.find( entity_id );
+        if ( it != inst.scripts.end() )
+            return std::ref( it->second );
+
+        return {};
+    }
+
+    auto get_entity_body( instance_t &inst, const uint32_t entity_id ) -> std::optional<body_ref> {
+        auto it = inst.bodies.find( entity_id );
+        if ( it != inst.bodies.end() )
+            return std::ref( it->second );
+
+        return {};
+    }
+
+    auto get_entity_input( instance_t &inst, const uint32_t entity_id ) -> std::optional<input_ref> {
+        auto it = inst.inputs.find( entity_id );
+        if ( it != inst.inputs.end() )
+            return std::ref( it->second );
+
+        return {};
+    }
+
+    auto get_entity_transform( instance_t &inst, const uint32_t entity_id ) -> std::optional<transform_ref> {
+        auto it = inst.transforms.find( entity_id );
+        if ( it != inst.transforms.end() )
+            return std::ref( it->second );
+
+        return {};
+    }
+
+    auto get_entity_emitter( instance_t &inst, const uint32_t entity_id ) -> std::optional<emitter_ref> {
+        auto it = inst.emitters.find( entity_id );
+        if ( it != inst.emitters.end() )
+            return std::ref( it->second );
+
+        return {};
+    }
+
+    auto get_entity_light( instance_t &inst, const uint32_t entity_id ) -> std::optional<light_ref> {
+        auto it = inst.lights.find( entity_id );
+        if ( it != inst.lights.end() )
+            return std::ref( it->second );
+
+        return {};
+    }
+
 } // namespace scene

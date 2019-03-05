@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <optional>
+#include <functional>
 
 #include <core/json.hpp>
 
@@ -35,6 +36,8 @@ namespace scene {
         input_source    *source;
         std::vector<input_action> actions;
     };
+
+    using input_ref = std::reference_wrapper<input_instance>;
 
     [[nodiscard]] auto create_input(const uint32_t entity, const json &info, const std::unordered_map<std::string, std::vector<input_action>> &sources) -> std::optional<input_instance>;
 

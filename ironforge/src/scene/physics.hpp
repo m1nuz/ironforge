@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <optional>
+#include <functional>
 
 #include <core/common.hpp>
 #include <core/json.hpp>
@@ -27,16 +28,16 @@ namespace physics {
 } // namespace physics
 
 namespace scene {
-    struct body_info {
-        glm::vec3 position = glm::vec3{0.f};
-        glm::vec3 orientation = glm::vec3{0.f};
-        glm::vec3 size = glm::vec3{1.f};
+//    struct body_info {
+//        glm::vec3 position = glm::vec3{0.f};
+//        glm::vec3 orientation = glm::vec3{0.f};
+//        glm::vec3 size = glm::vec3{1.f};
 
-        glm::vec3 velocity = glm::vec3{0.f};
-        glm::vec3 rotation = glm::vec3{0.f};
+//        glm::vec3 velocity = glm::vec3{0.f};
+//        glm::vec3 rotation = glm::vec3{0.f};
 
-        uint32_t  flags = 0;
-    };
+//        uint32_t  flags = 0;
+//    };
 
     struct body_instance {
         body_instance() = default;
@@ -57,6 +58,8 @@ namespace scene {
             return current.size;
         }
     };
+
+    using body_ref = std::reference_wrapper<body_instance>;
 
     struct instance_type;
     typedef instance_type instance_t;

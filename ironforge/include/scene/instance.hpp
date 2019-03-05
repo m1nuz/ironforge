@@ -3,7 +3,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "../../src/scene/entity.hpp"
 #include "../../src/scene/model.hpp"
 #include "../../src/scene/material.hpp"
 #include "../../src/scene/camera.hpp"
@@ -13,15 +12,13 @@
 #include "../../src/scene/transform.hpp"
 #include "../../src/scene/light.hpp"
 #include "../../src/scene/timer.hpp"
+#include "../../src/scene/emitter.hpp"
+#include "../../src/scene/entity.hpp"
 
 namespace scene {
     struct bound_box; // AABB
     struct bound_sphere;
     struct oriented_bound_box;
-
-    struct emitter_instance {
-
-    };
 
     // limits
     constexpr size_t max_entities       = 100;
@@ -48,16 +45,17 @@ namespace scene {
     constexpr size_t initial_light = 100;
 
     typedef struct instance_type {
-        typedef uint32_t index_t;
-        typedef std::string name_t;
-        typedef material_instance material_t;
-        typedef model_instance model_t;
-        typedef camera_instance camera_t;
-        typedef script_instance script_t;
-        typedef body_instance body_t;
-        typedef input_instance input_t;
-        typedef transform_instance transform_t;
-        typedef emitter_instance emitter_t;
+        using index_t = uint32_t;
+        using name_t = std::string;
+        using material_t = material_instance ;
+        using model_t = model_instance;
+        using camera_t = camera_instance;
+        using script_t = script_instance;
+        using body_t = body_instance;
+        using input_t = input_instance;
+        using transform_t = transform_instance;
+        using emitter_t = emitter_instance;
+        using light_t = light_instance;
 
         instance_type();
 
@@ -90,5 +88,6 @@ namespace scene {
         auto current_camera() -> camera_t&;
 
         index_t current_camera_index = 0;
+        index_t current_entity_id = 1;
     } instance_t;
 } // namespace scene

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <functional>
+
 #include <video/video.hpp>
 #include <scene/volume.hpp>
 
@@ -19,6 +21,8 @@ namespace scene {
 
         std::vector<video::mesh>    meshes;
     };
+
+    using model_ref = std::reference_wrapper<model_instance>;
 
     //auto create_model(const std::string &name, const std::vector<mesh_info> &meshes) -> model_instance;
     auto create_model(const std::vector<video::mesh> &meshes) -> std::optional<model_instance>;

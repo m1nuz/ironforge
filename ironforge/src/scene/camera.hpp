@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <functional>
 
 #include <core/common.hpp>
 #include <core/json.hpp>
@@ -27,6 +28,8 @@ namespace scene {
         glm::mat4   projection = glm::mat4{1.f};
         glm::mat4   view = glm::mat4{1.f};
     };
+
+    using camera_ref = std::reference_wrapper<camera_instance>;
 
     auto create_camera(const uint32_t entity, const json &info, const float aspect_ratio) -> std::optional<camera_instance>;
     auto present_all_cameras(instance_t& sc, const float aspect_ratio) -> void;

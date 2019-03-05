@@ -341,13 +341,78 @@ namespace editor {
             return;
         }
 
-        ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 2, 2 ) );
-        ImGui::Columns( 2 );
+//        ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 2, 2 ) );
+//        ImGui::Columns( 2 );
+//        ImGui::Separator( );
+
+//        show_scene_entities( app._scene );
+
+        //        ImGui::PopStyleVar( );
+
+        static int selected = 0;
+        static uint32_t selected_entity = 0;
+        int index = 0;
+        ImGui::BeginChild( "left pane", ImVec2( 150, 0 ), true );
+        for ( auto &[entity_name, entity_id] : app._scene.names ) {
+            char label[128];
+            sprintf( label, "%s #%d", entity_name.c_str( ), entity_id );
+            if ( ImGui::Selectable( label, selected == index ) ) {
+                selected_entity = entity_id;
+                selected = index;
+            }
+            index++;
+        }
+        ImGui::EndChild( );
+        ImGui::SameLine( );
+
+        ImGui::BeginGroup( );
+        ImGui::BeginChild( "item view", ImVec2( 0, -ImGui::GetFrameHeightWithSpacing( ) ) );
+
+        auto entity_name = scene::get_entity_name( app._scene, selected_entity );
+        if ( entity_name ) {
+            ImGui::Text( " %s : %d", entity_name.value( ).data( ), selected_entity );
+        }
+
+        auto entity_material = scene::get_entity_material( app._scene, selected_entity );
+        if ( entity_material ) {
+            if ( ImGui::CollapsingHeader( "Material" ) ) {
+            }
+        }
+
+        auto entity_model = scene::get_entity_model( app._scene, selected_entity );
+        if ( entity_model ) {
+            if ( ImGui::CollapsingHeader( "Model" ) ) {
+            }
+        }
+
+        auto entity_camera = scene::get_entity_camera( app._scene, selected_entity );
+        if ( entity_camera ) {
+            if ( ImGui::CollapsingHeader( "Camera" ) ) {
+            }
+        }
+
+        auto entity_script = scene::get_entity_script( app._scene, selected_entity );
+        if ( entity_script ) {
+            if ( ImGui::CollapsingHeader( "Script" ) ) {
+            }
+        }
+
+        auto entity_body = scene::get_entity_body( app._scene, selected_entity );
+        if ( entity_body ) {
+            if ( ImGui::CollapsingHeader( "Body" ) ) {
+            }
+        }
+
+        auto entity_light = scene::get_entity_light( app._scene, selected_entity );
+        if ( entity_light ) {
+            if ( ImGui::CollapsingHeader( "Light" ) ) {
+            }
+        }
+
         ImGui::Separator( );
 
-        show_scene_entities( app._scene );
-
-        ImGui::PopStyleVar( );
+        ImGui::EndChild( );
+        ImGui::EndGroup( );
 
         ImGui::End( );
     }

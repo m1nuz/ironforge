@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <optional>
+#include <functional>
 
 #include <core/common.hpp>
 #include <core/json.hpp>
@@ -25,6 +26,8 @@ namespace scene {
         std::string name = {};
         uint64_t name_hash = 0;
     };
+
+    using material_ref = std::reference_wrapper<material_instance>;
 
     auto create_material(video::instance_t &vi, const json &info) -> std::optional<material_instance>;
 } // namespace scene
