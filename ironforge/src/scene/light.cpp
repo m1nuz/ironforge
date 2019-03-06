@@ -1,4 +1,5 @@
 #include <core/journal.hpp>
+#include <core/math.hpp>
 #include <scene/scene.hpp>
 
 #include "light.hpp"
