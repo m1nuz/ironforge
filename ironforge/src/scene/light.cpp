@@ -5,9 +5,9 @@
 #include "light.hpp"
 
 namespace scene {
+
     auto create_light(const json &info) -> std::optional<light_instance> {
         using namespace std;
-        using namespace glm;
         using namespace game;
 
         if (info.find("type") == info.end())
@@ -20,7 +20,7 @@ namespace scene {
         journal::info(journal::_SCENE, "Create % light", type);
 
         if (type == "ambient_light" || type == "ambient") {
-            const auto ambient = info.find("ambient") != info.end() ? info["ambient"].get<vec3>() : vec3{};
+            const auto ambient = info.find("ambient") != info.end() ? info["ambient"].get<glm::vec3>() : glm::vec3{};
 
             journal::info(journal::_SCENE, "\tambient %", glm::to_string(ambient));
 
@@ -28,9 +28,9 @@ namespace scene {
         }
 
         if (type == "directional_light" || type == "directional") {
-            const auto diffuse = info.find("diffuse") != info.end() ? info["diffuse"].get<vec3>() : vec3{};
-            const auto specular = info.find("specular") != info.end() ? info["specular"].get<vec3>() : vec3{};
-            const auto direction = info.find("direction") != info.end() ? info["direction"].get<vec3>() : vec3{};
+            const auto diffuse = info.find("diffuse") != info.end() ? info["diffuse"].get<glm::vec3>() : glm::vec3{};
+            const auto specular = info.find("specular") != info.end() ? info["specular"].get<glm::vec3>() : glm::vec3{};
+            const auto direction = info.find("direction") != info.end() ? info["direction"].get<glm::vec3>() : glm::vec3{};
 
             journal::info(journal::_SCENE, "\tdiffuse %\n\tspecular %\n\tdirection %", glm::to_string(diffuse), glm::to_string(specular), glm::to_string(direction));
 
@@ -52,4 +52,5 @@ namespace scene {
             }, l);
         }
     }
+
 } // namespace scene
