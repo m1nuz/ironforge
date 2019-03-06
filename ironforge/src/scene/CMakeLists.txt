@@ -33,6 +33,7 @@ target_include_directories(${LIB_NAME} PUBLIC
 
 target_link_libraries(${LIB_NAME} PUBLIC
     xxhash
+    ironforge-core
     ironforge-video-gl330
     ${LUA_LIBRARIES}    
 )
