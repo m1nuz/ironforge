@@ -8,7 +8,18 @@ find_package(SDL2 REQUIRED)
 find_package(GLM REQUIRED)
 
 add_library(${LIB_NAME} ${HEADERS} ${DETAIL_HEADERS} ${SOURCES})
-set_property(TARGET ${LIB_NAME}  APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
+target_compile_options(${LIB_NAME} PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
+        -pthread
+        -pedantic
+        -Wall
+        -Wextra
+        -Werror
+        -Wshadow
+        -Wpointer-arith
+        -Wcast-qual
+        -Wunused-result
+        )
 
 target_include_directories(${LIB_NAME} PUBLIC
     ${GLM_INCLUDE_DIRS}

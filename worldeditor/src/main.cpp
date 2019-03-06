@@ -72,6 +72,7 @@ namespace editor {
 
             std::visit(overloaded {
                            [&app, ev](pause_state &state) {
+                               (void)state;
                                if (ev.type == SDL_KEYDOWN) {
                                    if (ev.key.keysym.sym == SDLK_ESCAPE)
                                        app.running = false;
@@ -85,6 +86,7 @@ namespace editor {
                                //journal::debug(journal::_GAME, "% % %", ui_context.mouse_x, ui_context.mouse_y, ui_context.all_keys);
                            },
                            [&app, ev](play_state &state) {
+                               (void)state;
                                if (ev.type == SDL_KEYDOWN) {
                                    if (ev.key.keysym.sym == SDLK_SPACE)
                                        current_state = pause_state{};
@@ -108,8 +110,10 @@ namespace editor {
     auto update(game::instance_t &app, const float dt) -> void {
         std::visit(overloaded {
                        [&app](pause_state &state) {
+                           (void)state;
                        },
                        [&app, dt](play_state &state) {
+                           (void)state;
                            game::input::update(app);
                            assets::process(app.asset_instance);
                            scene::update(app.current_scene(), dt);
@@ -289,7 +293,7 @@ namespace editor {
     }
 
     auto open_scene(const std::string_view scene_path) {
-
+        (void)scene_path;
     }
 
     auto quit( ) noexcept {
@@ -311,6 +315,8 @@ namespace editor {
         } else {
             journal::error( "editor", "%", NFD_GetError( ) );
         }
+
+        return std::string{};
     }
 
     bool show_app_property_editor = false;
@@ -319,22 +325,22 @@ namespace editor {
         if (!show_app_property_editor)
             return;
 
-        auto show_scene_entities = []( scene::instance_t &sc ) {
-            for ( auto &[entity_name, entity_id] : sc.names ) {
-                ImGui::PushID( entity_id );
-                ImGui::AlignTextToFramePadding( );
+//        auto show_scene_entities = []( scene::instance_t &sc ) {
+//            for ( auto &[entity_name, entity_id] : sc.names ) {
+//                ImGui::PushID( entity_id );
+//                ImGui::AlignTextToFramePadding( );
 
-                bool node_open = ImGui::TreeNode( "Object", "%s %u", entity_name.c_str( ), entity_id );
-                if ( node_open ) {
-                    ImGui::NextColumn( );
-                    ImGui::Text( "Properties:" );
-                    ImGui::TreePop( );
-                    ImGui::NextColumn( );
-                }
+//                bool node_open = ImGui::TreeNode( "Object", "%s %u", entity_name.c_str( ), entity_id );
+//                if ( node_open ) {
+//                    ImGui::NextColumn( );
+//                    ImGui::Text( "Properties:" );
+//                    ImGui::TreePop( );
+//                    ImGui::NextColumn( );
+//                }
 
-                ImGui::PopID( );
-            }
-        };
+//                ImGui::PopID( );
+//            }
+//        };
 
         if ( !ImGui::Begin( "Scene properties", &show_app_property_editor ) ) {
             ImGui::End( );

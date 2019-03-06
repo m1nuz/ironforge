@@ -12,7 +12,18 @@ target_include_directories(${APP_NAME} PUBLIC
     ${GLCORE_INCLUDE_PATH}
 )
 
-set_property(TARGET ${APP_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS ${cpp_flags})
+target_compile_options(${APP_NAME} PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
+        -pthread
+        -pedantic
+        -Wall
+        -Wextra
+        -Werror
+        -Wshadow
+        -Wpointer-arith
+        -Wcast-qual
+        -Wunused-result
+        )
 
 target_link_libraries(${APP_NAME} PUBLIC
     ironforge-core

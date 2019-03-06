@@ -170,7 +170,7 @@ namespace video {
                     sh.texcoords.emplace_back((float)j / (float)num_slices, 1.0f - (float)i / (float)num_parallels);
 
                     glm::vec4 hv{1.0f, 0.0f, 0.0f, 1.f};
-                    glm::quat h{glm::vec3{sh.texcoords.back().x * 2.f * M_PI, 0, 0}};
+                    glm::quat h{glm::vec3{sh.texcoords.back().x * 2.f * M_PI, 0.f, 0.f}};
                     sh.tangents.emplace_back(glm::mat4_cast(h) * hv);
                 }
 
