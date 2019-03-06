@@ -2,13 +2,12 @@
 
 #include <core/assets.hpp>
 #include <core/json.hpp>
-#include <ui/imui.hpp>
 
 namespace game {
 
     namespace detail {
 
-        auto read_ui_styles( assets::instance_t& asset, json ui_json) -> std::unordered_map<std::string, imui::box_style>;
+        //auto read_ui_styles( assets::instance_t& asset, json ui_json) -> std::unordered_map<std::string, imui::box_style>;
 
         ///
         /// \brief Returns base application path.

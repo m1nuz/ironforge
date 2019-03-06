@@ -188,17 +188,17 @@ namespace game {
         }
 
         // UI
-        {
-            const auto ui_info = j["ui"];
-            const auto ui_type = ui_info.find("type") != ui_info.end() ? ui_info["type"].get<string>() : string{};
+//        {
+//            const auto ui_info = j["ui"];
+//            const auto ui_type = ui_info.find("type") != ui_info.end() ? ui_info["type"].get<string>() : string{};
 
-            if (ui_type == "immediate") {
-                const auto styles = detail::read_ui_styles(ctx.asset_instance, ui_info);
+//            if (ui_type == "immediate") {
+//                const auto styles = detail::read_ui_styles(ctx.asset_instance, ui_info);
 
-                if (auto imui = imui::create(ctx.vi, styles); imui)
-                    ctx.imui = imui.value();
-            }
-        }
+//                if (auto imui = imui::create(ctx.vi, styles); imui)
+//                    ctx.imui = imui.value();
+//            }
+//        }
 
         // Locale
         setup_locale("");

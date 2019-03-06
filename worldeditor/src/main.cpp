@@ -21,7 +21,7 @@ namespace game {
 
     namespace detail {
 
-        auto read_ui_styles( assets::instance_t& asset, json ui_json) -> std::unordered_map<std::string, imui::box_style>;
+        //auto read_ui_styles( assets::instance_t& asset, json ui_json) -> std::unordered_map<std::string, imui::box_style>;
 
         ///
         /// \brief Returns base application path.
@@ -60,7 +60,7 @@ namespace editor {
 
     using editor_state = std::variant<play_state, pause_state>;
 
-    imui::context_t ui_context;
+    //imui::context_t ui_context;
 
     editor_state current_state = pause_state{};
 
@@ -71,7 +71,7 @@ namespace editor {
             ImGui_ImplSdlGL3_ProcessEvent(&ev);
 
             std::visit(overloaded {
-                           [&app, &ui_context, ev](pause_state &state) {
+                           [&app, ev](pause_state &state) {
                                if (ev.type == SDL_KEYDOWN) {
                                    if (ev.key.keysym.sym == SDLK_ESCAPE)
                                        app.running = false;
@@ -80,7 +80,7 @@ namespace editor {
                                        current_state = play_state{};
                                }
 
-                               imui::handle_input(ui_context, ev);
+                               //imui::handle_input(ui_context, ev);
 
                                //journal::debug(journal::_GAME, "% % %", ui_context.mouse_x, ui_context.mouse_y, ui_context.all_keys);
                            },
