@@ -503,12 +503,12 @@ namespace renderer {
             offset[3] = static_cast<float>(glyph.value().h) / th;
 
             const video::v3t2c4 vertices[6] = {
-                {{p.x         , p.y + size.y, 0}, {offset[0]            , offset[1]}            , color},
-                {{p.x + size.x, p.y + size.y, 0}, {offset[0] + offset[2], offset[1]}            , color},
-                {{p.x + size.x, p.y,          0}, {offset[0] + offset[2], offset[1] + offset[3]}, color},
-                {{p.x + size.x, p.y,          0}, {offset[0] + offset[2], offset[1] + offset[3]}, color},
-                {{p.x         , p.y,          0}, {offset[0]            , offset[1] + offset[3]}, color},
-                {{p.x         , p.y + size.y, 0}, {offset[0]            , offset[1]}            , color},
+                {vec3{p.x         , p.y + size.y, 0.f}, vec2{offset[0]            , offset[1]}            , color},
+                {vec3{p.x + size.x, p.y + size.y, 0.f}, vec2{offset[0] + offset[2], offset[1]}            , color},
+                {vec3{p.x + size.x, p.y,          0.f}, vec2{offset[0] + offset[2], offset[1] + offset[3]}, color},
+                {vec3{p.x + size.x, p.y,          0.f}, vec2{offset[0] + offset[2], offset[1] + offset[3]}, color},
+                {vec3{p.x         , p.y,          0.f}, vec2{offset[0]            , offset[1] + offset[3]}, color},
+                {vec3{p.x         , p.y + size.y, 0.f}, vec2{offset[0]            , offset[1]}            , color},
             };
 
             video::append_triangles_vertices(triangles, vertices, 6);
