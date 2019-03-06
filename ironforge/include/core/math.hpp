@@ -16,11 +16,11 @@
 
 namespace glm {
 
-    inline void to_json( nlohmann::json &j, const glm::vec3 &p ) {
+    static inline void to_json( nlohmann::json &j, const glm::vec3 &p ) {
         j.array( {p.x, p.y, p.z} );
     }
 
-    inline void from_json( const nlohmann::json &j, glm::vec3 &p ) {
+    static inline void from_json( const nlohmann::json &j, glm::vec3 &p ) {
         int ix = 0;
         for ( auto it = j.begin( ); it != j.end( ); ++it, ix++ ) {
             p[ix] = *it;
