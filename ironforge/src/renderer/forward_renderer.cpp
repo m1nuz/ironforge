@@ -536,12 +536,12 @@ namespace renderer {
         const auto y1 = _y1 * 2.f;
 
         const video::v3t2c4 vertices[6] = {
-            {{x0 - e.x - z.x, y0 - e.y - z.y, 0.f}, {coords.x            + offset.x, coords.y            + offset.y}, color}, // 0
-            {{x1 - e.x + z.x, y1 - e.y + z.y, 0.f}, {coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
-            {{x0 + e.x - z.x, y0 + e.y - z.y, 0.f}, {coords.x            + offset.x, coords.y + coords.w - offset.y}, color}, // 2
-            {{x1 - e.x + z.x, y1 - e.y + z.y, 0.f}, {coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
-            {{x1 + e.x + z.x, y1 + e.y + z.y, 0.f}, {coords.x + coords.z - offset.x, coords.y + coords.w - offset.y}, color}, // 3
-            {{x0 + e.x - z.x, y0 + e.y - z.y, 0.f}, {coords.x            + offset.x, coords.y + coords.w - offset.y}, color}  // 2
+            {vec3{x0 - e.x - z.x, y0 - e.y - z.y, 0.f}, vec2{coords.x            + offset.x, coords.y            + offset.y}, color}, // 0
+            {vec3{x1 - e.x + z.x, y1 - e.y + z.y, 0.f}, vec2{coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
+            {vec3{x0 + e.x - z.x, y0 + e.y - z.y, 0.f}, vec2{coords.x            + offset.x, coords.y + coords.w - offset.y}, color}, // 2
+            {vec3{x1 - e.x + z.x, y1 - e.y + z.y, 0.f}, vec2{coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
+            {vec3{x1 + e.x + z.x, y1 + e.y + z.y, 0.f}, vec2{coords.x + coords.z - offset.x, coords.y + coords.w - offset.y}, color}, // 3
+            {vec3{x0 + e.x - z.x, y0 + e.y - z.y, 0.f}, vec2{coords.x            + offset.x, coords.y + coords.w - offset.y}, color}  // 2
         };
 
         video::append_triangles_vertices(triangles, vertices, 6);
@@ -560,12 +560,12 @@ namespace renderer {
         const auto offset = vec2{1.f / 64.f, 1.f / 64.f};
 
         const video::v3t2c4 vertices[6] = {
-            {{x    , y    , 0.f}, {coords.x            + offset.x, coords.y            + offset.y}, color}, // 0
-            {{x + w, y    , 0.f}, {coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
-            {{x    , y + h, 0.f}, {coords.x            + offset.x, coords.y + coords.w - offset.y}, color}, // 2
-            {{x + w, y    , 0.f}, {coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
-            {{x + w, y + h, 0.f}, {coords.x + coords.z - offset.x, coords.y + coords.w - offset.y}, color}, // 3
-            {{x    , y + h, 0.f}, {coords.x            + offset.x, coords.y + coords.w - offset.y}, color}  // 2
+            {vec3{x    , y    , 0.f}, vec2{coords.x            + offset.x, coords.y            + offset.y}, color}, // 0
+            {vec3{x + w, y    , 0.f}, vec2{coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
+            {vec3{x    , y + h, 0.f}, vec2{coords.x            + offset.x, coords.y + coords.w - offset.y}, color}, // 2
+            {vec3{x + w, y    , 0.f}, vec2{coords.x + coords.z - offset.x, coords.y            + offset.y}, color}, // 1
+            {vec3{x + w, y + h, 0.f}, vec2{coords.x + coords.z - offset.x, coords.y + coords.w - offset.y}, color}, // 3
+            {vec3{x    , y + h, 0.f}, vec2{coords.x            + offset.x, coords.y + coords.w - offset.y}, color}  // 2
         };
 
         video::append_triangles_vertices(triangles, vertices, 6);

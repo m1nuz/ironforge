@@ -57,13 +57,14 @@ namespace video {
     }
 
     auto append_sprite(sprite_batch &sb, const glm::vec3 &position, const glm::vec2 size, const glm::vec4 offset, const glm::vec4 color) -> void {
+        using namespace glm;
         const float correction = sb.correction;
 
         const v3t2c4 vertices[4] = {
-            {{position[0], position[1] + size[1] * correction, 0}, {offset[0], offset[1]}, {color[0], color[1], color[2], color[3]}},
-            {{position[0] + size[0], position[1] + size[1] * correction, 0}, {offset[0] + offset[2], offset[1]}, {color[0], color[1], color[2], color[3]}},
-            {{position[0] + size[0], position[1], 0}, {offset[0] + offset[2], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
-            {{position[0], position[1], 0}, {offset[0], offset[1] + offset[3]}, {color[0], color[1], color[2], color[3]}},
+            {vec3{position[0], position[1] + size[1] * correction, 0}, vec2{offset[0], offset[1]}, vec4{color[0], color[1], color[2], color[3]}},
+            {vec3{position[0] + size[0], position[1] + size[1] * correction, 0}, vec2{offset[0] + offset[2], offset[1]}, vec4{color[0], color[1], color[2], color[3]}},
+            {vec3{position[0] + size[0], position[1], 0}, vec2{offset[0] + offset[2], offset[1] + offset[3]}, vec4{color[0], color[1], color[2], color[3]}},
+            {vec3{position[0], position[1], 0}, vec2{offset[0], offset[1] + offset[3]}, vec4{color[0], color[1], color[2], color[3]}},
         };
 
         append_sprite_vertices(sb, vertices);

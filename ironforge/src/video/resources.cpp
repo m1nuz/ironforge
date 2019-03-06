@@ -28,15 +28,15 @@ namespace video {
 
         journal::debug("%", "Init resources");
 
-        vi.textures.emplace("white-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 255, 255}), textures_flags));
-        vi.textures.emplace("black-map", gl::create_texture_2d(imgen::make_color(128, 128, {0, 0, 0}), textures_flags));
-        vi.textures.emplace("check-map", gl::create_texture_2d(imgen::make_check(128, 128, 0x10, {24, 24, 24}), textures_flags));
-        vi.textures.emplace("red-map", gl::create_texture_2d(imgen::make_color(128, 128, {255, 0, 0}), textures_flags));
+        vi.textures.emplace("white-map", gl::create_texture_2d(imgen::make_color(128, 128, imgen::rgb_color{255, 255, 255}), textures_flags));
+        vi.textures.emplace("black-map", gl::create_texture_2d(imgen::make_color(128, 128, imgen::rgb_color{0, 0, 0}), textures_flags));
+        vi.textures.emplace("check-map", gl::create_texture_2d(imgen::make_check(128, 128, 0x10, imgen::rgb_color{24, 24, 24}), textures_flags));
+        vi.textures.emplace("red-map", gl::create_texture_2d(imgen::make_color(128, 128, imgen::rgb_color{255, 0, 0}), textures_flags));
 
         const int asz = 1024;
 
         // White texture needs for ui drawing
-        auto white_im = video::imgen::make_color(64, 64, {255, 255, 255});
+        auto white_im = video::imgen::make_color(64, 64, imgen::rgb_color{255, 255, 255});
         auto font_atlas = video::create_atlas(asz, asz, 1);
         /*auto rc = */video::insert_image(font_atlas, white_im);
         if (!build_fonts(vi, asset, fonts, font_atlas)) {
