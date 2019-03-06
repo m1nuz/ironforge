@@ -21,7 +21,7 @@ namespace scene {
         if (type == "ambient_light" || type == "ambient") {
             const auto ambient = info.find("ambient") != info.end() ? info["ambient"].get<vec3>() : vec3{};
 
-            journal::info(journal::_SCENE, "\tambient %", ambient);
+            journal::info(journal::_SCENE, "\tambient %", glm::to_string(ambient));
 
             l = renderer::phong::ambient_light{ambient};
         }
@@ -31,7 +31,7 @@ namespace scene {
             const auto specular = info.find("specular") != info.end() ? info["specular"].get<vec3>() : vec3{};
             const auto direction = info.find("direction") != info.end() ? info["direction"].get<vec3>() : vec3{};
 
-            journal::info(journal::_SCENE, "\tdiffuse %\n\tspecular %\n\tdirection %", diffuse, specular, direction);
+            journal::info(journal::_SCENE, "\tdiffuse %\n\tspecular %\n\tdirection %", glm::to_string(diffuse), glm::to_string(specular), glm::to_string(direction));
 
             l = renderer::phong::directional_light{direction, diffuse, specular};
         }
