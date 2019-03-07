@@ -47,7 +47,7 @@ namespace scene {
     typedef struct instance_type {
         using index_t = uint32_t;
         using name_t = std::string;
-        using material_t = material_instance ;
+        using material_t = material_instance;
         using model_t = model_instance;
         using camera_t = camera_instance;
         using script_t = script_instance;

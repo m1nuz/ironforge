@@ -320,6 +320,38 @@ namespace editor {
     }
 
     bool show_app_property_editor = false;
+    bool show_app_resources_property_editor = false;
+
+    auto show_resources_properties( instace_t& app ) {
+        (void)app;
+
+        if (!show_app_resources_property_editor)
+            return;
+
+        ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
+
+        if ( !ImGui::Begin( "Resources properties", &show_app_resources_property_editor ) ) {
+            ImGui::End( );
+            return;
+        }
+
+        if ( ImGui::CollapsingHeader( "Textures" ) ) {
+        }
+
+        if ( ImGui::CollapsingHeader( "Effects" ) ) {
+        }
+
+        if ( ImGui::CollapsingHeader( "Materials" ) ) {
+        }
+
+        if ( ImGui::CollapsingHeader( "Models" ) ) {
+        }
+
+        if ( ImGui::CollapsingHeader( "Inputs" ) ) {
+        }
+
+        ImGui::End( );
+    }
 
     auto show_scene_properties( instace_t& app ) {
         if (!show_app_property_editor)
@@ -342,6 +374,7 @@ namespace editor {
 //            }
 //        };
 
+        ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
         if ( !ImGui::Begin( "Scene properties", &show_app_property_editor ) ) {
             ImGui::End( );
             return;
@@ -415,6 +448,12 @@ namespace editor {
             }
         }
 
+        auto entity_input = scene::get_entity_input( app._scene, selected_entity );
+        if ( entity_input ) {
+            if ( ImGui::CollapsingHeader( "Input" ) ) {
+            }
+        }
+
         ImGui::Separator( );
 
         ImGui::EndChild( );
@@ -437,6 +476,7 @@ namespace editor {
             app._scene = std::move( std::get<scene::instance_t>( res ) );
 
             show_app_property_editor = true;
+            show_app_resources_property_editor = true;
         }
 
         if ( ImGui::BeginMenu( "Open Recent" ) ) {
@@ -559,6 +599,7 @@ extern int main(int argc, char* argv[]) {
 
         editor::show_main_menu( app.value() );
         editor::show_scene_properties( app.value() );
+        editor::show_resources_properties( app.value() );
 
         //ImGui::Text("Hello, world!");
         //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
