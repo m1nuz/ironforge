@@ -6,7 +6,7 @@ file(GLOB_RECURSE SOURCES "./*.cpp")
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_ttf REQUIRED)
-find_package(GLM REQUIRED)
+#find_package(GLM REQUIRED)
 
 add_library(${LIB_NAME} ${HEADERS} ${DETAIL_HEADERS} ${SOURCES})
 

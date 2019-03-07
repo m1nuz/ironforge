@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 
 project("ironforge projects")
 
@@ -13,8 +13,7 @@ set(LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(TOOLS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tools)
 set(GL_INCLUDE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/GL/include CACHE PATH "GL include path")
 
-include(GLM)
-
+add_subdirectory(external)
 add_subdirectory(lib/GLcore)
 add_subdirectory(lib/xxhash)
 add_subdirectory(lib/nativefiledialog)

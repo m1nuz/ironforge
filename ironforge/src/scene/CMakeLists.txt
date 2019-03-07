@@ -5,7 +5,7 @@ file(GLOB_RECURSE DETAIL_HEADERS "./*.hpp")
 file(GLOB_RECURSE SOURCES "./*.cpp")
 
 find_package(Lua REQUIRED)
-find_package(GLM REQUIRED)
+#find_package(GLM REQUIRED)
 
 add_library(${LIB_NAME} ${HEADERS} ${DETAIL_HEADERS} ${SOURCES})
 

@@ -1,14 +1,14 @@
 include(ExternalProject)
-find_package(GLM QUIET)
+#find_package(GLM QUIETLY)
 
-if(GLM_FOUND)
-    message(STATUS "Found GLM")
-else()
-    message(STATUS "GLM not found - will build from source")
+#if(GLM_FOUND)
+    #message(STATUS "Found GLM")
+#else()
+#    message(STATUS "GLM not found - will build from source")
 
     ExternalProject_Add(glm PREFIX glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG 0.9.9.0
+        GIT_TAG 0.9.9.3
 
         UPDATE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
 
@@ -17,6 +17,6 @@ else()
 
     ExternalProject_Get_Property(glm SOURCE_DIR)
     set(GLM_INCLUDE_DIRS ${SOURCE_DIR})
-endif()
+#endif()
 
 set(GLM_INCLUDE_DIRS ${GLM_INCLUDE_DIRS} CACHE STRING "")

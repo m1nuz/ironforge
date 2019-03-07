@@ -5,7 +5,7 @@ file(GLOB_RECURSE DETAIL_HEADERS "./*.hpp")
 file(GLOB_RECURSE SOURCES "./*.cpp")
 
 find_package(SDL2 REQUIRED)
-find_package(GLM REQUIRED)
+#find_package(GLM REQUIRED)
 
 add_library(${LIB_NAME} ${HEADERS} ${DETAIL_HEADERS} ${SOURCES})
 target_compile_options(${LIB_NAME} PUBLIC
