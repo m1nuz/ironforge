@@ -18,5 +18,6 @@ set_target_properties(${LIB_NAME} PROPERTIES
 
 target_include_directories(${LIB_NAME} PUBLIC
     ${SDL2_INCLUDE_DIR}
-    ../../../lib/GLcore/include
+    ${GL_INCLUDE_PATH}
+    ${GLCORE_INCLUDE_PATH}
 )
